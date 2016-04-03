@@ -10,7 +10,7 @@ tags:
 <!--more-->
 ©原创文章，转载请注明出处！
 
-#block内部结构
+# block内部结构
 ______________
 ok，假设大家已经了解了block语法。
 
@@ -178,7 +178,7 @@ int main()
 
 嗯，已经很清楚了，block会被编译器转换为C语言的`struct`。
 
-额，熟悉的`isa`指针又出现在了表示block的结构体中，通过[《Objective-C Object Model》](http://localhost:4000/2014/07/13/Object-C-Object-Model4/)系列文章我们知道，含有`isa`指针的struct，在Objective-C中都可以被认为是Object。
+额，熟悉的`isa`指针又出现在了表示block的结构体中，通过[《Objective-C Object Model》](http://zxfcumtcs.github.io/2014/07/13/Object-C-Object-Model4/)系列文章我们知道，含有`isa`指针的struct，在Objective-C中都可以被认为是Object。
 
 那么block里面的`isa`指针指向谁呢？
 
@@ -198,7 +198,7 @@ int main()
 
 ![](/img/blockmemoryarrangement.jpg)
 
-###_NSConcreteGlobalBlock
+### _NSConcreteGlobalBlock
 
 很明显，`_NSConcreteGlobalBlock`类型的block分配在数据区域。以全局的方式定义的block，其类型为`_NSConcreteGlobalBlock`。
 
@@ -214,11 +214,11 @@ int main()
 
 + 在block内没有引用block外的任何自变量。
 
-###_NSConcreteMallocBlock
+### _NSConcreteMallocBlock
 
 `_NSConcreteMallocBlock`类型的block存储在heap上，通常是通过copy函数将stack上的block copy到heap上。
 
-###_NSConcreteStackBlock
+### _NSConcreteStackBlock
 
 `_NSConcreteStackBlock`类型的block存储在stack上，除了上述两种类型的block，其他block都属于`_NSConcreteStackBlock`。
 

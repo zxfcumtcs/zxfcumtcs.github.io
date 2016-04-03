@@ -9,7 +9,7 @@ tags:
 <!--more-->
 ©原创文章，转载请注明出处！
 
-#Overview
+# Overview
 __________________
 AOP(Aspect Oriented Programming, 面向切面编程)作为一种编程范式(Programming Paradigm)，主要用于解决*cross-cutting concerns(横向的通用逻辑)*问题，将非模块内部逻辑抽离出来，实现高内聚、低耦合的目标。
 
@@ -17,9 +17,9 @@ AOP 主要通过预编译或运行期动态代理实现在不修改源代码的�
 
 在项目开发中，像统计、日志、安全鉴权、异常处理等都是不可避免的，同时它们与模块的业务逻辑并不相关，若将它们揉和在一起十分不利于代码的维护，而通过 AOP 可以很方便的将这些功能从业务模块中抽离出来。
 
-在[KVO漫谈](http://zhaoxuefeng.gitcafe.io/2015/09/18/KVO/)这篇文章中我们讨论了 KVO 的实现机制，简单地讲就是 Objective-C runtime 对被观察对象进行动态的功能添加，使得在被观察属性值发生变化时通知观察者，这也是 AOP 的应用。
+在[KVO漫谈](http://zxfcumtcs.github.io/2015/09/18/KVO/)这篇文章中我们讨论了 KVO 的实现机制，简单地讲就是 Objective-C runtime 对被观察对象进行动态的功能添加，使得在被观察属性值发生变化时通知观察者，这也是 AOP 的应用。
 
-#简述Objective-C消息传递
+# 简述Objective-C消息传递
 ___________________
 Objective-C 语言的动态性在很大程度上取决于其消息传递机制，我们知道在 Objective-C 中调用某个实例的方法(如：`[receiver message]`)，称之为一条消息，最终会转换为调用`objc_msgSend`函数，其原型为：`objc_msgSend(receiver, selector, arg1, arg2, ...)`。该函数在运行时通过查表的方式*动态地*查找最终要执行的方法的入口地址(而 C 函数、C++普通实例方法的调用是在编译期就确定了方法的入口地址，是一个静态过程，当然 C++中的虚函数也是通过查表的方式动态地查找方法入口地址)。
 
@@ -41,7 +41,7 @@ Objective-C 语言的动态性在很大程度上取决于其消息传递机制�
 
 有了上述铺垫，下面我们进入本文主题，讨论在 Objective-C 中实现 AOP 的三种方式。
 
-#AOP 之 Method Swizzling
+# AOP 之 Method Swizzling
 _____________________
 
 对于 swizzling 大家应该都不陌生，其利用 Objective-C 的 runtime 动态的替换已有方法的实现，常见的使用场景就是替换系统方法，用于打日志，做统计等。
@@ -54,7 +54,7 @@ Method Swizzling 的对象是类，因此会影响该类的所有实例，主要
 
 ![](/img/swizzleMethod.png)
 
-#AOP 之 Aspects
+# AOP 之 Aspects
 _______________________
 [Aspects](https://github.com/steipete/Aspects) 是一个非常优秀的 AOP 开源库，在[github](https://github.com/)已有3000多个 star，可以说是『久经考验』。其在原理上与普通的Method Swizzling是一致的，都是利用 Objective-C runtime 动态的注入新功能。
 ![](/img/NSObject_Aspects.png)
@@ -72,7 +72,7 @@ Aspects的接口非常简单通过为 NSObject 添加 category，提供两个接
 + 在`_Aspects_AspectsDome`类中将`testAspects`方法的实现指向`_objc_msgForward`;
 + 将实例`aspectsDome`的类属性(isa)切换到`_Aspects_AspectsDome`类上(即，此时`aspectsDome`的类型为在`_Aspects_AspectsDome`，而不是初始化时的`AspectsDome`)。
 
-看到这里，似乎有种熟悉的味道，没错！在[KVO漫谈](http://zhaoxuefeng.gitcafe.io/2015/09/18/KVO/)这篇文章中我们讨论了 KVO 的实现机制，和 Aspects 的做法十分类似，都会创建新的子类。
+看到这里，似乎有种熟悉的味道，没错！在[KVO漫谈](http://zxfcumtcs.github.io/2015/09/18/KVO/)这篇文章中我们讨论了 KVO 的实现机制，和 Aspects 的做法十分类似，都会创建新的子类。
 
 此时，执行`[aspectsDome testAspects]；`的流程如下：
 [aspectsDome testAspects]->_objc_msgForward->[aspectsDome forwardInvocation]->__ASPECTS_ARE_BEING_CALLED__->执行切面操作并执行`testAspects`方法的初始实现。
@@ -82,7 +82,7 @@ Aspects的接口非常简单通过为 NSObject 添加 category，提供两个接
 ![](/img/AspectBlock.png)
 ![](/img/aspect_blockMethodSignature.png)
 
-在[block那些事](http://zhaoxuefeng.gitcafe.io/2014/07/14/block/)系列文章中我们详细讨论过 block 的内部结构。Aspects的作者根据 block 内部结构，从 block 中抽取出一个 NSMethodSignature，这样做最大的目的是获取 block 参数的个数及类型。
+在[block那些事](http://zxfcumtcs.github.io/2014/07/14/block/)系列文章中我们详细讨论过 block 的内部结构。Aspects的作者根据 block 内部结构，从 block 中抽取出一个 NSMethodSignature，这样做最大的目的是获取 block 参数的个数及类型。
 
 然而下面这段代码却给我很大的困扰，无法理解：
 ![](/img/invokeWithInfo.png)
@@ -97,7 +97,7 @@ Aspects的接口非常简单通过为 NSObject 添加 category，提供两个接
 
 Aspects 通过 Objective-C 的动态性，在运行时 hook 原有方法，并注入新功能，实现了 AOP，其通常用于打日志、做统计等。
 
-#AOP 之 Proxy
+# AOP 之 Proxy
 ___________________________
 通过前文的阐述我们知道，在 Objective-C 中方法调用最终都要通过查表的方式找到方法入口地址，那如果没有找到要执行的方法如何？
 *unrecognized selector sent to instance...*，这是我们经常看到的在没有找到要执行的方法时系统报的 crash。
@@ -132,6 +132,6 @@ NSProxy 或许有点陌生，但从名称能大概知道其主要作用是代理
 上图在`testOperate`方法中要调用`operateNeedAuthentication`方法，但该方法需要先鉴权，故将该调用直接发送给`TTAuthenticationProxy`。
 通过这种方式，完全将鉴权逻辑与业务逻辑隔离，降低模块间的耦合。
 
-#小结
+# 小结
 _______________________
 在很多场景下，通过 AOP 可以隔离不相关的逻辑、降低模块间的耦合。通过上文可知，在 Objective-C 中实现 AOP 主要是借助于 runtime，动态的添加新功能，因此有一定的性能损耗，在使用之前需要了解具体的业务场景。

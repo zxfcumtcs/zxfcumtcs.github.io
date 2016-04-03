@@ -11,9 +11,9 @@ tags:
 <!--more-->
 ©原创文章，转载请注明出处！
 
-#__forwarding
+# __forwarding
 ______________
-在[前文](http://zhaoxuefeng.gitcafe.com/2014/07/15/block3/)代码片段**codeF**中提到编译器为**__block变量**`blockArr`合成的结构体`struct __Block_byref_blockArr_0`，
+在[前文](http://zxfcumtcs.github.io/2014/07/15/block3/)代码片段**codeF**中提到编译器为**__block变量**`blockArr`合成的结构体`struct __Block_byref_blockArr_0`，
 在该结构体中有一个指向结构自身类型的指针`__Block_byref_blockArr_0 *__forwarding`。
 
 ok，问题出来，这些`__forwarding`指针的作用是什么呢？
@@ -29,13 +29,13 @@ ___________
 
 **当__block变量从stack到copy到heap上时，stack上的__forwarding被修改为指向heap上的__block变量，通过该机制，使得无论是在stack上还是heap上都能访问到同一个__block变量。**
 
-[前文](http://zhaoxuefeng.gitcafe.com/2014/07/15/block3/)代码片段**codeH**中的第44行就是修改stack上__block变量的__forwarding指针，使其指向heap上的__block变量：`_Block_assign(src->forwarding, (void **)destp)`。
+[前文](http://zxfcumtcs.github.io/2014/07/15/block3/)代码片段**codeH**中的第44行就是修改stack上__block变量的__forwarding指针，使其指向heap上的__block变量：`_Block_assign(src->forwarding, (void **)destp)`。
 
 最后再亮出我们的看家法宝——【[图](http://book.douban.com/subject/10536953/)】：
 
 ![](/img/forwardcopytoheap.jpg)
 
-#block与retain、release以及copy
+# block与retain、release以及copy
 ______________
 对block来说，`release`与`Block_release`、`copy`与`Block_copy`等同。
 

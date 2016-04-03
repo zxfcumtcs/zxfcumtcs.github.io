@@ -10,7 +10,7 @@ tags:
 <!--more-->
 ©原创文章，转载请注明出处！
 
-#Overview
+# Overview
 
 `NSURLSession`作为网络框架新生代，由Apple在IOS7引入，其终极目标是取代之前一统网络江湖的`NSURLConnection`。
 
@@ -26,9 +26,9 @@ ok，首先看看`NSURLSession`在IOS体系中的地位(图片来自WWDC2014)。
 
 上图中除了熟悉的老朋友`NSURLRequest`和`NSURLResponse`之外，其他都是Apple在IOS7引入的新面孔，下面我们一一简单介绍一下。
 
-#NSURLSession家族
+# NSURLSession家族
 
-###NSURLSessionConfiguration——网络大管家
+### NSURLSessionConfiguration——网络大管家
 
 顾名思义，`NSURLSessionConfiguration`就是用于配置`NSURLSession`在网络交互过程中的各种属性。
 
@@ -56,7 +56,7 @@ ok，首先看看`NSURLSession`在IOS体系中的地位(图片来自WWDC2014)。
 通过该`identifier`，我们可以创建新的background session，用于获取与其绑定的download or upload response。
 
 
-###NSURLSessionTask——网络办事员
+### NSURLSessionTask——网络办事员
 
 在每个组织、单位都会有一些领导、当然更多的是办事员了。呵呵，没错，`NSURLSessionTask`家族就处于社会底层——苦逼的办事员！
 
@@ -107,7 +107,7 @@ ok，首先看看`NSURLSession`在IOS体系中的地位(图片来自WWDC2014)。
 - (NSURLSessionDownloadTask *)downloadTaskWithURL:(NSURL *)url completionHandler:(void (^)(NSURL *location, NSURLResponse *response, NSError *error))completionHandler;
 	```
 	
-###NSURLSession——最高领导
+### NSURLSession——最高领导
 
 ok，领导终于露面了！
 

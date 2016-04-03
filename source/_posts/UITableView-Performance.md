@@ -10,7 +10,7 @@ tags:
 # Overview
 _____________________________
 
-App 性能优劣将决定用户第一印象，最近在项目中对 app 做了一次性能上的简单优化，由此做一些相关的总结。在前一篇文章[Core Animation](http://localhost:4000/2015/03/21/CoreAnimation/)中，我们分析了影响性能的几个关键原因(Offscreen Rendering、Rasterization、drawRect:、Image等)，主要是理论上的分析，本文将从实战角度出发，结合 UITableView 讨论如何优化性能。
+App 性能优劣将决定用户第一印象，最近在项目中对 app 做了一次性能上的简单优化，由此做一些相关的总结。在前一篇文章[Core Animation](http://zxfcumtcs.github.io/2015/03/21/CoreAnimation/)中，我们分析了影响性能的几个关键原因(Offscreen Rendering、Rasterization、drawRect:、Image等)，主要是理论上的分析，本文将从实战角度出发，结合 UITableView 讨论如何优化性能。
 
 性能优化是一个纠结的过程，某个特定解决方案对性能的影响在不同的场景下有不同的表现，如：Rasterization特性利用恰当会优化性能，否则会有损性能。因此不能盲目猜测，优化前先通过工具(Instruments)找出性能瓶颈，有目标且针对性地优化，最终还要通过工具检测优化效果。
 
@@ -51,7 +51,7 @@ ps：此情况下，tableview 对 heightForRowAtIndexPath 的调用发生在 tab
 
 ### 拒绝 Misalignment
 
-在 [Core Animation](http://zhaoxuefeng.gitcafe.io/2015/03/21/CoreAnimation/) 这篇文章中已经讨论过 misalignment 对性能的影响，当出现 misalignment 时，GPU 需要从 source texture 中 blending 多个像素点的值来生成一个像素，增加了额外的计算量。因此需要避免出现 Misalignment 的情况，最简单的方法无非是对坐标值取整，如 ceil。
+在 [Core Animation](http://zxfcumtcs.github.io/2015/03/21/CoreAnimation/) 这篇文章中已经讨论过 misalignment 对性能的影响，当出现 misalignment 时，GPU 需要从 source texture 中 blending 多个像素点的值来生成一个像素，增加了额外的计算量。因此需要避免出现 Misalignment 的情况，最简单的方法无非是对坐标值取整，如 ceil。
 
 我们也可以定义些宏方便使用：
 ![](/img/Misalignment.png)
@@ -70,7 +70,7 @@ _________________________________
 
 ### 避免 Offscreen Rendering 
 
-在 [Core Animation](http://zhaoxuefeng.gitcafe.io/2015/03/21/CoreAnimation/) 这篇文章中对 Offscreen Rendering 有详细的讨论，其对性能有一定的影响，在大多数情况下需要尽力避免。
+在 [Core Animation](http://zxfcumtcs.github.io/2015/03/21/CoreAnimation/) 这篇文章中对 Offscreen Rendering 有详细的讨论，其对性能有一定的影响，在大多数情况下需要尽力避免。
 
 例1：生成阴影效果，可以通过多种方式实现：
 ![](/img/shadowoffset.png)
@@ -179,7 +179,7 @@ iOS8:
 可以看到，直接重载 cell 的 drawrect 方法问题多多！
 
 正确的做法是：将需要 draw 的内容放到一个单独的 view 上，然后将其作为 contentview 的 subview。
-ps: 在[Core Animation](http://zhaoxuefeng.gitcafe.io/2015/03/21/CoreAnimation/) 这篇文章中已经讨论过重载 drawrect 方法有一定的性能损耗，在决定重载前需要三思！
+ps: 在[Core Animation](http://zxfcumtcs.github.io/2015/03/21/CoreAnimation/) 这篇文章中已经讨论过重载 drawrect 方法有一定的性能损耗，在决定重载前需要三思！
 
 # 小结
 ________________________________________

@@ -10,7 +10,8 @@ tags:
 <!--more-->
 ©原创文章，转载请注明出处！
 
-#一、普通系列
+# 普通系列
+_________________________
 + \- (id)performSelector:(SEL)aSelector;
 + \- (id)performSelector:(SEL)aSelector withObject:(id)object;
 + \- (id)performSelector:(SEL)aSelector withObject:(id)object1 withObject:(id)object2;
@@ -40,7 +41,8 @@ tags:
 
 可以看到它们只是简单的通过`obj_send`方法调用相应的方法，只是performSelector具有动态性。
 
-#二、wait系列
+# wait系列
+_______________________
 + \- (void)performSelector:(SEL)aSelector onThread:(NSThread *)thread withObject:(id)arg waitUntilDone:(BOOL)wait;
 + \- (void)performSelector:(SEL)aSelector onThread:(NSThread \*)thread withObject:(id)arg waitUntilDone:(BOOL)wait modes:(NSArray \*)array;
 + \- (void)performSelectorOnMainThread:(SEL)aSelector withObject:(id)arg waitUntilDone:(BOOL)wait;
@@ -50,13 +52,15 @@ tags:
 
 若`wait`为`NO`，performSelector在目标线程的runloop上将消息入队，并立即返回，无论目标线程是否是当前线程。且加入队列的消息不能被取消。
 
-#三、afterDelay系列
+# afterDelay系列
+________________________
 + \- (void)performSelector:(SEL)aSelector withObject:(id)anArgument afterDelay:(NSTimeInterval)delay;
 + \- (void)performSelector:(SEL)aSelector withObject:(id)anArgument afterDelay:(NSTimeInterval)delay inModes:(NSArray *)modes;
 
 上述方法会在当前线程的runloop上安装timer，当timer触发时，当前线程企图从runloop中出队该消息并执行。如果runloop正在以指定的mode运行，则成功执行该消息，否则timer继续等待。
 
-#四、other
+# other
+________________________
 + \- (void)performSelectorInBackground:(SEL)aSelector withObject:(id)arg;
 
 该方法将创建新的线程来执行selector，selector对应的方法必须准备好线程环境，就像自己开启一个新线程一样。

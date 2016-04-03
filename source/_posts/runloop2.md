@@ -29,7 +29,7 @@ runloop 在整个生命周期内还有一件重要的事情就是与 observer �
 # Understanding Runloop Internals by Runloop-Observer
 ___________________________
 
-runloop 之所以像谜一样让人琢磨不透，主要在于我们难于了解其内部实现机制、触发时机，同时也很难感受到它的存在。虽然，[前文](http://zhaoxuefeng.gitcafe.com/2014/11/15/runloop/)通过pseudo-code的形式模拟了 runloop 的内部实现，但对于 runloop 真正何时会被触发，何时结束还是不太清楚。
+runloop 之所以像谜一样让人琢磨不透，主要在于我们难于了解其内部实现机制、触发时机，同时也很难感受到它的存在。虽然，[前文](http://zxfcumtcs.github.io/2014/11/15/runloop/)通过pseudo-code的形式模拟了 runloop 的内部实现，但对于 runloop 真正何时会被触发，何时结束还是不太清楚。
 
 幸运的是，Apple 还是给了我们近距离观察 runloop 的机会——runloop observer(可以形象地将其称之为 runloop 之窗^_^)。
 

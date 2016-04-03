@@ -9,7 +9,7 @@ tags:
 <!--more-->
 ©原创文章，转载请注明出处！
 
-#Overview
+# Overview
 __________________
 
 KVO(Key-Value Observing)对于 iOS 开发者来说应该并不陌生。通过 KVO 机制，当被观察对象的属性值发现变化时观察者能接到相应的通知。为了能接收到正确的 KVO 消息，需要满足以下三点：
@@ -40,7 +40,7 @@ KVO(Key-Value Observing)对于 iOS 开发者来说应该并不陌生。通过 KV
 
 由于本文的定位不是 KVO 教程，关于[KVO](https://developer.apple.com/library/ios/documentation/Cocoa/Conceptual/KeyValueObserving/KeyValueObserving.html)、[KVC](https://developer.apple.com/library/ios/documentation/Cocoa/Conceptual/KeyValueCoding/Articles/KeyValueCoding.html)，Apple 官方有详细的描述，在此不再赘述。
 
-#KVO、Notification、delegate、block
+# KVO、Notification、delegate、block
 ____________________
 KVO、NSNotfication、delegate、block这四种方式都可以用于对象间的通信。
 KVO 与 NSNotification 有很多相似之处，都是一对多的、单向的通信方式，通过它们可以使得模块间较好的解耦。同时它们也有许多相似的缺点。
@@ -61,7 +61,7 @@ delegate、block 则是一对一的、『半双向』的通信方式。之所以
 如果，此时选用 Notification 的方式由 Modle 通知 Controller 刷新 UI，需要在A、B、C、D 四个属性值发生变化的地方都抛出 Notification，同时需要将4个属性值通过消息传递给 Controller 以便计算 V 的新状态。
 若采用 KVO 机制，可以在 Model 中合成一个新的属性M，并且使得 M 依赖于 A、B、C、D，再在 Controller 中观察属性 M 即可。
 
-#KVO陷阱
+# KVO陷阱
 ____________________
 KVO 本身存在不少争议，也有人为其开出了长长的『罪行』清单。
 个人认为 KVO 值得我们关注的缺点有：
@@ -76,7 +76,7 @@ KVO 本身存在不少争议，也有人为其开出了长长的『罪行』清�
 
 当然，使用 KVO 还有一些要注意的地方，处理不好可能会 crash、产生意料之外的结果等，这些都属于编码规范一类的，在此不多作讨论。
 
-#KVO背后的故事
+# KVO背后的故事
 ____________________
 我们知道被观察属性值发生变化时，观察者能自动收到 KVO 消息，这是如何实现的呢？
 这一切都要归功于 Objective-C 语言的动态 runtime，[mikeash](https://www.mikeash.com/pyblog/friday-qa-2009-01-23.html)大神对此有过具体分析，在此我们再来梳理一下。
@@ -103,7 +103,7 @@ _NSSetBoolValueAndNotify、_NSSetCharValueAndNotify、_NSSetDoubleValueAndNotify
 ![](/img/NSSetLongLongValueAndNotify.png)
 在该方法中我们看到了熟悉的`willChangeValueForKey:`以及`didChangeValueForKey:`方法的调用。
 
-#小结
+# 小结
 ____________________
 KVO 通过 runtime 动态机制实现了自动发送 KVO 消息，但正如前文所说 KVO 也存在不少争议，在使用前需要仔细思考，其是否是最佳选项。
 

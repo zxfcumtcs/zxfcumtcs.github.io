@@ -10,7 +10,7 @@ tags:
 <!--more-->
 ©原创文章，转载请注明出处！
 
-#什么是对象模型(Object Model)
+# 什么是对象模型(Object Model)
 ______________
 说起Object Model不得不提起*Stanley B. Lippman*以及他的著作[*《Inside the C++ Object Model》*](http://book.douban.com/subject/1091086/)。Lippman作为C++大师，参与设计了第一套C++编译程序cfront，其主要著作相信大家也耳熟能详：[*《C++ Primer》*](http://book.douban.com/subject/25708312/)，[*《Inside the C++ object model》*](http://book.douban.com/subject/1091086/)，[*《Essential C++》*](http://book.douban.com/subject/1456836/)等。
 
@@ -22,9 +22,9 @@ ______________
 
 嗯，本文主要讨论第二个问题。
 
-#Objective-C中与Object Model相关的数据类型
+# Objective-C中与Object Model相关的数据类型
 ______________
-###NSObject——万物之源
+### NSObject——万物之源
 
 ``` objectivec
 @interface NSObject <NSObject> 
@@ -37,7 +37,7 @@ ______________
 
 继续...
 
-###objc_class——类的元数据
+### objc_class——类的元数据
 
 ``` objectivec
 typedef struct objc_class *Class;
@@ -82,7 +82,7 @@ struct objc_class : objc_object
 
 可以看到`objc_class`继承自`objc_object`，这也间接说明了Objective-C中一个重要的概念：*类也是对象*。
 
-###objc_object
+### objc_object
 ``` objectivec objc_object
 struct objc_object
 {
@@ -95,7 +95,7 @@ private:
 额...，此时或许有个疑问了，类的成员变量、方法等元信息咋还没登场？
 不要急，他们来了...
 
-###class_rw_t
+### class_rw_t
 
 或许已经注意到在`objc_class`结构中有个成员变量`uintptr_t data_NEVER_USE;`。
 没错，它就是指向`class_rw_t`结构体的指针(其中做了一些优化，在此不作过多讨论，只简单的认为`data_NEVER_USE`指向`class_rw_t`结构体)。
@@ -166,7 +166,7 @@ struct class_ro_t
 
 + *若添加成员变量将引起实例内存布局的改变(`class_ro_t`的`instanceStart`、`instanceSize`)，同时在`class_rw_t`中`class_ro_t`被声明为`const`，因此想改也改不了。*
 
-###Other
+### Other
 
 ``` objectivec
 struct method_list_t 

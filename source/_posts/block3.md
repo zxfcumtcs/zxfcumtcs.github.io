@@ -10,7 +10,7 @@ tags:
 <!--more-->
 ©原创文章，转载请注明出处！
 
-#__block storage-class-specifier
+# __block storage-class-specifier
 ______________
 我们知道在block内可以引用block外部的变量，那么能随意修改block外部的变量吗？
 
@@ -76,11 +76,11 @@ struct Block_byref_3
 
 ![](/img/blockandblockvar.jpg)
 
-#block copy与其引用的外部变量
+# block copy与其引用的外部变量
 ______________
-###block copy与普通object类型变量
+### block copy与普通object类型变量
 
-[前文](http://zhaoxuefeng.gitcafe.com/2014/07/15/block2/)我们总结过，当block从stack copy到heap上时，会retain其引用的外部object。
+[前文](http://zxfcumtcs.github.io/2014/07/15/block2/)我们总结过，当block从stack copy到heap上时，会retain其引用的外部object。
 
 我们看看编译器为此做了什么：
 
@@ -144,7 +144,7 @@ void _Block_object_assign(void *destAddr, const void *object, const int flags)
 第24行，retain了block内引用的对象，在本例中为`arr`。
 第25行，将源block中`arr`的地址赋给了目标block中的`arr`变量。
 
-###block copy与__block修饰的object类型变量
+### block copy与__block修饰的object类型变量
 
 **我们知道，在ARC下block会retain __block修饰变量，而在非ARC下不会retain。**
 

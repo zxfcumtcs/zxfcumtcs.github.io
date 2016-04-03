@@ -10,7 +10,7 @@ tags:
 <!--more-->
 ©原创文章，转载请注明出处！
 
-#C++成员函数
+# C++成员函数
 ______________
 首先，我们回顾一下C++是如何处理成员函数调用的:
 
@@ -38,7 +38,7 @@ void __ZN7MyClass6methodAEi(MyClass *this, int param){    printf("%p %d\n", th
 ```
 其中函数名__ZN7MyClass6methodAEi就是编译器对MyClass::methodA进行*Name Mangling*处理的结果。
 
-#Objective-C消息机制
+# Objective-C消息机制
 ___________________
 虽然C++与Objective-C同为面向对象编程语言，但在处理成员函数调用上有着本质区别，前者是*static binding*，后者是*dynamic binding*。
 

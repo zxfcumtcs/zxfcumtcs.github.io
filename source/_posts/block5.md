@@ -11,11 +11,11 @@ tags:
 <!--more-->
 ©原创文章，转载请注明出处！
 
-#block误用
+# block误用
 ______________
-###block作为函数参数
+### block作为函数参数
 
-[前文](http://zhaoxuefeng.gitcafe.com/2014/07/15/block2/)介绍过除了两种特殊情况(ARC下三种特殊情况)，block作为函数参数时不会被copy到heap，需要手动copy block。
+[前文](http://zxfcumtcs.github.io/2014/07/15/block2/)介绍过除了两种特殊情况(ARC下三种特殊情况)，block作为函数参数时不会被copy到heap，需要手动copy block。
 
 下面这个例子在非ARC下会crash：
 
@@ -27,7 +27,7 @@ ______________
 
 误用1：将`NSConcreteStackBlock`类型的block作为函数参数时，没有copy该参数——在需要时没有将stack上block copy到heap上；
 
-###错误的使用__block解决retain cycle
+### 错误的使用__block解决retain cycle
 
 在使用block时，大家都紧绷着一根弦：**retain cycle**。
 
@@ -73,7 +73,7 @@ but...，非ARC下，block不会retain其引用的__block变量！！！因此�
 
 误用2：非ARC下，在异步执行的block中错误的使用__block变量。
 
-#总结
+# 总结
 ______________
 
 + **`block`被会编译器转换为`struct`；**

@@ -6,13 +6,13 @@ tags:
 - OC
 - IOS
 ---
-在[前文](http://zhaoxuefeng.gitcafe.com/2014/07/08/Objective-c-Object-Model/)我们详细讲解了Objective-C OOP的底层数据结构，本文我们一起了解一下Objective-C中类(`class`)、父类(`super class`)、元类(`meta class`)、根父类(`root super class`)以及根元类(`root meta class`)间的关系。
+在[前文](http://zxfcumtcs.github.io/2014/07/08/Objective-c-Object-Model/)我们详细讲解了Objective-C OOP的底层数据结构，本文我们一起了解一下Objective-C中类(`class`)、父类(`super class`)、元类(`meta class`)、根父类(`root super class`)以及根元类(`root meta class`)间的关系。
 <!--more-->
 ©原创文章，转载请注明出处！
 
-#类、元类、根父类、根元类
+# 类、元类、根父类、根元类
 ______________
-从[前文](http://zhaoxuefeng.gitcafe.com/2014/07/08/Objective-c-Object-Model/)我们知道，在OC中类也是对象(`objc_class`继承自`objc_object`)，也有`isa`指针。实例的`isa`指针指向类(*确切的说是指向代表类的实例*)，那么类`isa`指针指向谁呢？
+从[前文](http://zxfcumtcs.github.io/2014/07/08/Objective-c-Object-Model/)我们知道，在OC中类也是对象(`objc_class`继承自`objc_object`)，也有`isa`指针。实例的`isa`指针指向类(*确切的说是指向代表类的实例*)，那么类`isa`指针指向谁呢？
 
 答案是指向一个叫元类的东东(`metaclass`)，显然`metaclass`也是对象，那它的`isa`又指向何方？
 

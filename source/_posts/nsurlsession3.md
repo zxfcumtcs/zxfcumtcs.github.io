@@ -10,7 +10,7 @@ tags:
 <!--more-->
 ©原创文章，转载请注明出处！
 
-#NSURLSession vs. NSURLConnection
+# NSURLSession vs. NSURLConnection
 
 NSURLSession 打出的旗号是推翻 NSURLConnection，取而代之！嗯，是的，这是个弱肉强食的时代，但同时也要遵守达尔文的进化论——优胜劣汰！
 
@@ -31,7 +31,7 @@ ok，那我们来总结一下：
 
 ok，NSURLConnection 君虽然曾经你作为基础网络框架服务于千万 iOS and Mac OS 程序，但那已经是曾经了……，该回家养老了！
 
-#NSURLSession vs. AFNetworking
+# NSURLSession vs. AFNetworking
 
 说到网络框架，那不得不提到AFNetworking君，作为著名的第三方开源Networking Framework，已得到广泛应用。
 
@@ -41,7 +41,7 @@ ok，NSURLConnection 君虽然曾经你作为基础网络框架服务于千万 i
 
 基本指导原则是，如果没有复杂的操作，可以直接使用NSURLSession，这样能避免引入第三方库，而如果希望使用 AFNetworking 2.0的新特性，如：serialization、 further UIKit integration等，那就用之吧。
 
-#Background Transfer实战
+# Background Transfer实战
 
 为了避免有纸上谈兵之嫌，我们来一次Background Transfer实战吧。
 

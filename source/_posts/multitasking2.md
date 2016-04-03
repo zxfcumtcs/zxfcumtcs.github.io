@@ -15,7 +15,7 @@ _______________
 
 IOS7引入了三种新的多任务机制，分别是`Background Fetch`, `Background Transfer` 以及 `Silent Push Notification`。
 
-其中， [Background Fetch](http://zhaoxuefeng.gitcafe.com/2014/08/17/multitasking/)、[Background Transfer](http://zhaoxuefeng.gitcafe.com/2014/08/03/nsurlsession3/) 在前文已经介绍过，本文重点介绍`Silent Push Notification`。
+其中， [Background Fetch](http://zxfcumtcs.github.io/2014/08/17/multitasking/)、[Background Transfer](http://zxfcumtcs.github.io/2014/08/03/nsurlsession3/) 在前文已经介绍过，本文重点介绍`Silent Push Notification`。
 
 
 OK, 那么何为`Silent Push Notification`？ 听起来有点玄乎！
@@ -133,7 +133,7 @@ ps:Apple 会控制 silent push 的频率
 # Backgroud Fetch VS. Silent Push
 _______________
 
-[前文](http://zhaoxuefeng.gitcafe.com/2014/08/17/multitasking/)，我们介绍过Backgroud Fetch，可以通过Backgroud Fetch在后台获取数据。
+[前文](http://zxfcumtcs.github.io/2014/08/17/multitasking/)，我们介绍过Backgroud Fetch，可以通过Backgroud Fetch在后台获取数据。
 
 Silent Push 也可以在后台触发 app 获取数据。
 

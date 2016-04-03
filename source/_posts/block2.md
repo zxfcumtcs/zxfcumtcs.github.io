@@ -10,19 +10,19 @@ tags:
 <!--more-->
 ©原创文章，转载请注明出处！
 
-#Block Copy
+# Block Copy
 ______________
-通过[前文](http://zhaoxuefeng.gitcafe.com/2014/07/14/block/)我们知道，起始大多数block都是创建在stack上，需要通过`Block_copy`或`copy`函数才能将其copy到heap上。
+通过[前文](http://zxfcumtcs.github.io/2014/07/14/block/)我们知道，起始大多数block都是创建在stack上，需要通过`Block_copy`或`copy`函数才能将其copy到heap上。
 
 那么什么情况下需要我们手动调用`Block_copy`或`copy`函数将block copy到heap？
 
-###ARC
+### ARC
 
 ARC下，编译器在大多数情况下能自动识别并在需要的时候自动将stack上的block copy到heap上，如：
 
 + 函数返回值是block；
 
-+ 对strong类型的block变量赋值(在[前文](http://zhaoxuefeng.gitcafe.com/2014/07/14/block/)我们已经看到过这样的例子)。
++ 对strong类型的block变量赋值(在[前文](http://zxfcumtcs.github.io/2014/07/14/block/)我们已经看到过这样的例子)。
 
 **在ARC下，编译器不会自动copy的情况：block作为函数的参数、为`__weak`类型的block变量赋值**
 
@@ -41,7 +41,7 @@ ARC下，编译器在大多数情况下能自动识别并在需要的时候自�
 以上这个例子在ARC下正常，但在非ARC下会crash！
 
 
-###非ARC
+### 非ARC
 
 非ARC下，编译器不会自动copy block。
 

@@ -10,9 +10,9 @@ tags:
 <!--more-->
 ©原创文章，转载请注明出处！
 
-#Objective-C对象内存布局
+# Objective-C对象内存布局
 ______________
-由[前文](http://zhaoxuefeng.gitcafe.com/2014/07/10/Objective-C-Object-Model2/)我们知道Objective-C的类、对象本质上都是C语言的`struct`，且第一个成员变量是指向元类的`isa`指针。
+由[前文](http://zxfcumtcs.github.io/2014/07/10/Objective-C-Object-Model2/)我们知道Objective-C的类、对象本质上都是C语言的`struct`，且第一个成员变量是指向元类的`isa`指针。
 
 那么Objective-C对象在内存中的布局是怎样的？
 
@@ -56,7 +56,7 @@ OK，我们可以验证一下：
 
 **对比这两个内存布局图，对于包含虚函数的C++对象来说，其在内存上的布局与Objective-C对象有几分神似，前者含有指向虚函数表的`vfptr`指针，后者含有指向元类的`isa`指针。**
 
-#Tagged Pointer
+# Tagged Pointer
 ______________
 我们知道指针在本质上就是一个整数，在32位系统上它就是一个32位的整数，那么在64位的系统上它自然就是一个64位的整数了。
 
