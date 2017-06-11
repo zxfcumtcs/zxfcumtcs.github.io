@@ -1,7 +1,7 @@
 title: Core Animation
 date: 2015-03-21 09:41:13
 tags:
-- IOS
+- iOS
 ---
 本文重点讲解了 Core Animation 中影响 app 性能的几个关键因素，如：Offscreen Rendering、Rasterization、drawRect:，以及 image decode。
 <!--more-->
@@ -180,7 +180,8 @@ _______________________________________
 对于 view 的 frame 中的成员存在小数值时，可能会出现像素不对齐的问题(在2x 屏幕中0.5不会出现misalignment问题，因为1个点对应2像素)。当出现misalignment时，GPU 需要从 source texture 中 blending 多个像素点的值来生成一个像素。通过 Instrument 的**Color Misaligned Images**选项可以检测misalignment。
 
 
-# Measure, Measure, Measure, Don’t Guess________________________________________
+# Measure, Measure, Measure, Don’t Guess
+________________________________________
 
 app 的性能问题只能通过工具(Instrument)去测试，找到性能瓶颈的真正原因，切忌通过猜测，盲目地优化，这很可能适得其反。
 

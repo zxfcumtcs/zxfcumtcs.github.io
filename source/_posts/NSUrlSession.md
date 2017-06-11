@@ -1,10 +1,8 @@
 title: NSURLSession——网络框架新生代(1/3)
 date: 2014-08-02 10:04:31
-categories:
-- IOS
 tags:
 - NetWorking
-- IOS
+- iOS
 ---
 本系列文章将探讨Apple在IOS7中引入的网络新框架——NSURLSession。
 <!--more-->

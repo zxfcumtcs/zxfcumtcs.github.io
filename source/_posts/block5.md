@@ -1,10 +1,8 @@
 title: block那些事——block误用与终极总结(5/5)
 date: 2014-07-17 21:46:35
-categories:
-- Objective-c
 tags:
-- OC
-- IOS
+- Objective-C
+- iOS
 ---
 
 本文主要介绍错误使用block的两种情况以及对该系列的总结。

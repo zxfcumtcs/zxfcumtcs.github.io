@@ -1,9 +1,7 @@
 title: AOP漫谈
 date: 2016-01-23 19:03:00
-categories:
-- Objective-c
 tags:
-- IOS
+- iOS
 ---
 本文首先简要讨论了 Objective-C 消息传递机制，随后重点讨论了在 Objective-C 中实现 AOP 的三种方式：*Method Swizzling*、*Aspects*以及*Proxy*。
 <!--more-->

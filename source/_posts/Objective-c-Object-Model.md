@@ -1,10 +1,8 @@
 title: 'Objective-C Object Model(1/4)'
 date: 2014-07-08 18:53:46
-categories:
-- Objective-c
 tags:
-- OC
-- IOS
+- Objective-C
+- iOS
 ---
 本系列文章我们一起探讨Objective-C对象模型(Object Model)，本文主要讨论与Object Model相关的底层数据结构。
 <!--more-->

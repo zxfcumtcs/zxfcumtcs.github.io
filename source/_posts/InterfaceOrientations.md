@@ -1,9 +1,7 @@
 title: 横屏不好惹
 date: 2016-02-28 20:17:20
-categories:
-- Objective-c
 tags:
-- IOS
+- iOS
 ---
 本文简单讨论了从横屏页面 pop 回竖屏页面以及在横屏页面 push 竖屏页面的实现方式。
 <!--more-->

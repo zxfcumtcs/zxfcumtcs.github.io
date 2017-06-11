@@ -1,9 +1,7 @@
 title: KVO漫谈
 date: 2015-09-18 23:02:28
-categories:
-- Objective-c
 tags:
-- IOS
+- iOS
 ---
 本文讨论了 KVO 若干有趣的特性，并将 KVO 与其他通信方式进行了比较，最后深入分析了 KVO 内部实现机制。
 <!--more-->

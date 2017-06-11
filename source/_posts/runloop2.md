@@ -1,9 +1,7 @@
 title: 谜一样的 Runloop(2/2)
 date: 2014-11-30 13:15:34
-categories:
-- IOS
 tags:
-- IOS
+- iOS
 ---
 希望通过本文的介绍，大家能更清晰地认识 runloop。本文是 runloop 系列的第二篇文章，主要介绍通过 runloop observer 来近距离的观察 runloop。
 <!--more-->

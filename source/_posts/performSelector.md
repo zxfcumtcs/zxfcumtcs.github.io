@@ -1,9 +1,7 @@
 title: performSelector系列方法
 date: 2014-07-19 18:19:19
-categories:
-- IOS
 tags:
-- IOS
+- iOS
 ---
 
 本文讨论一下我们非常熟悉的performSelector系列方法。

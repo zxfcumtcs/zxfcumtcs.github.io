@@ -1,9 +1,7 @@
 title: iOS Multitasking——Background Fetch
 date: 2014-08-17 13:24:00
-categories:
-- IOS
 tags:
-- IOS
+- iOS
 ---
 本文主要介绍 iOS7 引入的多任务处理机制之Background Fetch。
 <!--more-->

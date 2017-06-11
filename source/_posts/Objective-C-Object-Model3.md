@@ -1,10 +1,8 @@
 title: 'Objective-C Object Model(3/4)'
 date: 2014-07-11 16:31:25
-categories:
-- Objective-c
 tags:
-- OC
-- IOS
+- Objective-C
+- iOS
 ---
 本文主要讨论Objective-C对象内存布局并与C++内存布局进行比较，最后讨论了Apple针对64位处理器引入的`Tagged Poniters`。
 <!--more-->

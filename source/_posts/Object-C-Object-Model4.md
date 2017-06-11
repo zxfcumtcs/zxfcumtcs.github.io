@@ -1,10 +1,8 @@
 title: 'Objective-C Object Model(4/4)'
 date: 2014-07-13 00:26:28
-categories:
-- Objective-c
 tags:
-- OC
-- IOS
+- Objective-C
+- iOS
 ---
 本文是Objective-C Object Model系列的最后一篇文章，主要讨论Objective-C消息机制。
 <!--more-->
@@ -28,13 +26,19 @@ C++编译器在编译C++源码时会对成员函数进行*Name Mangling*，[Name
 如：
 
 ```
-void MyClass::methodA(int param){    printf("%p %d\n", this, param);}
+void MyClass::methodA(int param)
+{
+    printf("%p %d\n", this, param);
+}
 ```
 
 会被编译器转换为：
 
 ```
-void __ZN7MyClass6methodAEi(MyClass *this, int param){    printf("%p %d\n", this, param);}
+void __ZN7MyClass6methodAEi(MyClass *this, int param)
+{
+    printf("%p %d\n", this, param);
+}
 ```
 其中函数名__ZN7MyClass6methodAEi就是编译器对MyClass::methodA进行*Name Mangling*处理的结果。
 

@@ -2,7 +2,7 @@
 title: 细说 NSOperation
 date: 2016-05-17 23:25:12
 tags:
-- IOS
+- iOS
 ---
 本文详细介绍了在实现同步、异步 NSOperation 时分别需要实现哪些方法、注意哪些问题。最后对 GCD 与 NSOperation Queue 作了一个简单的对比。
 <!--more-->

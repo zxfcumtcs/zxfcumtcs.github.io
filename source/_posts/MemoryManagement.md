@@ -1,9 +1,7 @@
 title: Inside Memory Management for iOS
 date: 2015-09-03 16:28:55
-categories:
-- Objective-c
 tags:
-- IOS
+- iOS
 ----
 
 本文探讨了在 Memory Management 中的命名规则、引用计数的实现机制以及 weak 变量的内部实现。

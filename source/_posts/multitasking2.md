@@ -1,9 +1,7 @@
 title: iOS Multitasking——Silent Push Notification
 date: 2014-10-06 17:20:51
-categories:
-- IOS
 tags:
-- IOS
+- iOS
 ---
 本文主要介绍 iOS7 引入的多任务处理机制之Silent Push Notifications
 <!--more-->

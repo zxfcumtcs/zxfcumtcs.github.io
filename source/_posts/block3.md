@@ -1,10 +1,8 @@
 title: block那些事——__block storage-class-specifier(3/5)
 date: 2014-07-15 23:17:48
-categories:
-- Objective-c
 tags:
-- OC
-- IOS
+- Objective-C
+- iOS
 ---
 本文主要介绍__block变量、block copy对外部引用变量的影响。
 <!--more-->

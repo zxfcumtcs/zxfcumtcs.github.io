@@ -1,10 +1,8 @@
 title: block那些事——block 内部结构(1/5)
 date: 2014-07-14 19:12:57
-categories:
-- Objective-c
 tags:
-- OC
-- IOS
+- Objective-C
+- iOS
 ---
 本文主要介绍block内部结构以及实现机制。
 <!--more-->

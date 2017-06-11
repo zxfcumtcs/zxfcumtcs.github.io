@@ -1,9 +1,7 @@
 title: 谜一样的 Runloop(1/2)
 date: 2014-11-15 10:25:31
-categories:
-- IOS
 tags:
-- IOS
+- iOS
 ---
 希望通过本文的介绍，大家能更清晰地认识 runloop。本文是 runloop 系列的第一篇文章，主要介绍 runloop 的基本概念及其与线程的关系，并试图通过pseudo-code的方式探索 runloop 的内部实现机制。
 <!--more-->

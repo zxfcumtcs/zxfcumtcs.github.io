@@ -1,9 +1,7 @@
 title: iOS App Life Cycle
 date: 2014-10-26 19:01:00
-categories:
-- IOS
 tags:
-- IOS
+- iOS
 ---
 本文主要介绍 iOS App 的5种状态以及它们之间的转换过程。
 <!--more-->

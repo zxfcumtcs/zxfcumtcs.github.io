@@ -1,7 +1,7 @@
 title: 性能调优那些事
 date: 2015-05-07 22:19:48
 tags:
-- IOS
+- iOS
 ---
 本文讨论了优化 UITableView 性能的几种常用方法，并对为何不应直接重载 UITableViewCell 的 drawRect 方法作了详细的分析说明。
 <!--more-->

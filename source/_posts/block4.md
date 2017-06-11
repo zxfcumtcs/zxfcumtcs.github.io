@@ -1,10 +1,8 @@
 title: block那些事——__forwarding(4/5)
 date: 2014-07-17 09:35:53
-categories:
-- Objective-c
 tags:
-- OC
-- IOS
+- Objective-C
+- iOS
 ---
 
 本文主要介绍`__forwarding`指针，`retain`、`release`以及`copy`对三种block的影响。

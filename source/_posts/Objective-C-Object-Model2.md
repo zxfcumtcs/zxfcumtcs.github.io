@@ -1,10 +1,8 @@
 title: 'Objective-C Object Model(2/4)'
 date: 2014-07-10 18:03:52
-categories:
-- Objective-c
 tags:
-- OC
-- IOS
+- Objective-C
+- iOS
 ---
 在[前文](http://zxfcumtcs.github.io/2014/07/08/Objective-c-Object-Model/)我们详细讲解了Objective-C OOP的底层数据结构，本文我们一起了解一下Objective-C中类(`class`)、父类(`super class`)、元类(`meta class`)、根父类(`root super class`)以及根元类(`root meta class`)间的关系。
 <!--more-->

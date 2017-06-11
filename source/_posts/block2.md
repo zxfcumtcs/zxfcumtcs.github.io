@@ -1,10 +1,8 @@
 title: block那些事——block copy(2/5)
 date: 2014-07-15 17:06:54
-categories:
-- Objective-c
 tags:
-- OC
-- IOS
+- Objective-C
+- iOS
 ---
 本文主要介绍ARC和非ARC下block copy相关的问题。
 <!--more-->

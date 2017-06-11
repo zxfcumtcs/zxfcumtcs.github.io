@@ -1,9 +1,7 @@
 title: iOS8新特性之Extension
 date: 2015-01-10 16:41:25
-categories:
-- IOS
 tags:
-- IOS
+- iOS
 ---
 本文简单介绍了 Extension 的基本原理，包括：life cycle、communicates、share data、share code 以及开发 widget 时需要注意的点。
 <!--more-->
