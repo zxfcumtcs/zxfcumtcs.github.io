@@ -20,7 +20,7 @@ Apple 给我们的建议是(Performance Investigation Mindset)：
 # 初级优化
 _____________________________
 
-### UITableViewCell 高度
+## UITableViewCell 高度
 
 设置 cell 的高度有两种方式：
 + 设置 tableview 的 `rowHeight` 属性；
@@ -40,7 +40,7 @@ ps：此情况下，tableview 对 heightForRowAtIndexPath 的调用发生在 tab
 
 其次，为了计算 cell 的高度，通常需要对 cell 进行 layout 操作，因此 layout 结果以及得到的高度都可以 cache 起来以免重复计算。
 
-### Reuse cell
+## Reuse cell
 
 为了节省内存，提高性能，tableview 提供了 cell 的重用机制，对于滑出屏幕的 cell tableview 将其加入 reuse 队列，在需要显示新 cell 时从该队列取出重复利用。我们应该要充分利用好这一特性。
 
@@ -49,7 +49,7 @@ ps：此情况下，tableview 对 heightForRowAtIndexPath 的调用发生在 tab
 
 如上图，将 cell 复用的周期设为5可以提升来回滑动的流畅度。
 
-### 拒绝 Misalignment
+## 拒绝 Misalignment
 
 在 [Core Animation](http://zxfcumtcs.github.io/2015/03/21/CoreAnimation/) 这篇文章中已经讨论过 misalignment 对性能的影响，当出现 misalignment 时，GPU 需要从 source texture 中 blending 多个像素点的值来生成一个像素，增加了额外的计算量。因此需要避免出现 Misalignment 的情况，最简单的方法无非是对坐标值取整，如 ceil。
 
@@ -60,7 +60,7 @@ ps：此情况下，tableview 对 heightForRowAtIndexPath 的调用发生在 tab
 ![](/img/coreanimationdebugoptions.png)
 ![](/img/Misalignmentdebugresult.png)
 
-### 避免 Transparent
+## 避免 Transparent
 
 对 GPU 来说，透明意味着有大量额外的工作要做，在合成最终bitmap 时需要针对透明 layer 的每个像素计算叠加效果。这对于滑动时的性能来说是大忌。在代码中经常会出现：`xxView.backgroundColor = [UIColor clearColor];`，意味着 xxView 具有透明背景！通过 Instruments 的 Core Animation 功能下的 Color Blended Layers 选项可以检测哪些 layer 是透明的。透明层会被标注为红色，颜色越深说明叠加的透明层就越多。
 ![](/img/ColorBlendedLayersDebugResult.png)
@@ -68,7 +68,7 @@ ps：此情况下，tableview 对 heightForRowAtIndexPath 的调用发生在 tab
 # 中级优化
 _________________________________
 
-### 避免 Offscreen Rendering 
+## 避免 Offscreen Rendering 
 
 在 [Core Animation](http://zxfcumtcs.github.io/2015/03/21/CoreAnimation/) 这篇文章中对 Offscreen Rendering 有详细的讨论，其对性能有一定的影响，在大多数情况下需要尽力避免。
 
@@ -116,7 +116,7 @@ _________________________________
 总之，Offscreen Rendering 对性能的影响值得关注，大多数情况下需要尽力避免，在例3中也是以一次 Offscreen Rendering 换取避免多次。
 ![](/img/offscreenrenderingsummary.png)
 
-### Lazy Load
+## Lazy Load
 
 延迟加载有时不失为提高性能的有效措施之一，UITableView 本身就采用了延迟加载的策略：只有当 cell 需要显示时才进行加载。
 我们可以在 tableview 滑动过程中禁止某些非关键的、耗时操作，如：滑动过程中 gif 图片不解码，直到 tableview 停止滑动，才对可见范围内的 gif 解码。
@@ -124,7 +124,7 @@ _________________________________
 # 高级优化
 ______________________________________
 
-### 在子线程预处理图片
+## 在子线程预处理图片
 
 对图片的处理通常有较大的性能损耗，如：读取图片的 io 操作、图片解码、缩放、渲染等，若处理不当将严重影响性能。
 为了提升图片处理的性能，其中 io、解码、缩放等操作可以在子线程中预处理，再将处理结果转交主线程显示。
@@ -133,7 +133,7 @@ ______________________________________
 可以在子线程做如下处理(注：为了节省篇幅，在下面的代码中只处理了UIViewContentMode为UIViewContentModeScaleAspectFill的情况)：
 ![](/img/imagecode1.png)![](/img/imagecode2.png)
 
-### 不可直接重载 UITableViewCell 的 drawRect 方法
+## 不可直接重载 UITableViewCell 的 drawRect 方法
 
 无论是出于优化性能还是其他目的，经常会看到直接重载 cell 的 drawRect 方法。但这样做是有问题的，暂且不讨论其是否能达到优化性能的目的，从 cell 的结构上来讲，需要显示的内容应该是基于 cell 的 contentView，而不应该直接 draw 在 cell上。
 

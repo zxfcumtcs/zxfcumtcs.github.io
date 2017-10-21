@@ -39,7 +39,7 @@ runloop 之所以像谜一样让人琢磨不透，主要在于我们难于了解
 + runloop 被唤醒，但还未处理唤醒它的事件——kCFRunLoopAfterWaiting；
 + runloop 退出——kCFRunLoopExit。
 
-### CFRunLoopObserver —— runloop 之窗。
+## CFRunLoopObserver —— runloop 之窗。
 
 Apple 君为我们提供了两个创建`CFRunLoopObserver`的接口：
 
@@ -53,7 +53,7 @@ Apple 君为我们提供了两个创建`CFRunLoopObserver`的接口：
 我们可以选择要监听的 runloop 事件，上面代码中使用了`kCFRunLoopAllActivities`，其他还有：`kCFRunLoopEntry`、`kCFRunLoopBeforeTimers`、`kCFRunLoopBeforeSources`、`kCFRunLoopBeforeWaiting`、`kCFRunLoopAfterWaiting`以及`kCFRunLoopExit`。
 
 
-### Runloop Observer of Main Runloop
+## Runloop Observer of Main Runloop
 
 首先，我们通过 runloop observer 监听一下 main runloop。
 ![](/img/didFinishLaunchingWithOptions.png)
@@ -79,7 +79,7 @@ Apple 君为我们提供了两个创建`CFRunLoopObserver`的接口：
 
 **如果唤醒runloop 的事件含有异步操作，runloop 不会等待异步操作完成。`viewWillAppear:`和`viewDidAppear:`不在同一次 runloop 中被调用。**
 
-### Runloop Observer of Other Runloop
+## Runloop Observer of Other Runloop
 
 main runloop作为整个 app 的神经中枢，很大程度上受系统所控制，下面我们通过 runloop observer 观察一下子线程的 runloop。
 ![](/img/runloop_thread1.png)

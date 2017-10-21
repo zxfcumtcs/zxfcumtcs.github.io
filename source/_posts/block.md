@@ -16,7 +16,7 @@ ok，假设大家已经了解了block语法。
 
 [源码](http://opensource.apple.com/source/libclosure/libclosure-38/Block_private.h)：
 
-```
+```c
 // revised new layout
 struct Block_descriptor
 {
@@ -41,7 +41,7 @@ struct Block_layout 			// block对应的结构体
 [最新的开源代码](http://opensource.apple.com/source/libclosure/libclosure-63/Block_private.h)对`Block_descriptor`做了优化：
 
 
-```
+```c
 struct Block_descriptor_1 
 {
     uintptr_t reserved;
@@ -74,7 +74,7 @@ struct Block_layout
 
 ```
 
-```
+```c
 static struct Block_descriptor_1 * _Block_descriptor_1(struct Block_layout *aBlock)
 {
     return aBlock->descriptor;
@@ -115,7 +115,7 @@ static struct Block_descriptor_2 * _Block_descriptor_2(struct Block_layout *aBlo
 
 最后，我们用clang验证一下(利用clang的-rewrite-objc命令可以将Objectvie-C源码转换为C语言源码)：
 
-``` objectivec 1.c
+```mm 1.c
 int main()
 {
     void (^blockA)(void) = ^{
@@ -128,7 +128,7 @@ int main()
 
 利用clang的-rewrite-objc：`clang -rewrite-objc 1.c`会生成相应的cpp文件：
 
-``` objectivec 1.cpp
+```mm 1.cpp
 struct __block_impl 
 {
   void *isa;
@@ -196,7 +196,7 @@ int main()
 
 ![](/img/blockmemoryarrangement.jpg)
 
-### _NSConcreteGlobalBlock
+## _NSConcreteGlobalBlock
 
 很明显，`_NSConcreteGlobalBlock`类型的block分配在数据区域。以全局的方式定义的block，其类型为`_NSConcreteGlobalBlock`。
 
@@ -212,11 +212,11 @@ int main()
 
 + 在block内没有引用block外的任何自变量。
 
-### _NSConcreteMallocBlock
+## _NSConcreteMallocBlock
 
 `_NSConcreteMallocBlock`类型的block存储在heap上，通常是通过copy函数将stack上的block copy到heap上。
 
-### _NSConcreteStackBlock
+## _NSConcreteStackBlock
 
 `_NSConcreteStackBlock`类型的block存储在stack上，除了上述两种类型的block，其他block都属于`_NSConcreteStackBlock`。
 

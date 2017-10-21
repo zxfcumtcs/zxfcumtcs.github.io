@@ -90,8 +90,7 @@ ok，这就是本节主题：『命名规则』要解决的问题。
 ![](/img/MRCAlloc.png)
 在 MRC 下，上述代码通过 Analyze 做静态分析时会给出如上图所示的 warning。
 
-#### ARC 与 MRC 混用
-_______________________
+## ARC 与 MRC 混用
 由于很多项目经历了 MRC 到 ARC 的时代，因此 ARC 与 MRC 在项目中同时存在的情况大有所在。
 如果，此时不遵守上述命名规则会出现问题吗？
 
@@ -119,16 +118,14 @@ ____________________
 - 在对象内部管理引用计数；
 - 通过外部结构(如：hash 表)统一管理引用计数。
 
-#### GNUstep’s Implementation of Reference Counting
-________________________
+## GNUstep’s Implementation of Reference Counting
 GUNstep 实现了一套兼容 Cocoa Framework 的 Framework，作为开源代码我们来看看它是如何处理引用计数的：
 ![](/img/GNUstepReferenceCounting.png)
 通过整理，删除非必要的代码，GUNstep 实现的`alloc`方法如上所示。可以看到，其使用了一个结构体`obj_layout`来保存引用计数，同时该结构体被附在所生成 object 的头部。
 object内存布局如下图所示(引自《Objective-C高级编程》)：
 ![](/img/GNUstepObjectMemory.png)
 
-#### Apple’s Implementation of Reference Counting
-_________________________
+## Apple’s Implementation of Reference Counting
 由于 Apple 现已来源了相关的代码，使得我们可以进一步一探究竟。Apple 所有的来源代码都可以在此找到：[Apple Opensource](http://www.opensource.apple.com/source/objc4/)。
 
 首先，我们来看看 Apple 是如何实现 `retain` 方法的：
@@ -175,8 +172,7 @@ weak 无疑是 ARC 送给我们的一大利器，通过它基本能消灭 delega
 `weak_register_no_lock`方法首先检查赋值object在 weak table 中是否存在相应的条目，若存在则直接在其中添加该 weak 变量的信息，若不存在则插入赋值 object 对应的条目。
 ![](/img/weak_register_no_lock.png)
 
-#### weaktable
-__________________________
+## weaktable
 谈到 weak，自然少不了要说到 weaktable：
 ![](/img/weaktable.png)
 ![](/img/weak_entry_t.png)
@@ -197,17 +193,17 @@ __________________________
 
 # Toll-Free Bridge cast
 ____________________________
-#### __bridge cast
+## __bridge cast
 在 ARC 下，id 与 `void*`之间不再像 MRC 时代可以任意转换，在 ARC 下若需在两者之间转换可以使用`__bridge cast`。
 在使用时需注意，在将 id 转换为 `void*`时，其不再在 ARC 的内存管理范畴内，极有可能出现dangling pointer。
 
-#### __bridge_retained cast
+## __bridge_retained cast
 __bridge_retained的作用是使得被赋值变量持有赋值 object。
 ![](/img/bridge_retainedARC.png)
 上述 ARC 代码与下面的 MRC 代码在内存管理上是等价的
 ![](/img/bridge_retainedMRC.png)
 
-#### __bridge_transfer cast
+## __bridge_transfer cast
 __bridge_transfer的作用是使得赋值 object 在赋值后被 release。
 ![](/img/bridge_transferARC.png)
 ![](/img/bridge_transferMRC.png)

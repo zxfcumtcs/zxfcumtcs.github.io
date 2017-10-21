@@ -11,7 +11,7 @@ tags:
 
 # block误用
 ______________
-### block作为函数参数
+## block作为函数参数
 
 [前文](http://zxfcumtcs.github.io/2014/07/15/block2/)介绍过除了两种特殊情况(ARC下三种特殊情况)，block作为函数参数时不会被copy到heap，需要手动copy block。
 
@@ -25,7 +25,7 @@ ______________
 
 误用1：将`NSConcreteStackBlock`类型的block作为函数参数时，没有copy该参数——在需要时没有将stack上block copy到heap上；
 
-### 错误的使用__block解决retain cycle
+## 错误的使用__block解决retain cycle
 
 在使用block时，大家都紧绷着一根弦：**retain cycle**。
 
@@ -37,7 +37,7 @@ ______________
 
 其中，一个典型的错误用法就是：
 
-```
+```mm
 __block ClassType *weakSelf = self;
 dispatch_asyn(_queue, ^{
 	[weakSelf doSomething];

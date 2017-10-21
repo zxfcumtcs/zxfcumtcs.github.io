@@ -19,7 +19,7 @@ ______________
 可以看到对象的成员变量从根类开始依次排列(`isa`指针就是根类`NSObject`的成员变量)。
 
 OK，我们可以验证一下：
-```
+```mm
 @interface A : NSObject
 {
     NSInteger   _a;
@@ -93,7 +93,7 @@ Apple从iPhone5s开始采用64-bit A7双核处理器，因此指针也扩展到6
 
 最后一个问题，编译器怎么判断一个指针是否是`Tagged Pointer`？
 
-```
+```mm
 struct objc_object 
 {
     bool isTaggedPointer() 

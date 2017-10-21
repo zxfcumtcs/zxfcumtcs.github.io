@@ -38,7 +38,7 @@ _____________
 
 在最新的开源代码中，用于表示`__block`变量的结构`Block_byref`定义如下：
 
-``` objectivec codeA
+``` mm codeA
 
 struct Block_byref 
 {
@@ -76,13 +76,13 @@ struct Block_byref_3
 
 # block copy与其引用的外部变量
 ______________
-### block copy与普通object类型变量
+## block copy与普通object类型变量
 
 [前文](http://zxfcumtcs.github.io/2014/07/15/block2/)我们总结过，当block从stack copy到heap上时，会retain其引用的外部object。
 
 我们看看编译器为此做了什么：
 
-``` objectivec codeB
+```mm codeB
 int main()
 {
     NSArray *arr = [[NSArray alloc] init];
@@ -98,7 +98,7 @@ int main()
 
 **block在copy时，会调用其`copy`方法完成对引用变量的copy，编译器为`blockA`合成的`copy`函数如下：**
 
-``` objectivec codeC
+```mm codeC
 static void __main_block_copy_0(struct __main_block_impl_0*dst, struct __main_block_impl_0*src)
 {
     _Block_object_assign((void*)&dst->arr, (void*)src->arr, 3//*BLOCK_FIELD_IS_OBJECT*//);
@@ -108,7 +108,7 @@ static void __main_block_copy_0(struct __main_block_impl_0*dst, struct __main_bl
 
 可以看到，合成的copy方法`__main_block_copy_0`调用了[runtime](http://opensource.apple.com/source/libclosure/libclosure-63/runtime.c)的`_Block_object_assign`方法来完成copy操作：
 
-``` objectivec codeD
+```mm codeD
 void _Block_object_assign(void *destAddr, const void *object, const int flags) 
 {
     if ((flags & BLOCK_BYREF_CALLER) == BLOCK_BYREF_CALLER) 
@@ -142,13 +142,13 @@ void _Block_object_assign(void *destAddr, const void *object, const int flags)
 第24行，retain了block内引用的对象，在本例中为`arr`。
 第25行，将源block中`arr`的地址赋给了目标block中的`arr`变量。
 
-### block copy与__block修饰的object类型变量
+## block copy与__block修饰的object类型变量
 
 **我们知道，在ARC下block会retain __block修饰变量，而在非ARC下不会retain。**
 
 还是通过代码来了解：
 
-``` objectivec codeE
+```mm codeE
 int main()
 {
     NSArray *arr = [NSArray array];
@@ -164,7 +164,7 @@ int main()
 
 编译器合成的代码：
 
-``` objectivec codeF
+```mm codeF
 int main()
 {
     NSArray *arr = ((NSArray *(*)(id, SEL))(void *)objc_msgSend)((id)objc_getClass("NSArray"), sel_registerName("array"));
@@ -219,7 +219,7 @@ static void __Block_byref_id_object_copy_131(void *dst, void *src)
 
 通过比较可知：编译器为`blockB`合成的copy函数与为`blockA`合成的copy函数唯一的差别在调用`_Block_object_assign`函数时最后一个参数不一样。
 
-``` objectivec codeG
+```mm codeG
 
 else if ((flags & BLOCK_FIELD_IS_BYREF) == BLOCK_FIELD_IS_BYREF)  
 {
@@ -228,7 +228,7 @@ else if ((flags & BLOCK_FIELD_IS_BYREF) == BLOCK_FIELD_IS_BYREF)
 
 ```
 
-``` objectivec codeH
+```mm codeH
 static void _Block_byref_assign_copy(void *dest, const void *arg, const int flags) 
 {
     struct Block_byref **destp = (struct Block_byref **)dest;
@@ -285,7 +285,7 @@ static void _Block_byref_assign_copy(void *dest, const void *arg, const int flag
 
 `_Block_object_assign`函数最后一个参数`flags`的含义：
 
-```
+```mm
 enum 
 {
     BLOCK_FIELD_IS_OBJECT   =  3,  // id, NSObject, __attribute__((NSObject)), block, ...

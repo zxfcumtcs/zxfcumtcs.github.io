@@ -26,7 +26,7 @@ ok，首先看看`NSURLSession`在IOS体系中的地位(图片来自WWDC2014)。
 
 # NSURLSession家族
 
-### NSURLSessionConfiguration——网络大管家
+## NSURLSessionConfiguration——网络大管家
 
 顾名思义，`NSURLSessionConfiguration`就是用于配置`NSURLSession`在网络交互过程中的各种属性。
 
@@ -54,7 +54,7 @@ ok，首先看看`NSURLSession`在IOS体系中的地位(图片来自WWDC2014)。
 通过该`identifier`，我们可以创建新的background session，用于获取与其绑定的download or upload response。
 
 
-### NSURLSessionTask——网络办事员
+## NSURLSessionTask——网络办事员
 
 在每个组织、单位都会有一些领导、当然更多的是办事员了。呵呵，没错，`NSURLSessionTask`家族就处于社会底层——苦逼的办事员！
 
@@ -73,7 +73,7 @@ ok，首先看看`NSURLSession`在IOS体系中的地位(图片来自WWDC2014)。
 + NSURLSessionDataTask----用于向服务器请求资源(如：json、xml格式的数据等)，服务器返回的资源以`NSData`的形式提供给业务层解析。其只能用于default和ephemeral sessions，而不支持background sessions。
 
 	`NSURLSession`类中用于创建`NSURLSessionDataTask`的方法有：
-	```
+	```mm
 - (NSURLSessionDataTask *)dataTaskWithRequest:(NSURLRequest *)request;
 - (NSURLSessionDataTask *)dataTaskWithRequest:(NSURLRequest *)request completionHandler:(void (^)(NSData *data, NSURLResponse *response, NSError *error))completionHandler;
 - (NSURLSessionDataTask *)dataTaskWithURL:(NSURL *)url;
@@ -82,7 +82,7 @@ ok，首先看看`NSURLSession`在IOS体系中的地位(图片来自WWDC2014)。
 + NSURLSessionUploadTask----用于通过HTTP协议向服务器上传数据或文件，其继承于`NSURLSessionDataTask`，刚开始对这点感到很奇怪，感觉`NSURLSessionDataTask`和`NSURLSessionUploadTask`有点风马牛不相及，其原因在于upload过程中服务器可能会向client反馈一些信息。但`NSURLSessionUploadTask`是支持background sessions的。
 
 	`NSURLSession`类中用于创建`NSURLSessionUploadTask`的方法有：
-	```
+	```mm
 - (NSURLSessionUploadTask *)uploadTaskWithRequest:(NSURLRequest *)request fromData:(NSData *)bodyData;
 - (NSURLSessionUploadTask *)uploadTaskWithRequest:(NSURLRequest *)request fromData:(NSData *)bodyData completionHandler:(void (^)(NSData *data, NSURLResponse *response, NSError *error))completionHandler;
 - (NSURLSessionUploadTask *)uploadTaskWithRequest:(NSURLRequest *)request fromFile:(NSURL *)fileURL;
@@ -96,7 +96,7 @@ ok，首先看看`NSURLSession`在IOS体系中的地位(图片来自WWDC2014)。
 	![](/img/nsurlsessiondownloadpath.png)
 
 	`NSURLSession`类中用于创建`NSURLSessionDownloadTask`的方法有：
-	```
+	```mm
 - (NSURLSessionDownloadTask *)downloadTaskWithRequest:(NSURLRequest *)request;
 - (NSURLSessionDownloadTask *)downloadTaskWithRequest:(NSURLRequest *)request completionHandler:(void (^)(NSURL *location, NSURLResponse *response, NSError *error))completionHandler;
 - (NSURLSessionDownloadTask *)downloadTaskWithResumeData:(NSData *)resumeData;
@@ -105,7 +105,7 @@ ok，首先看看`NSURLSession`在IOS体系中的地位(图片来自WWDC2014)。
 - (NSURLSessionDownloadTask *)downloadTaskWithURL:(NSURL *)url completionHandler:(void (^)(NSURL *location, NSURLResponse *response, NSError *error))completionHandler;
 	```
 	
-### NSURLSession——最高领导
+## NSURLSession——最高领导
 
 ok，领导终于露面了！
 
@@ -129,7 +129,7 @@ ok，领导终于露面了！
 
 `NSURLSession`提供了三个类方法：
 
-```
+```mm
 // 使用default configuration并且该session中的task必须提供completionHandler
 + (NSURLSession *)sharedSession;
 

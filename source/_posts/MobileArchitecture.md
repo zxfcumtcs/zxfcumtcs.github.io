@@ -52,7 +52,7 @@ MVC模式的核心思想是数据层(Domain)与表现层(Presentation)的隔离�
 常用方法：在Presentation Object(Controller)中注册通知、设置delegate、传递block等。当数据需要更新时，Domain Object(Model)通过上述方式将数据自底向上的同步给Presentation Object。
 
 下面简单介绍一下 Model、View、Controller：
-### Model
+## Model
 _________________________
 Apple: Model Objects Encapsulate Data and Basic Behaviors.
 Stanford: Model = What your application is (but not how it is displayed).
@@ -62,7 +62,7 @@ Stanford: Model = What your application is (but not how it is displayed).
 ![](/img/QRBookShelfModel.png)
 如：我们书架的 Model：`QRBookShelfModel`，包含了数据：`NSArray<QRBookShelfItem *> *books`以及对数据的操作：`addBook:`、`deleteBook:`等。
 
-### Controller
+## Controller
 _________________________
 Apple: Controller Objects Tie the Model to the View.
 Stanford: Controller = How your Model is presented to the user(UI logic).
@@ -78,14 +78,14 @@ Controller 是 Model 与 View 间的连接器，其核心职责有：
 + 性别，从 Model 返回的是0、1这样的 int 型，将其转换成：1->男，0—>女；
 + 日期，将时间戳格式化：123456789923—>2016-07-01 10:09.
 
-### View
+## View
 _________________________
 Apple: View Objects Present Information to the User
 Stanford: View=Your Controller’s minions
 
 总之，View 只做一件事：layout。
 
-### MVC 规则
+## MVC 规则
 _________________________
 为了实现 MVC 的核心思想：业务 (model) 与展示 (View) 的隔离，必须严格遵守一些规则：
 + Controller 依赖(持有) Model、View(可直接与它们通信)；
@@ -100,7 +100,7 @@ _________________________
 
 (关于 MVC 规则的描述，大家也可以参考 Stanford iOS 公开课中的相关内容)
 
-### 有问题吗？
+## 有问题吗？
 ___________________________
 此时，大家或许心中有些疑问：
 1、在 MVC 模式中，网络请求、数据存储谁来完成？
@@ -116,7 +116,7 @@ ___________________________
 + 展示逻辑为什么由 Controller 完成而不是 View？
 	View可复用性高，不应关心具体展示逻辑，只专注于 layout
 	
-### Massive View Controller
+## Massive View Controller
 _______________________________
 MVC 模式被批评最多的就是 Controller 过于臃肿，那么 Controller 都做了什么？
 + 处理复杂的展示逻辑；
@@ -149,7 +149,7 @@ ___________________________________
 ![](/img/MVCMVVM.jpg)
 在 MVVM 中 Controller 被认为是 View，更准确的说是：
 ![](/img/MVMCV.jpg)
-### Rules
+## Rules
 ___________________________________
 在 MVVM 模式中，各模块间的依赖关系、数据流向、数据传递的格式都有严格的规定：
 ![](/img/MVVMRules.jpg)
@@ -175,7 +175,7 @@ ___________________________________
 	
 其中，View 与 View Model 类似 UIView 与 CALayer 的关系，一一对应(包括层次结构)：
 ![](/img/ViewViewModel.jpg)
-### Data Binding
+## Data Binding
 ____________________________________
 ![](/img/MVVMDataBinding.jpg)
 从上图可知，在 MVVM 中数据流方向与依赖关系正好相反，数据流的流动就是建立在 Observer Synchronization 思想基础之上。
@@ -186,7 +186,7 @@ ____________________________________
 + 优势：绑定关系确定后，同步更加方便；
 + 劣势：数据流不直观，调试较困难；
 
-#### MVVM VS. MVP
+## MVVM VS. MVP
 _____________________________________
 MVVM 与 MVP 有很多相似的点：
 + 将展示逻辑从 Controller 中提取出来(分别放到 View Model 和 Presenter 中)；
@@ -209,7 +209,7 @@ MVVM 的 Data Binding 在一定程度上增加了编码的复杂度、数据流�
 + 不独立：MVC、MVCS
 
 MVVM、MVP 分别将展示逻辑从 Controller 中提取出来，使 Controller 得到一定程度的简化，在展示逻辑复杂的情况下，效果更加明显。
-### 没有好坏，只有适合
+## 没有好坏，只有适合
 ________________________________________
 通过上述分析，我们可以看到，常见几种框架：MVC、MVCS、MVP、MVVM 并没有绝对的好坏之分，只是各有不同的适用场景。
 我们在选择时可以根据以下两点作为参考依据：
@@ -219,7 +219,7 @@ ________________________________________
 + 展示逻辑是否复杂
 	复杂：MVVM、MVP
 
-### 万变不离其宗——MVC是根
+## 万变不离其宗——MVC是根
 ________________________________________
 MVCS、MVP、MVVM 等各种新生框架，虽各有不同，但都是源自于 MVC，它们的核心思想一直没变，也不能变：
 + Separated Presentation;
@@ -229,7 +229,7 @@ MVCS、MVP、MVVM 等各种新生框架，虽各有不同，但都是源自于 M
 ________________________________________
 理论的东西讲了不少，下面结合实际的项目，看看应该如何选择框架。
 
-### 书籍详情页
+## 书籍详情页
 __________________________
 书籍详情页在整个 QQ 阅读 app 中，无论是展示还是业务逻辑都是最复杂的一个模块。
 ![](/img/DetailPage.jpg)
@@ -242,7 +242,7 @@ __________________________
 ![](/img/BookDetailHeaderView.jpg)
 如果，采用 MVVM 框架，各种展示逻辑可以放到相应的 View Model 中，让 View 只专注于 layout。同时在 View Model 中处理下载相关逻辑，使下载逻辑与 View 解耦。
 
-### 信息流
+## 信息流
 __________________________
 信息流作为 QQ 阅读一大亮点，能为用户个性化推荐书籍，是整个 app 中最重要的一个页面：
 ![](/img/FeedFlow.jpg)

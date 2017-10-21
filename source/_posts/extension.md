@@ -83,7 +83,7 @@ Extension 作为 Container App 的延伸，两者间的数据共享在所难免�
 通过上面两张图可以看出Extension 与 Container App 可以通过 Shared Container 共享数据。
 ![](/img/good.png)
 
-### App Group
+## App Group
 
 我们知道，Extension 与 Container App 间之所以能共享数据，App Group 起到关键性的作用。
 
@@ -121,7 +121,7 @@ OK，有了 App Group，我们就可以任性地在 Extension 和 Container App 
 
 最简单的方式恐怕就是通过`writeToFile:atomically:encoding:error:`接口写数据了。
 
-### Share Core Data between Extension and Container App
+## Share Core Data between Extension and Container App
 
 正常情况下 Core Data 会在 App Sandbox 中按指定的路径生成相应的数据存储文件。为了在 Extension 和 Container App 间共享 Core Data，关键点就在于将 Core Data 对应的数据存储文件保存到共享目录下。
 

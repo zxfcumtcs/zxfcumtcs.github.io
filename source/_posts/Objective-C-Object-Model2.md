@@ -26,7 +26,7 @@ ______________
 
 相关的源码：
 
-```
+```mm
 bool isMetaClass() 
 {
     assert(this);
@@ -53,7 +53,7 @@ bool isRootMetaclass()
 ```
 
 下面是创建一个类相关的代码(仅摘取核心代码，[完整代码](http://www.opensource.apple.com/source/objc4/objc4-551.1/runtime/objc-runtime-new.mm))：
-```
+```mm
 Class objc_allocateClassPair(Class superclass, const char *name, size_t extraBytes)
 {
     Class cls, meta;

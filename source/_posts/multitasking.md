@@ -62,13 +62,13 @@ no，only need three steps，its so easy！
 2. 在`application:didFinishLaunchingWithOptions: `方法中设置周期性拉取数据的时间间隔；
 3. 实现`application:performFetchWithCompletionHandler:`方法，在该方法中处理 Background fetch 的具体任务。
 
-### Background fetch的开关
+## Background fetch的开关
 
 ![](/img/setBackgroundfetch.png)
 
 这一步很简单，点两下鼠标就搞定！
 
-### 设置时间间隔
+## 设置时间间隔
 
 `- (void)setMinimumBackgroundFetchInterval:(NSTimeInterval)minimumBackgroundFetchInterval`通过该函数可以设置系统唤醒 app 在后台执行Background fetch操作的时间间隔。
 
@@ -92,7 +92,7 @@ no，only need three steps，its so easy！
 }
 ```
 
-### 实现performFetchWithCompletionHandler方法
+## 实现performFetchWithCompletionHandler方法
 
 当系统允许 app 执行 Background fetch 操作时，会在后台唤醒该 app，流程如下(图片来自 WWDC2013)：
 ![](/img/Backgroundfetch.png)

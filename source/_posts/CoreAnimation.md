@@ -41,7 +41,7 @@ ______________________________
 
 CPU 相信大家再熟悉不过了，执行各种指令的神经中枢。GPU(图形处理单元，Graphics Processing Unit)针对高并行浮点运算做了特定优化，因此在图形处理上比 CPU 更胜一筹。居于此，我们希望尽可能多地将图形渲染工作交由 GPU 完成，然而 GPU 的处理能力也是有限的，当 GPU 超负荷运转时，即使 CPU 还有空闲，app 的性能也将下降。因此，动画性能优化主要是考虑 CPU 与 GPU 间的负载均衡。
 
-### The Stages of an Animation
+## The Stages of an Animation
 
 一般情况下，我们认为animation都是发生在 app 内部的。其实不然，在 iPad 上通过4指左右滑动可以切换当前运行的 app，此过程就涉及 app 间的animation了，也就是在同一 animation 中需要显示来自两个不同 app 的内容。也就意味着，执行 animation 的代码不能在某个 app 内部完成(sandboxed所限)。
 
@@ -63,7 +63,7 @@ CPU 相信大家再熟悉不过了，执行各种指令的神经中枢。GPU(图
 其中，前5步由 CPU 完成，最后一步由 GPU 完成，而我们真正能控制的只有前2步。当然，在 layout、display 过程中，我们可以决定哪些工作提前由 CPU 完成，哪些工作交由 GPU 完成，这也是我们优化动画性能的关键点所在。
 
 
-#### GPU-Bound Operations
+## GPU-Bound Operations
 
 GPU 在图形处理上做了特定优化，那么什么操作会在 GPU 上执行呢？
 
@@ -74,7 +74,7 @@ GPU 在图形处理上做了特定优化，那么什么操作会在 GPU 上执�
 + Offscreen-Rendering——离屏渲染，需要为 offscreen image 分配额外的内存并切换 drawing context，这将会影响 GPU 的性能。
 + Too-large images——当要绘制的 image 超过 GPU 的处理能力时，必须通过 CPU 来处理，这将明显性能。
 
-### CPU-Bound Operations
+## CPU-Bound Operations
 
 在 Core Animation 中，CPU 的工作大多发生在动画开始前，意味着在 CPU 上执行的工作基本不会影响帧率(frame rate)，但是会延迟动画的开始执行时间，使得 app 响应用户事件不够及时。
 
@@ -154,7 +154,7 @@ iOS 为了节省内存，对加载的 image 通常会延迟解压，直到该 im
 最后一种方式是通过 UIKit 加载图片，但立即将其 draw 到 CGContext 上，image 在 draw 之前是必须要解压的，通过该方式解压的一个优势是解压过程可以在 background thread 中进行。
 ![](/img/backgrounddecodeimage.png)
  
-### UIImageView vs. -[UIImage draw...]
+## UIImageView vs. -[UIImage draw...]
 
 将 image 绘制到屏幕上通常有两种方式：通过 UIImageView 控件以及直接使用 UIImage 的 draw 方法。
 
@@ -171,11 +171,11 @@ Apple 推荐使用 UIImageView 方式显示图片，原因主要有三点：
 # 影响性能的其他因素
 _______________________________________
 
-#### Transparent 
+## Transparent 
 
 如果要绘制的 layer 是透明的，对于 GPU 来说，有大量额外的工作要做，在合成最终bitmap 时需要针对透明 layer 的每个像素计算叠加效果。这对于滑动时的性能来说是大忌。在代码中经常会出现：`xxView.backgroundColor = [UIColor clearColor];`，其实这就意味着 xxView 具有透明背景！通过 Instrument 的**Color Blended Layers**选项可以检测哪些 layer 是透明的。
 
-#### Misalignment
+## Misalignment
 
 对于 view 的 frame 中的成员存在小数值时，可能会出现像素不对齐的问题(在2x 屏幕中0.5不会出现misalignment问题，因为1个点对应2像素)。当出现misalignment时，GPU 需要从 source texture 中 blending 多个像素点的值来生成一个像素。通过 Instrument 的**Color Misaligned Images**选项可以检测misalignment。
 

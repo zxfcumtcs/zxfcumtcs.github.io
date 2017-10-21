@@ -28,14 +28,14 @@ ______________________________
 回到前面那个问题：子类化 NSOperation 时需要重写哪些方法？
 这取决于子类化后的 operation 是 Synchronous 还是 Asynchronous(NSOperation 默认是Synchronous)。
 
-#### Synchronous VS. Asynchronous Operations
+## Synchronous VS. Asynchronous Operations
 _______________________________
 由于操作 NSOperation 与 NSOperation 任务的执行往往在不同的线程上进行，在继续之前需要强调线程安全问题：『NSOperation 本身是 thread-safe，*当我们在子类重写或自定义方法时同样需要保证 thread-safe*』。
 
-##### Synchronous Operations
+### Synchronous Operations
 对于 Synchronous Operation，在调用其 `start` 方法的线程上同步执行该 operation 的任务，`start` 方法返回时 operation 执行完成。因此，对于 Synchronous Operation 一般只需重写 `main` 方法即可(`start`方法的默认实现已实现相关 KVO 功能)。
 
-##### Asynchronous Operations
+### Asynchronous Operations
 然而对于 Asynchronous Operation，调用其 `start` 方法后，在 `start` 返回时 operation 的任务可能还没完成(为了实现异步，一般需要在其他线程执行 operation 的具体任务)。因此 `start` 方法默认实现不能满足异步需要(默认实现会在`start`返回前将 `isExecuting` 置为 NO、`isFinished` 置为 YES，并产生 KVO 通知)。此时至少需要重写以下方法：
 + start：
 	我们知道 NSOperation 本身不具备并发(或者说异步执行)能力，因此需要 `start` 方法来实现，可以通过创建子线程或其他异步方式完成。同时需要在任务开始前将 `isExecuting` 置为YES 并抛出 KVO 通知。
@@ -73,7 +73,7 @@ ps：虽然 NSOperation 支持 cancel，但在调用 `cancel` 方法后该如何
 同时，AFURLConnectionOperation 也实现了以下方法：
 ![](/img/AFURLConnectionOperation-isReady-isFinished.png)
 
-#### 关于 NSOperation 其他细节问题
+### 关于 NSOperation 其他细节问题
 ________________________
 + dependencies:
 	我们可以在 operation 间添加依赖关系，在某个 operation 所依赖的 operations 完成之前，其一直处于未就绪状态(`isReady` 为 NO)。
@@ -114,7 +114,7 @@ GCD 与 NSOperation Queue 作为常见的并发编程方式，在使用时该如
 _________________________________
 本文简单讨论了在使用 NSOperation 时需要重写哪些方法、注意哪些问题。同时也对 GCD 与 NSOperation Queue 作了简单对比，在清楚了它们各自的特点之后再做选择时会更加清晰。
 
-### 参考资料
+# 参考资料
  [Concurrency Programming Guide](https://developer.apple.com/library/ios/documentation/General/Conceptual/ConcurrencyProgrammingGuide/OperationQueues/OperationQueues.html)
  [NSOperation Class Reference](https://developer.apple.com/library/ios/documentation/Cocoa/Reference/NSOperation_class/index.html)
  [NSOperationQueue Class Reference](https://developer.apple.com/library/ios/documentation/Cocoa/Reference/NSOperationQueue_class/index.html)

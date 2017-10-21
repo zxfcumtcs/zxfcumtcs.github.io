@@ -36,7 +36,7 @@ tags:
 
 # URL Session的生命周期
 
-### URL Session with System-Provided Delegates
+## URL Session with System-Provided Delegates
 
 前面讲到，当我们没有为 session 提供 delegate 时，session 会使用system-provided delegate。
 
@@ -54,7 +54,7 @@ tags:
 
 6. 当session完成其使命时，需要调用`invalidateAndCancel` 或 `finishTasksAndInvalidate`使之失效。
 
-### URL Session with Custom Delegates
+## URL Session with Custom Delegates
 
 嗯， 使用system-provided delegate感觉非常之良好！我们只需在创建 task 时提供一个`completionHandler`就行了。but，想法是美好的，现实是残酷的，前面已经提到某些情况是不能使用system-provided delegate！
 

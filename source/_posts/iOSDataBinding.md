@@ -45,7 +45,7 @@ View 需要绑定`title`、`desc`，则在 View 中只需做两件事：
 ![](/img/zs_observeDesc.jpg)
 是不是简单多了。
 
-### 实现原理
+## 实现原理
 ___________________________________
 我们知道，对于属性，可以重写 setter 方法，其 setter 方法名是通过一定的规则生成的：'set' + 属性名(大写首字母)
 我们也可通过类似的方式生成 KeyPath 对应的 Data Binding 回调方法，如：'zs_observe' + KeyPath(大写首字母)。

@@ -14,7 +14,7 @@ ______________
 
 那么什么情况下需要我们手动调用`Block_copy`或`copy`函数将block copy到heap？
 
-### ARC
+## ARC
 
 ARC下，编译器在大多数情况下能自动识别并在需要的时候自动将stack上的block copy到heap上，如：
 
@@ -39,7 +39,7 @@ ARC下，编译器在大多数情况下能自动识别并在需要的时候自�
 以上这个例子在ARC下正常，但在非ARC下会crash！
 
 
-### 非ARC
+## 非ARC
 
 非ARC下，编译器不会自动copy block。
 

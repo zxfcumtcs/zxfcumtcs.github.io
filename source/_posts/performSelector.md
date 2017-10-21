@@ -16,7 +16,7 @@ _________________________
 
 我们来看看这几个函数的[源码](http://www.opensource.apple.com/tarballs/objc4/)：
 
-```
+```mm
 - (id)performSelector:(SEL)sel 
 {
     if (!sel) [self doesNotRecognizeSelector:sel];

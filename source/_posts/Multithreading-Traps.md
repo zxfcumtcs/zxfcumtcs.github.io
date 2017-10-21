@@ -9,7 +9,7 @@ tags:
 <!--more-->
 ©原创文章，转载请注明出处！
 
-# 1. overview
+# Overview
 __________________________________________
 多线程使 CPU 的计算能力得到更加充分的利用，尤其在多核时代，程序因此变得更加流畅、高效。在 iOS 开发中，通过 GCD 更是能够零成本实现多线程，动不动就将某些耗时操作通过 GCD 分发到子线程执行，正是由于其廉价性，使得我们通常会忽略其引起的多线程问题。
 
@@ -21,7 +21,7 @@ __________________________________________
 
 本文重点不是介绍多线程编程，而是多线程可能引发的问题，在继续之前有必要介绍几个重要概念：原子性(atomicity)、Out-of-order execution 以及 compiler reordering。
 
-# 2. atomicity
+# Atomicity
 ____________________________________________
 说到多线程，不得不提原子性(atomicity)，我们知道原子(atom)是化学中的概念，表示不可再分的基本粒子。在计算机领域，原子操作(原子性)是指在一次执行中不能被中断的操作。由于中断只发现在指令之间，因此在单处理器(UniProcessor)系统中，能通过一条指令完成的操作都具有原子性，然而在对称多处理器(Symmetrical Multi-Processing, SMP)系统中，由于同时存在多个处理器独立运行，单条指令操作也可能会受到干扰。因此，原子性通过软件是无法实现的，需要硬件层面的支持(架构相关的)。简单讲，CPU 通过缓存锁、总线锁在硬件层面可以实现原子性。
 
@@ -29,7 +29,7 @@ ____________________________________________
 
 原子性在多线程中是一个非常重要的概念，是实现线程同步(锁)的前提。
 
-# 3. Data Races
+# Data Races
 ____________________________________________
 我们平时所说的多线程问题，其实绝大多数时候就是在讲 Data Races，出现 Data Races 有两个条件：
 + 在没有同步的情况下，多线程访问同一块内存；
@@ -42,7 +42,7 @@ ____________________________________________
 
 因此，对于任何可能会出现 data races 的地方都要做好同步。
 
-# 4. Out-of-order execution、compiler reordering
+# Out-of-order execution、compiler reordering
 ____________________________________________
 Out-of-order execution、compiler reordering，其实两者从代码执行的角度看，本质上是一样的，都是改变了代码原有的执行顺序。
 只不过两者的“幕后黑手”以及发生时期不同：
@@ -69,7 +69,7 @@ Out-of-order execution、compiler reordering，其实两者从代码执行的角
 
 之所以会出问题，在于 CPU、Compiler 没有能力处理多线程问题，它们一直停留在单线程模式中。因此，这个锅只有程序猿来接了！
 
-# 5. Memory barrier
+# Memory barrier
 ___________________________________________
 Memory barrier 正是解决由 Out-of-order execution、compiler reordering 引起问题的方案。
 Memory barrier 从字面(内存栅栏)即可理解其用途：强制要求处于 barrier 前的读、写操作的执行先于其后的读、写操作。
@@ -87,7 +87,7 @@ Memory barrier 从字面(内存栅栏)即可理解其用途：强制要求处于
 
 介绍完这些多线程的通用问题，我们来看看与 iOS 开发相关的问题。
 
-# 6. Property
+# Property
 __________________________________________
 在继续之前，有必要先复习几个概念：变量、指针、指针变量。
 + 变量——本质就是在内存上分配的一块区域，在代码中一般通过一个名称(变量名)操作它；
@@ -117,7 +117,7 @@ __________________________________________
 > 1. 若自定义了 getter、setter 方法，则需要自己实现 atomic 语义；
 > 2. 若直接访问属性的存储变量，则失去了 atomic 语义。
 
-# 7. dealloc
+# dealloc
 __________________________________________
 我们知道，object 在哪个线程上被最终释放，其`dealloc`方法就会在哪个线程上执行。这里主要的问题在于有些类的`dealloc`方法在子线程上执行是不安全的，如 `UIKit object`。
 
@@ -142,7 +142,7 @@ __________________________________________
 
 > 需要注意的是，到目前为止还没找到官方文档明确这件事。因此，我们最好不要做这样的假设，还是要从代码角度确保 UI 的 dealloc 方法永远在 main thread 上执行。
 
-# 8. target-action
+# target-action
 ___________________________________________
 在 Objective-C 中，实现回调(callback)，主要有两种方式：target-action(observer-selector)、block。
 这一小节，我们来谈谈 target-action 模式在多线程下存在的问题。
@@ -175,7 +175,7 @@ NSNotificationCenter、KVO 的这种处理方式给我们很大的启发：
 
 然而，事情远没这么简单，NSNotificationCenter、KVO 并非线程安全的。
 
-### 8.1 KVO
+## KVO
 上面讲到，KVO 在触发时会 retain observer，防止出现野指针，但线程安全问题依然存在。
 ![](/img/KVOObserverDealloc.jpg)
 如上图，observer 在 thread1 上执行 `dealloc` 时(在调用`removeObserver:`前) thread2 触发 KVO，此时会在 thread2 上执行 KVO 回调`observeValueForKeyPath:`，此刻 observer 已成野指针了(虽然 KVO 会调用 observer 的 `retain` 方法，但由于 observer 的`dealloc`方法已开始执行，`retain`也无力回天了！)。
@@ -186,14 +186,14 @@ NSNotificationCenter、KVO 的这种处理方式给我们很大的启发：
 + apple 建议将 observer 设计成一个永不被释放的对象，facebook 著名 KVO 开源框架 [FBKVOController](https://github.com/facebook/KVOController) 就采用了这一方法，其内部有一个单例`_FBKVOSharedController`，专门用于接收所有的 KVO 回调。
 
 
-### 8.2 NSNotificationCenter
+## NSNotificationCenter
 说到 NSNotificationCenter，第一反应是需要在 observer 的`dealloc`方法中将其从 Notification Center 移除，否则会 crash。但从 iOS9 开始，并不需要手动在`dealloc`中移除，原因是在 Notification Center 中 observer 被存储为`weak`，其最大、最有用的特点就是在其所指 object 释放前会被置为 `nil`。因此，从 iOS9 开始，NSNotificationCenter 是线程安全的，不会出现像 KVO 那样在 `dealloc` 执行过程中触发回调的问题。
 
 > 总结 NSNotificationCenter 在 iOS8、9上的表现，以及 KVO 的表现，可以得出在实现 target-action(delegate) 模式时可借鉴的经验：
 > + target 一定要是 weak——防止在 target dealloc 过程中触发回调；
 > + 在触发回调前先对 target 进行 retain 操作——防止在回调执行过程中，target 被释放，出现野指针。
 
-# 9. block
+# block
 _____________________________________________
 作为 callback 的实现方式之一，block 由于具有保存 context 的优势，其使用的广泛程度甚至高于 target-action 模式。说到 block，一定会想到其引发的 retain cycle 问题。
 为了解决 retain cycle 问题，在 MRC 下一般使用`__block`，ARC 下使用`__weak`。
@@ -205,7 +205,7 @@ ps：当然这里仅是个例子，实际中 GCD api 一般是不需要考虑 re
 ARC 下，由于有 weak，一般不会出现野指针，但 block 在执行时，`self` 可能已是 `nil`，处理不好也有可能会 crash。比较好的做法是，将 block 体封装成方法，这时如果 `self` 为 `nil`，方法就不会被执行。
 ![](/img/blocktomethod.jpg)
 
-# 10. mutable containers
+# mutable containers
 _____________________________________________
 Objective-C 中可变容器是非线程安全的，其导致的多线程问题也是在实际开发中遇到最多的一类线程安全问题。而这其中，`*** was mutated while being enumerated.`最为常见，并且大多数都是由多线程引起的(一个线程遍历，另一个线程写)。
 解决这类问题需要注意两点：
@@ -218,11 +218,11 @@ Objective-C 中可变容器是非线程安全的，其导致的多线程问题�
 如上图所示，经常犯的一个错误是在子线程获得数据后，直接修改了 UITableView 的 dataSource，而此时可能主线程上 UITableView 的回调也正在读 dataSoure，从而出现 data race 问题。
 一定要记住，UITableView datasource 的刷新必须要在主线程上完成(当然，请求数据的过程可以在，也应该在子线程上执行)。
 
-# 11. 技巧
+# 技巧
 _____________________________________________
 最后分享几个小技巧。
 
-### 11.1 Thread Sanitizer (TSan)
+## Thread Sanitizer (TSan)
 针对多线程问题，Apple 在 Xcode8 中推出了扫描工具(目前只支持 64-bit 的模拟器)：Thread Sanitizer (TSan)，其具有以下功能：
 + Use of uninitialized mutexes；
 + Thread leaks (missing pthread_join)；
@@ -232,18 +232,18 @@ _____________________________________________
 
 其中，对 Data races 的扫描功能非常棒！建议大家在每个版本都用 TSan 扫描一次。更多信息可以参看 [WWDC2016-412 Thread Sanitizer and Static Analysis](https://developer.apple.com/videos/play/wwdc2016/412/)。
 
-### 11.2 放大法定位问题
+## 放大法定位问题
 由于多线程问题，一般复现难度大，只有在特定的执行时序下才能重现，无疑增加了排查、分析、解决问题的难度。
 此时，我们可以通过放大法把小概率事件变成大概率事件，如：通过循环反复执行某一操作、通过 sleep 增大不安全的窗口期等。
 
-### 11.3 提供接口让调用方指定callback thread
+## 提供接口让调用方指定callback thread
 callback 应该在哪个 thread 上执行，在开发过程中经常有这样的问题。通常的做法是：要么粗暴的 dispatch 到 main thread，要么直接在当前线程执行。
 其实，更好的做法是提供接口让调用方指定在哪个 thread callback。
 目前，有不少开源库都是这么处理的，如：facebook 著名的 websocket 开源库 [SocketRocket](https://github.com/facebook/SocketRocket)：
 ![](/img/RocketSocket.jpg)
 如上图，其在提供`delegate`接口的同时，提供了两个接口：`delegateDispatchQueue`、`delegateOperationQueue`。
 
-### 11.4 通过 queue specific 判断当前是否在某个队列中执行任务
+## 通过 queue specific 判断当前是否在某个队列中执行任务
 为了在某队列上同步执行任务，经常需要判断当前是否已在该队列上，否则容易出现 deadlock。通过`dispatch_queue_get_specific`、`dispatch_queue_set_specific`这两个 api 可以方便的实现：
 ![](/img/queuespecific.png)
 

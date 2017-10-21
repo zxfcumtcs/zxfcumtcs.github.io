@@ -40,13 +40,13 @@ ____________________________________
 ____________________________________
 这是一个很大的问题，细分的话就是 HTTPS 如何完成它的3个使命：加密、完整性校验以及身份认证。
 这一切都要从 TLS/SSL 协议说起，但在开始之前有必要先了解一些相关的基础知识：
-#### 对称加密与非对称加密
+## 对称加密与非对称加密
 + 对称加密 (Symmetric cryptography)，发送方与接收方使用相同的密钥加密与解密，这也是其最大的弱点，意味着双方在能加密通信前需要传送密钥；
 + 非对称加密 (也称为公钥加密，Asymmetric cryptography/Public-key cryptography)，旨在解决对称加密必须传送密钥的缺陷。1976年， Whitfield Diffie 与 Martin Hellman 提出在不交换密钥的情况下完成加解密的构想，即 Diffie–Hellman key exchange。1977年，数学家 Rivest、Shamir 以及 Adleman 受 Diffie–Hellman key exchange 的启发，设计出一种非对称加密算法，称之为 RSA 算法，其思想是通信中的一方生成一对密钥：公钥、私钥，公钥分开发布，任何人都可以获取，私钥则是密保的。公钥加密的信息只有私钥能解密，私钥加密的信息也只有其对应的公钥可以解密。
 
 其中，[Diffie-Hellman Key Exchange在原理大致如下](https://commons.wikimedia.org/wiki/File:Diffie-Hellman_Key_Exchange_)：![](/img/Diffie-Hellman_Key_Exchange.png)更多信息可以参考[Diffie–Hellman key exchange](https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange)。
 
-#### 数字签名 (Digital Signature)
+## 数字签名 (Digital Signature)
 顾名思义，签名主要就是防伪，数字签名主要用于认证消息的发送者 (发送者无法抵赖)、消息完整性校验。
 > A digital signature is a mathematical scheme for demonstrating the authenticity of a digital message or documents. A valid digital signature gives a recipient reason to believe that the message was created by a known sender, that the sender cannot deny having sent the message (authentication and non-repudiation), and that the message was not altered in transit (integrity).
 
@@ -56,7 +56,7 @@ ____________________________________
 + 计算消息摘要的 hash 函数：对输入敏感且不可逆；
 + 非对称加密：一个公钥解一个私钥，通过发送者发布的公钥能解开的加密信息一定是通过发送者配对的私钥加密的。
 
-#### 数字证书 (Digital Certificate)
+## 数字证书 (Digital Certificate)
 仅仅通过非对称加密能实现身份认证吗？
 我们知道，在非对称加密中，接收方仅仅掌握了所谓来自发送方的公钥，而公钥是不包含任何身份信息的。
 ![](/img/MiddlemanAttack.jpg)
@@ -80,7 +80,7 @@ ____________________________________
 再回到前面的问题『如何获得证书签发者的公钥以便验证证书的真伪？如何判断获得的签发者公钥没被篡改？』
 由于 CA 是公认的权威机构，系统或浏览器会内置其自签名的证书 (根证书)。
 
-#### 证书链 (Certificate chains)
+## 证书链 (Certificate chains)
 由于证书的需求量巨大，为了减少一级 CA 的工作量，出现了二级、三级、... CA 机构，其签发出来的证书也就构成了一个证书链。
 ![](/img/CertificateChain.jpg)
 如[上图](https://docs.oracle.com/cd/E19693-01/819-0997/gdzen/index.html)所示，所有 CA 机构组成一个树状结构。
@@ -91,7 +91,7 @@ ____________________________________
 
 好了，下面该回到正题了。
 
-### TLS/SSL 协议
+## TLS/SSL 协议
 ____________________________________
 我们已经知道，在 HTTPS 协议栈中，TLS/SSL 处于 HTTP 与 TCP 之间。进一步细分的话，TLS 分为2层5条协议：![](/img/TLSprotocolstack.jpg)
 
@@ -161,7 +161,7 @@ Change_Cipher_Spec 表示通知对方后续通信将加密 (此时 Master Secret
 服务端同样需要发送 Change_Cipher_Spec、Finished 消息。
 至此，若所有步骤都正确无误，则 TLS 握手过程顺利完成！后续所有消息都将通过对称加密的方式发送。
 
-### 小结
+# 小结
 ____________________________
 再来看 HTTPS 的三个主要任务：
 + 加密：通过握手过程协商的加密算法、密钥对消息加密；
@@ -170,12 +170,12 @@ ____________________________
 
 以上就是 HTTPS 相关的一些知识。
 
-### 未尽事宜
+# 未尽事宜
 + 证书管理：证书可能会被 CA 吊销、失效等，终端可以通过 CRL (Certificate Revocation List) 或 OCSP (Online Certificate Status Protocol) 等机制查询证书的状态；
 在证书中会包含 CRL、OCSP 相关的信息：![](/img/CRLOCSP.jpg)
 + session 复用：从上述介绍我们可以知道，建立 TLS 链接是十分耗时的，可以通过 session id 以及 session ticket 机制实现链接复用。
 
-## 参考资料
+# 参考资料
 [Transport Layer Security (TLS)](https://hpbn.co/transport-layer-security-tls/)
 [The Transport Layer Security (TLS) Protocol Version 1.2](https://tools.ietf.org/html/rfc5246)
 [Internet X.509 Public Key Infrastructure Certificate and Certificate Revocation List (CRL) Profile](https://tools.ietf.org/html/rfc5280)

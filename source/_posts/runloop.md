@@ -99,7 +99,7 @@ _对于熟悉服务器网络编程的同学来说，后台服务器其实就是�
 
 [Mike Ash](https://mikeash.com/pyblog/friday-qa-2010-01-01-nsrunloop-internals.html)大神通过`select`，以pseudo-code的方式描述了`runMode:beforeDate:`的实现，同时也形象地说明了 runloop 的实质：
 
-```runMode:beforeDate:
+```mm
 - (BOOL)runMode:(NSString *)mode beforeDate:(NSDate *)limitDate
 {
    if(![self hasSourcesOrTimersForMode:mode])

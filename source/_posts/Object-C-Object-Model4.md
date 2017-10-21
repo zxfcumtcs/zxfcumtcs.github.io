@@ -25,7 +25,7 @@ C++编译器在编译C++源码时会对成员函数进行*Name Mangling*，[Name
 
 如：
 
-```
+```cpp
 void MyClass::methodA(int param)
 {
     printf("%p %d\n", this, param);
@@ -34,7 +34,7 @@ void MyClass::methodA(int param)
 
 会被编译器转换为：
 
-```
+```cpp
 void __ZN7MyClass6methodAEi(MyClass *this, int param)
 {
     printf("%p %d\n", this, param);
@@ -50,31 +50,31 @@ Objective-C中所有函数调用(或者说发送消息)都会被转换为调用`
 
 例如：
 
-```
+```mm
 [self addWithLeftOperan:1 rightOperand:2];
 ```
 
 将会被编译器转化为：
 
-```
+```mm
 objc_msgSend(self, @selector(addWithLeftOperan:rightOperand:), 1, 2);
 ```
 
 来个复杂点的：
 
-```
+```mm
 NSNumber *num = [[NSNumber alloc] initWithInt:10];
 ```
 
 转换为：
 
-```
+```mm
 NSNumber *num = ((id (*)(id, SEL, int))(void *)objc_msgSend)((id)((id (*)(id, SEL))(void *)objc_msgSend)((id)objc_getClass("NSNumber"), sel_registerName("alloc")), sel_registerName("initWithInt:"), 10);
 ```
 
 objc_msgSend函数原型如下：
 
-```
+```mm
 objc_msgSend(receiver, selector, arg1, arg2, ...)
 ```
 
@@ -112,7 +112,7 @@ objc_msgSend(receiver, selector, arg1, arg2, ...)
 
 嗯，同时还要上段源码才过瘾(有点长，但非常清晰)：
 
-```
+```mm
 IMP lookUpImpOrForward(Class cls, SEL sel, id inst, 
                        bool initialize, bool cache, bool resolver)
 {
@@ -260,7 +260,7 @@ static method_t *search_method_list(const method_list_t *mlist, SEL sel)
 与C++的静态绑定相比，Objective-C中函数调用无疑在效率上有所不足。
 
 当然，我们也可以绕过`objc_msgSend`，直接调用函数，如下：
-```
+```mm
 - (void)testIMP:(NSInteger)count
 {
     for (int i = 0; i < count; i++)
@@ -284,7 +284,7 @@ OC的成员函数也会被编译器处理为：`className_selector(id self. SEL 
 没错，它们长的很像，但这不是巧合，正是为了利用**tail-call optimization**技术。
 实现**tail-call optimization**的前提是**tail-call**，即一个函数里的最后一个动作是一个函数调用。
 如下面的函数调用就是**tail-call**：
-```
+```mm
 int funA
 {
     // some code
