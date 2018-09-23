@@ -218,7 +218,7 @@ AppRegistry.registerComponent('RNDemo', () => App);
     return appKey;
   }
 ```
- 通过 Code 4可知，组件最终存放在了组件注册表`runnables`中，其中最关键的信息是以`run`为 key 存储的剪头方法(第`8~14`行)，即最终对`renderApplication`方法的调用。
+ 通过 Code 4可知，组件最终存放在了组件注册表`runnables`中，其中最关键的信息是以`run`为 key 存储的箭头方法(第`8~14`行)，即最终对`renderApplication`方法的调用。
 ```JS
   // Code 5
   runApplication(appKey: string, appParameters: any): void {
