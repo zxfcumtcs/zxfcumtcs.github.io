@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="iOS,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本文主要介绍 iOS7 引入的多任务处理机制之Background Fetch。">
+<meta name="keywords" content="iOS">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS Multitasking——Background Fetch">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2014/08/17/multitasking/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本文主要介绍 iOS7 引入的多任务处理机制之Background Fetch。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/APPStatus.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/StatechangesiOSapp.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ios6appswitcher.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ios7appswitcher.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/AppCrashed.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/good.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/setBackgroundfetch.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/MinimumBackgroundFetchIntervalCustomValue.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/AdaptstoUserActivity.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/Backgroundfetch.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/scheme.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/duplicatescheme.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/schemename.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/schemerun.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/xcodebackgroundfetch.png">
+<meta property="og:updated_time" content="2018-12-08T08:41:32.864Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="iOS Multitasking——Background Fetch">
+<meta name="twitter:description" content="本文主要介绍 iOS7 引入的多任务处理机制之Background Fetch。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/APPStatus.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2014/08/17/multitasking/">
+
+
+
+
+
+  <title>iOS Multitasking——Background Fetch | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2014/08/17/multitasking/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">iOS Multitasking——Background Fetch</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2014-08-17T13:24:00+08:00">
+                2014-08-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2014/08/17/multitasking/" class="leancloud_visitors" data-flag-title="iOS Multitasking——Background Fetch">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  1,457
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  6
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文主要介绍 iOS7 引入的多任务处理机制之Background Fetch。<br><a id="more"></a><br>©原创文章，转载请注明出处！</p>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
+<p>从 IOS4到 IOS7，Apple 在多任务处理上不断改进、优化。但 Apple 的态度一直很谨慎，其考虑的因素主要有两个：内存和电池续航能力。</p>
+<p>是的，如果 Apple 完全放开多任务机制，那么，首当其冲的就是电池了，有限的内存恐怕也很快就会消耗殆尽，从而影响当前正在前台运行的程序。</p>
+<p>在介绍 Apple 是如何处理多任务前，先了解一下 App 的几种不同状态：<br><img src="/img/APPStatus.png" alt=""></p>
+<p>ok，App 不同状态间转换可概括为<a href="https://developer.apple.com/library/ios/documentation/iPhone/Conceptual/iPhoneOSProgrammingGuide/ManagingYourApplicationsFlow/ManagingYourApplicationsFlow.html#//apple_ref/doc/uid/TP40007072-CH4" target="_blank" rel="noopener">下图</a>：<br><img src="/img/StatechangesiOSapp.png" alt=""></p>
+<p>下面，我们回顾一下 Apple 在多任务上的改进、优化之路：</p>
+<ol>
+<li>iOS4之前想实现多任务，Apple 只会骄傲地说一句：”no way!”，只要按 HOME 键切后台，app 立马被终止；</li>
+<li>严格的单任务运行似乎对不起”智能机””这个荣誉称号，因此从 iOS4开始 Apple 允许某些特定功能的 app 在后台运行，如：Play audio、VoIP以及Receive location updates等；</li>
+<li>从 iOS5开始，按 HOME 键只是暂停 app 的运行，而不是终止，其最大的好处在于保留了 app 的状态；</li>
+<li>iOS6引入了”State Preservation and Restoration”的概念，在 app 终止前保存状态、下次启动时再恢复状态，从而给用户一个错觉——好像 app从来没有退出过一样；</li>
+<li>高大上的 iOS7则引入更多的多任务 API，包括：Background fetch、Background transfer以及Silent push notifications。</li>
+</ol>
+<h1 id="The-new-app-switcher"><a href="#The-new-app-switcher" class="headerlink" title="The new app switcher"></a>The new app switcher</h1><hr>
+<p>在介绍 iOS7的多任务机制前，还要介绍一下 iOS7对 app switcher 的改进。</p>
+<p>从iOS4到iOS6，app switcher非常简单，只列出了那些曾经打开过的 app<br><img src="/img/ios6appswitcher.png" alt=""></p>
+<p>iOS7对 app switcher 进行了改进，在 app switcher 中能展示 app 最新的状态<br><img src="/img/ios7appswitcher.png" alt=""></p>
+<p>每当 app 因后台执行任务而被唤醒时，系统都会提供一个completion handler，当后台任务完成时，我们必须执行这个completion handler，其作用不仅在于告诉设备可以进入睡眠状态，同时会更新 app switcher 的snapshot。<br>app swithcer 还扮演着任务控制中心的角色，当用户从 app switcher清除某个 app 时，该 app 的大多数后台任务都将结束，如：background fetches, play music等，但background transfers依然可以进行。</p>
+<p>ok, 下面我们就要今天的主题了！</p>
+<h1 id="Background-fetch"><a href="#Background-fetch" class="headerlink" title="Background fetch"></a>Background fetch</h1><hr>
+<p>在 iOS7之前，当我们打开某个 app 时，该 app 总是先显示缓存的老数据(没做缓存的恶劣 app 恐怕只能以转菊花来消磨时间了！)，然后耐心地等待网络返回新数据。<br>这无疑是在浪费用户的时间，而”浪费别人的时间，就等于…”<br><img src="/img/AppCrashed.jpg" alt=""></p>
+<p>iOS7给了我们一个改过自新的机会——通过Background fetch可以在后台悄悄地把数据拉回来！</p>
+<p>Background fetch通过特定的算法周期性地唤醒 frequently-used apps 在后台下载新数据。因此，当用户再次打开 app 时，看到的数据已经是最新的了，这是多么 cool 的体验！<br><img src="/img/good.png" alt=""></p>
+<p>那么，要实现这么 cool 的功能是不是很复杂？</p>
+<p>no，only need three steps，its so easy！</p>
+<ol>
+<li>允许 app 通过 Background fetch 下载数据；</li>
+<li>在<code>application:didFinishLaunchingWithOptions:</code>方法中设置周期性拉取数据的时间间隔；</li>
+<li>实现<code>application:performFetchWithCompletionHandler:</code>方法，在该方法中处理 Background fetch 的具体任务。</li>
+</ol>
+<h2 id="Background-fetch的开关"><a href="#Background-fetch的开关" class="headerlink" title="Background fetch的开关"></a>Background fetch的开关</h2><p><img src="/img/setBackgroundfetch.png" alt=""></p>
+<p>这一步很简单，点两下鼠标就搞定！</p>
+<h2 id="设置时间间隔"><a href="#设置时间间隔" class="headerlink" title="设置时间间隔"></a>设置时间间隔</h2><p><code>- (void)setMinimumBackgroundFetchInterval:(NSTimeInterval)minimumBackgroundFetchInterval</code>通过该函数可以设置系统唤醒 app 在后台执行Background fetch操作的时间间隔。</p>
+<p>关于时间间隔有几个要注意的问题：</p>
+<ol>
+<li>该属性的默值是<code>UIApplicationBackgroundFetchIntervalNever</code>，也就是永远不会执行Background fetch操作。因此，如果期望 app 能执行Background fetch，就必须设置该属性为一个合理的值；</li>
+<li>该属性值只是一个建议值，而不是精确的值，系统将会综合各种因素决定什么时侯执行Background fetch操作，但可以肯定的是时间间隔肯定不会小于该值(图片来自 WWDC2013)；</li>
+</ol>
+<p><img src="/img/MinimumBackgroundFetchIntervalCustomValue.png" alt=""></p>
+<p>系统会收集用户使用 app 的习惯，预测用户在什么时侯使用 app，从而决定什么时间执行 app 的Background fetch 操作。<br>比如：系统收集到用户习惯在早上9：00左右打开某新闻 app，则系统可能会在8：45唤醒该 app 执行Background fetch操作拉取最新的新闻数据(图片来自 WWDC2013)。<br><img src="/img/AdaptstoUserActivity.png" alt=""></p>
+<p>为了不干扰系统的这种自我学习能力，不要频繁的执行Background fetch操作，尽量使用系统预定义的值：<code>UIApplicationBackgroundFetchIntervalMinimum</code><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions</span><br><span class="line">&#123;</span><br><span class="line">    [application setMinimumBackgroundFetchInterval:UIApplicationBackgroundFetchIntervalMinimum];</span><br><span class="line">    </span><br><span class="line">    return YES;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="实现performFetchWithCompletionHandler方法"><a href="#实现performFetchWithCompletionHandler方法" class="headerlink" title="实现performFetchWithCompletionHandler方法"></a>实现performFetchWithCompletionHandler方法</h2><p>当系统允许 app 执行 Background fetch 操作时，会在后台唤醒该 app，流程如下(图片来自 WWDC2013)：<br><img src="/img/Backgroundfetch.png" alt=""></p>
+<p>在<code>application:performFetchWithCompletionHandler:</code>方法中要完成的任务有：获取数据、管理数据以及更新 UI 等。</p>
+<p>同样，作为善后工作，我们必须调用系统提供的<code>completion handler</code>，该<code>completion handler</code>接受一个<code>UIBackgroundFetchResult</code>类型的参数。</p>
+<p>系统为<code>UIBackgroundFetchResult</code>预定义了3个值：</p>
+<ol>
+<li>UIBackgroundFetchResultNoData–没有获取到新数据；</li>
+<li>UIBackgroundFetchResultNewData–获取到了新数据；</li>
+<li>UIBackgroundFetchResultFailed–获取失败。</li>
+</ol>
+<h1 id="Testing-the-Background-Fetch"><a href="#Testing-the-Background-Fetch" class="headerlink" title="Testing the Background Fetch"></a>Testing the Background Fetch</h1><hr>
+<p>对于Background Fetch，我们该如何去测试呢？</p>
+<p>有两种方法可以去测试Background Fetch</p>
+<p>第一种方法稍微复杂一点，需要生成新的scheme。</p>
+<p><img src="/img/scheme.jpg" alt=""><br><img src="/img/duplicatescheme.jpg" alt=""><br><img src="/img/schemename.jpg" alt=""><br><img src="/img/schemerun.jpg" alt=""></p>
+<p>ok，通过这几步，app 直接在后台被唤醒，执行Background Fetch操作。</p>
+<p>第二种方法是 app 正在前台运行时，操作Background Fetch操作。<br><img src="/img/xcodebackgroundfetch.png" alt=""></p>
+<p>是不是很简单！</p>
+<p>ok，今天就到这里了，下期将介绍另外一种Multitasking机制：Silent push notifications</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag"># iOS</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2014/08/03/nsurlsession3/" rel="next" title="NSURLSession——网络框架新生代(3/3)">
+                <i class="fa fa-chevron-left"></i> NSURLSession——网络框架新生代(3/3)
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2014/10/06/multitasking2/" rel="prev" title="iOS Multitasking——Silent Push Notification">
+                iOS Multitasking——Silent Push Notification <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#The-new-app-switcher"><span class="nav-number">2.</span> <span class="nav-text">The new app switcher</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Background-fetch"><span class="nav-number">3.</span> <span class="nav-text">Background fetch</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Background-fetch的开关"><span class="nav-number">3.1.</span> <span class="nav-text">Background fetch的开关</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#设置时间间隔"><span class="nav-number">3.2.</span> <span class="nav-text">设置时间间隔</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实现performFetchWithCompletionHandler方法"><span class="nav-number">3.3.</span> <span class="nav-text">实现performFetchWithCompletionHandler方法</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Testing-the-Background-Fetch"><span class="nav-number">4.</span> <span class="nav-text">Testing the Background Fetch</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="iOS,Objective-C,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本系列文章我们一起探讨Objective-C对象模型(Object Model)，本文主要讨论与Object Model相关的底层数据结构。">
+<meta name="keywords" content="iOS,Objective-C">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Objective-C Object Model(1&#x2F;4)">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2014/07/08/Objective-c-Object-Model/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本系列文章我们一起探讨Objective-C对象模型(Object Model)，本文主要讨论与Object Model相关的底层数据结构。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-12-08T08:41:32.859Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Objective-C Object Model(1&#x2F;4)">
+<meta name="twitter:description" content="本系列文章我们一起探讨Objective-C对象模型(Object Model)，本文主要讨论与Object Model相关的底层数据结构。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2014/07/08/Objective-c-Object-Model/">
+
+
+
+
+
+  <title>Objective-C Object Model(1/4) | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2014/07/08/Objective-c-Object-Model/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Objective-C Object Model(1/4)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2014-07-08T18:53:46+08:00">
+                2014-07-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2014/07/08/Objective-c-Object-Model/" class="leancloud_visitors" data-flag-title="Objective-C Object Model(1/4)">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  1,299
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  6
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本系列文章我们一起探讨Objective-C对象模型(Object Model)，本文主要讨论与Object Model相关的底层数据结构。<br><a id="more"></a><br>©原创文章，转载请注明出处！</p>
+<h1 id="什么是对象模型-Object-Model"><a href="#什么是对象模型-Object-Model" class="headerlink" title="什么是对象模型(Object Model)"></a>什么是对象模型(Object Model)</h1><hr>
+<p>说起Object Model不得不提起<em>Stanley B. Lippman</em>以及他的著作<a href="http://book.douban.com/subject/1091086/" target="_blank" rel="noopener"><em>《Inside the C++ Object Model》</em></a>。Lippman作为C++大师，参与设计了第一套C++编译程序cfront，其主要著作相信大家也耳熟能详：<a href="http://book.douban.com/subject/25708312/" target="_blank" rel="noopener"><em>《C++ Primer》</em></a>，<a href="http://book.douban.com/subject/1091086/" target="_blank" rel="noopener"><em>《Inside the C++ object model》</em></a>，<a href="http://book.douban.com/subject/1456836/" target="_blank" rel="noopener"><em>《Essential C++》</em></a>等。</p>
+<p>在<em>《Inside the C++ Object Model》</em>中认为Object Model主要阐述两个层次的问题：</p>
+<ul>
+<li><p>在语言层面对Object-Oriented Programming的支持(广大程序猿天天要用到的各种高大上的OOP特性)</p>
+</li>
+<li><p>Object-Oriented Programming的底层实现机制(伟大的编译器如何处理这些高大上的OOP特性)</p>
+</li>
+</ul>
+<p>嗯，本文主要讨论第二个问题。</p>
+<h1 id="Objective-C中与Object-Model相关的数据类型"><a href="#Objective-C中与Object-Model相关的数据类型" class="headerlink" title="Objective-C中与Object Model相关的数据类型"></a>Objective-C中与Object Model相关的数据类型</h1><hr>
+<h2 id="NSObject——万物之源"><a href="#NSObject——万物之源" class="headerlink" title="NSObject——万物之源"></a>NSObject——万物之源</h2><figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">NSObject</span> &lt;<span class="title">NSObject</span>&gt; </span></span><br><span class="line">&#123;</span><br><span class="line">    Class isa  OBJC_ISA_AVAILABILITY;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们都知道正常情况下所有的Objective-C类都是继承自<code>NSObject</code>这个原始基类，<code>isa</code>这个Objective-C Object的精神领袖就包含在其中。</p>
+<p>继续…</p>
+<h2 id="objc-class——类的元数据"><a href="#objc-class——类的元数据" class="headerlink" title="objc_class——类的元数据"></a>objc_class——类的元数据</h2><figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> objc_class *Class;</span><br></pre></td></tr></table></figure>
+<p>Class就是一个指向<code>objc_class struct</code>的指针。</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> objc_class objc_class public</span><br><span class="line">&#123;</span><br><span class="line">    Class isa  OBJC_ISA_AVAILABILITY;</span><br><span class="line"></span><br><span class="line"><span class="meta">#if !__OBJC2__</span></span><br><span class="line">    Class super_class                                        OBJC2_UNAVAILABLE;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *name                                         OBJC2_UNAVAILABLE;</span><br><span class="line">    <span class="keyword">long</span> version                                             OBJC2_UNAVAILABLE;</span><br><span class="line">    <span class="keyword">long</span> info                                                OBJC2_UNAVAILABLE;</span><br><span class="line">    <span class="keyword">long</span> instance_size                                       OBJC2_UNAVAILABLE;</span><br><span class="line">    <span class="keyword">struct</span> objc_ivar_list *ivars                             OBJC2_UNAVAILABLE;</span><br><span class="line">    <span class="keyword">struct</span> objc_method_list **methodLists                    OBJC2_UNAVAILABLE;</span><br><span class="line">    <span class="keyword">struct</span> objc_cache *cache                                 OBJC2_UNAVAILABLE;</span><br><span class="line">    <span class="keyword">struct</span> objc_protocol_list *protocols                     OBJC2_UNAVAILABLE;</span><br><span class="line"><span class="meta">#endif</span></span><br><span class="line"></span><br><span class="line">&#125; OBJC2_UNAVAILABLE;</span><br></pre></td></tr></table></figure>
+<p>在Objective-C runtime的公开接口中可以看到<code>objc_class</code>是一个指向自身类型的结构体(从Objective-C 2.0开始，该结构体中其余成员已不再可用)。</p>
+<p>由于<a href="http://www.opensource.apple.com/tarballs/objc4/" target="_blank" rel="noopener">Objective-C runtime</a>已经开源，我们可以进一步一探究竟。</p>
+<p>在最新的开源代码objc4-551.1中(以下代码只摘取了其中的成员变量)：</p>
+<figure class="highlight objectivec"><figcaption><span>objc_class private</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> objc_class : objc_object</span><br><span class="line"> &#123;</span><br><span class="line">    Class superclass;</span><br><span class="line">    cache_t cache;</span><br><span class="line">    uintptr_t data_NEVER_USE;  <span class="comment">// class_rw_t * plus custom rr/alloc flags</span></span><br><span class="line"> &#125;;</span><br></pre></td></tr></table></figure>
+<p>可以看到<code>objc_class</code>继承自<code>objc_object</code>，这也间接说明了Objective-C中一个重要的概念：<em>类也是对象</em>。</p>
+<h2 id="objc-object"><a href="#objc-object" class="headerlink" title="objc_object"></a>objc_object</h2><figure class="highlight objectivec"><figcaption><span>objc_object</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> objc_object</span><br><span class="line">&#123;</span><br><span class="line">private:</span><br><span class="line">    uintptr_t isa;</span><br><span class="line">&#125;：</span><br></pre></td></tr></table></figure>
+<p>在<code>objc_object</code>看到了久违的<code>isa</code>指针。</p>
+<p>额…，此时或许有个疑问了，类的成员变量、方法等元信息咋还没登场？<br>不要急，他们来了…</p>
+<h2 id="class-rw-t"><a href="#class-rw-t" class="headerlink" title="class_rw_t"></a>class_rw_t</h2><p>或许已经注意到在<code>objc_class</code>结构中有个成员变量<code>uintptr_t data_NEVER_USE;</code>。<br>没错，它就是指向<code>class_rw_t</code>结构体的指针(其中做了一些优化，在此不作过多讨论，只简单的认为<code>data_NEVER_USE</code>指向<code>class_rw_t</code>结构体)。</p>
+<figure class="highlight mm"><figcaption><span>objc_object class_rw_t\class_ro_t</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> class_rw_t </span><br><span class="line">&#123;</span><br><span class="line">    uint32_t flags;</span><br><span class="line">    uint32_t version;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> class_ro_t *ro;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">union</span> </span><br><span class="line">    &#123;</span><br><span class="line">        method_list_t **method_lists;  <span class="comment">// RW_METHOD_ARRAY == 1</span></span><br><span class="line">        method_list_t *method_list;    <span class="comment">// RW_METHOD_ARRAY == 0</span></span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="keyword">struct</span> chained_property_list *properties;</span><br><span class="line">    <span class="keyword">const</span> protocol_list_t **protocols;</span><br><span class="line"></span><br><span class="line">    Class firstSubclass;</span><br><span class="line">    Class nextSiblingClass;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> class_ro_t </span><br><span class="line">&#123;</span><br><span class="line">    uint32_t flags;</span><br><span class="line">    uint32_t instanceStart;</span><br><span class="line">    uint32_t instanceSize;</span><br><span class="line"><span class="meta">#ifdef __LP64__</span></span><br><span class="line">    uint32_t reserved;</span><br><span class="line"><span class="meta">#endif</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> uint8_t * ivarLayout;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> * name;</span><br><span class="line">    <span class="keyword">const</span> method_list_t * baseMethods;</span><br><span class="line">    <span class="keyword">const</span> protocol_list_t * baseProtocols;</span><br><span class="line">    <span class="keyword">const</span> ivar_list_t * ivars;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> uint8_t * weakIvarLayout;</span><br><span class="line">    <span class="keyword">const</span> property_list_t *baseProperties;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>其中，类名<code>name</code>、实例大小<code>instanceSize</code>、子实例相对整个实例的偏移<code>instanceStart</code>以及实例变量<code>ivars</code>等信息保存在<code>class_ro_t</code>中，方法列表<code>method_lists</code>、协议<code>protocols</code>保存在<code>class_rw_t</code>中。</p>
+<p>这里有个小细节，当类只有一个方法时，该方法直接保存在<code>method_list</code>中，否则保存在方法列表中<code>method_lists</code>。</p>
+<figure class="highlight mm"><figcaption><span>attachMethodLists</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (newCount &gt; <span class="number">1</span>)</span><br><span class="line">&#123;</span><br><span class="line">    assert(newLists != newBuf);</span><br><span class="line">    cls-&gt;data()-&gt;method_lists = newLists;</span><br><span class="line">    cls-&gt;setInfo(RW_METHOD_ARRAY);</span><br><span class="line">&#125; </span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">&#123;</span><br><span class="line">    assert(newLists == newBuf);</span><br><span class="line">    cls-&gt;data()-&gt;method_list = newLists[<span class="number">0</span>];</span><br><span class="line">    assert(!(cls-&gt;data()-&gt;flags &amp; RW_METHOD_ARRAY));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>我们都知道可以在分类中添加方法，而不能添加成员变量(或属性)，从其内部实现我们也能得出这样的结论：</strong></p>
+<ul>
+<li><p><em>方法是保存在方法表里面的(只有一个方法情况除外)，因此添加方法不会改变实例的大小，也不会引起实例内存布局的改变；</em></p>
+</li>
+<li><p><em>若添加成员变量将引起实例内存布局的改变(<code>class_ro_t</code>的<code>instanceStart</code>、<code>instanceSize</code>)，同时在<code>class_rw_t</code>中<code>class_ro_t</code>被声明为<code>const</code>，因此想改也改不了。</em></p>
+</li>
+</ul>
+<h2 id="Other"><a href="#Other" class="headerlink" title="Other"></a>Other</h2><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> method_list_t </span><br><span class="line">&#123;</span><br><span class="line">    uint32_t entsize_NEVER_USE;  <span class="comment">// high bits used for fixup markers</span></span><br><span class="line">    uint32_t count;</span><br><span class="line">    method_t first;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> method_t </span><br><span class="line">&#123;</span><br><span class="line">    SEL name;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *types;</span><br><span class="line">    IMP imp;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> objc_object *<span class="keyword">id</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// objc_selector结构体的源码没有找到,可以简单的将其理解为由函数名组成的字符串</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> objc_selector *SEL;</span><br><span class="line">                               </span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">id</span> (*IMP)(<span class="keyword">id</span>, SEL, ...);          <span class="comment">// IMP就是一个函数指针</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> ivar_t </span><br><span class="line">&#123;</span><br><span class="line">    int32_t *offset;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *name;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *type;</span><br><span class="line"></span><br><span class="line">    uint32_t alignment_raw;</span><br><span class="line">    uint32_t size;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> ivar_list_t </span><br><span class="line">&#123;</span><br><span class="line">    uint32_t entsize;</span><br><span class="line">    uint32_t count;</span><br><span class="line">    ivar_t first;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> property_t </span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *name;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *attributes;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> property_list_t </span><br><span class="line">&#123;</span><br><span class="line">    uint32_t entsize;</span><br><span class="line">    uint32_t count;</span><br><span class="line">    property_t first;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> protocol_t : objc_object </span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *name;</span><br><span class="line">    <span class="keyword">struct</span> protocol_list_t *protocols;</span><br><span class="line">    method_list_t *instanceMethods;</span><br><span class="line">    method_list_t *classMethods;</span><br><span class="line">    method_list_t *optionalInstanceMethods;</span><br><span class="line">    method_list_t *optionalClassMethods;</span><br><span class="line">    property_list_t *instanceProperties;</span><br><span class="line">    uint32_t size;   <span class="comment">// sizeof(protocol_t)</span></span><br><span class="line">    uint32_t flags;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> **extendedMethodTypes;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> protocol_list_t </span><br><span class="line">&#123;</span><br><span class="line">    uintptr_t count;</span><br><span class="line">    protocol_ref_t list[<span class="number">0</span>]; <span class="comment">// variable-size</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><strong>我们可以看到Objective-C的Object-Orient是构建在C语言结构体基础之上，大到类、对象，小到成员变量、方法等等。</strong></p>
+<p><strong><em>插个题外话：个人感觉C语言是一门简洁、优雅的语言，而这一切都归功于指针，可以说指针是C语言的灵魂。</em></strong></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag"># iOS</a>
+          
+            <a href="/tags/Objective-C/" rel="tag"># Objective-C</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2014/07/10/Objective-C-Object-Model2/" rel="prev" title="Objective-C Object Model(2/4)">
+                Objective-C Object Model(2/4) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#什么是对象模型-Object-Model"><span class="nav-number">1.</span> <span class="nav-text">什么是对象模型(Object Model)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Objective-C中与Object-Model相关的数据类型"><span class="nav-number">2.</span> <span class="nav-text">Objective-C中与Object Model相关的数据类型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#NSObject——万物之源"><span class="nav-number">2.1.</span> <span class="nav-text">NSObject——万物之源</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#objc-class——类的元数据"><span class="nav-number">2.2.</span> <span class="nav-text">objc_class——类的元数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#objc-object"><span class="nav-number">2.3.</span> <span class="nav-text">objc_object</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#class-rw-t"><span class="nav-number">2.4.</span> <span class="nav-text">class_rw_t</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Other"><span class="nav-number">2.5.</span> <span class="nav-text">Other</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

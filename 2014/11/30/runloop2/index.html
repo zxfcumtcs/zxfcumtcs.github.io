@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="iOS,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="希望通过本文的介绍，大家能更清晰地认识 runloop。本文是 runloop 系列的第二篇文章，主要介绍通过 runloop observer 来近距离的观察 runloop。">
+<meta name="keywords" content="iOS">
+<meta property="og:type" content="article">
+<meta property="og:title" content="谜一样的 Runloop(2&#x2F;2)">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2014/11/30/runloop2/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="希望通过本文的介绍，大家能更清晰地认识 runloop。本文是 runloop 系列的第二篇文章，主要介绍通过 runloop observer 来近距离的观察 runloop。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/runloopsteps.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/observerRunLoop.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/didFinishLaunchingWithOptions.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/mainrunloop1.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/mainrunloop2.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/mainrunloop3.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/mainrunloop4.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/mainrunloop5.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/mainrunloop6.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/runloop_thread1.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/runloop_thread2.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/runloop_thread3.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/runloop_thread4.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/runloop_thread5.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/mainrunloop7.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/runloop_thread6.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/runloop_thread7.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/runloop_thread8.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/runloop_thread9.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/runloop_thread10.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/runloop_thread11.png">
+<meta property="og:updated_time" content="2018-12-08T08:41:32.866Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="谜一样的 Runloop(2&#x2F;2)">
+<meta name="twitter:description" content="希望通过本文的介绍，大家能更清晰地认识 runloop。本文是 runloop 系列的第二篇文章，主要介绍通过 runloop observer 来近距离的观察 runloop。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/runloopsteps.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2014/11/30/runloop2/">
+
+
+
+
+
+  <title>谜一样的 Runloop(2/2) | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2014/11/30/runloop2/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">谜一样的 Runloop(2/2)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2014-11-30T13:15:34+08:00">
+                2014-11-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2014/11/30/runloop2/" class="leancloud_visitors" data-flag-title="谜一样的 Runloop(2/2)">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  1,654
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  6
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>希望通过本文的介绍，大家能更清晰地认识 runloop。本文是 runloop 系列的第二篇文章，主要介绍通过 runloop observer 来近距离的观察 runloop。<br><a id="more"></a><br>©原创文章，转载请注明出处！</p>
+<h1 id="The-Run-Loop-Sequence-of-Events"><a href="#The-Run-Loop-Sequence-of-Events" class="headerlink" title="The Run Loop Sequence of Events"></a>The Run Loop Sequence of Events</h1><hr>
+<p>下面我们看一下 runloop 从启动到退出的整个生命周期内做了哪些事情：</p>
+<p><img src="/img/runloopsteps.jpg" alt=""></p>
+<p>从上图可以看出，runloop 的生命周期大概要经历三个阶段：</p>
+<ul>
+<li>runloop 启动后首先处理待处理的事件，如：timer、input source；</li>
+<li>进入休眠状态，等待新任务的到来；</li>
+<li>有新任务了，runloop(准确地说是 thread)被唤醒，处理新任务，runloop 重启或退出。</li>
+</ul>
+<p>需要注意的是：runloop 启动后如果有port-based input sources event 需要处理，则 runloop 在处理完该事件后直接退出。</p>
+<p>runloop 在整个生命周期内还有一件重要的事情就是与 observer 的交互。我们可以通过设置 runloop 的 observer 来监控 runloop 的内部状态。</p>
+<h1 id="Understanding-Runloop-Internals-by-Runloop-Observer"><a href="#Understanding-Runloop-Internals-by-Runloop-Observer" class="headerlink" title="Understanding Runloop Internals by Runloop-Observer"></a>Understanding Runloop Internals by Runloop-Observer</h1><hr>
+<p>runloop 之所以像谜一样让人琢磨不透，主要在于我们难于了解其内部实现机制、触发时机，同时也很难感受到它的存在。虽然，<a href="http://zxfcumtcs.github.io/2014/11/15/runloop/">前文</a>通过pseudo-code的形式模拟了 runloop 的内部实现，但对于 runloop 真正何时会被触发，何时结束还是不太清楚。</p>
+<p>幸运的是，Apple 还是给了我们近距离观察 runloop 的机会——runloop observer(可以形象地将其称之为 runloop 之窗^_^)。</p>
+<p>通过 runloop observer 我们可以近距离的监听 runloop 以下重要事件：</p>
+<ul>
+<li>runloop 启动——kCFRunLoopEntry；</li>
+<li>runloop 即将处理 timer——kCFRunLoopBeforeTimers；</li>
+<li>runloop 即将处理 input source event——kCFRunLoopBeforeSources；</li>
+<li>runloop 即将进入休眠状态——kCFRunLoopBeforeWaiting；</li>
+<li>runloop 被唤醒，但还未处理唤醒它的事件——kCFRunLoopAfterWaiting；</li>
+<li>runloop 退出——kCFRunLoopExit。</li>
+</ul>
+<h2 id="CFRunLoopObserver-——-runloop-之窗。"><a href="#CFRunLoopObserver-——-runloop-之窗。" class="headerlink" title="CFRunLoopObserver —— runloop 之窗。"></a>CFRunLoopObserver —— runloop 之窗。</h2><p>Apple 君为我们提供了两个创建<code>CFRunLoopObserver</code>的接口：</p>
+<p><code>CFRunLoopObserverCreate</code>以及<code>CFRunLoopObserverCreateWithHandler</code>。</p>
+<p>两者的区别仅在于前者以函数指针的形式提供监听回调，后者以 block 的形式提供回调接口。</p>
+<p>以<code>CFRunLoopObserverCreateWithHandler</code>为例，Observer的实现大致如下：<br><img src="/img/observerRunLoop.jpg" alt=""></p>
+<p>我们可以选择要监听的 runloop 事件，上面代码中使用了<code>kCFRunLoopAllActivities</code>，其他还有：<code>kCFRunLoopEntry</code>、<code>kCFRunLoopBeforeTimers</code>、<code>kCFRunLoopBeforeSources</code>、<code>kCFRunLoopBeforeWaiting</code>、<code>kCFRunLoopAfterWaiting</code>以及<code>kCFRunLoopExit</code>。</p>
+<h2 id="Runloop-Observer-of-Main-Runloop"><a href="#Runloop-Observer-of-Main-Runloop" class="headerlink" title="Runloop Observer of Main Runloop"></a>Runloop Observer of Main Runloop</h2><p>首先，我们通过 runloop observer 监听一下 main runloop。<br><img src="/img/didFinishLaunchingWithOptions.png" alt=""></p>
+<p><img src="/img/mainrunloop1.png" alt=""></p>
+<p>从上面的 log 我们可以得出：<strong>main runloop 在主界面初始化完成，即将显示到屏幕前自动启动，runloop 启动后(唤醒后)会依次处理 timer(如果有)、source event(如果有)并在此前通知 observer。</strong></p>
+<p>为了 log 显示简洁突出主题，下面我们只监听<code>kCFRunLoopEntry</code>、<code>kCFRunLoopBeforeWaiting</code>、<code>kCFRunLoopAfterWaiting</code>以及<code>kCFRunLoopExit</code>事件。<br><img src="/img/mainrunloop2.jpg" alt=""></p>
+<p><strong>main runloop每分钟会被唤醒一次！(不明所以)</strong></p>
+<p>在界面添加按钮，在其点击 handler 中 reload tableview：<br><img src="/img/mainrunloop3.png" alt=""></p>
+<p><img src="/img/mainrunloop4.png" alt=""></p>
+<p><strong>UI事件唤醒 main runloop 直到处理完该事件，main runloop 再次进入休眠。</strong><br><img src="/img/mainrunloop5.png" alt=""></p>
+<p><img src="/img/mainrunloop6.png" alt=""></p>
+<p><strong>如果唤醒runloop 的事件含有异步操作，runloop 不会等待异步操作完成。<code>viewWillAppear:</code>和<code>viewDidAppear:</code>不在同一次 runloop 中被调用。</strong></p>
+<h2 id="Runloop-Observer-of-Other-Runloop"><a href="#Runloop-Observer-of-Other-Runloop" class="headerlink" title="Runloop Observer of Other Runloop"></a>Runloop Observer of Other Runloop</h2><p>main runloop作为整个 app 的神经中枢，很大程度上受系统所控制，下面我们通过 runloop observer 观察一下子线程的 runloop。<br><img src="/img/runloop_thread1.png" alt=""></p>
+<p><img src="/img/runloop_thread2.png" alt=""></p>
+<p><img src="/img/runloop_thread3.png" alt=""></p>
+<p><strong>timer会唤醒 runloop 但不会使 runloop 退出</strong></p>
+<p>如果子线程的 runloop 不添加任何 timer、source event：<br><img src="/img/runloop_thread4.png" alt=""></p>
+<p><img src="/img/runloop_thread5.png" alt=""></p>
+<p><strong>可以看到，此情况下，runloop 直接退出，连 runloop observer 都不通知一下(runloop 根本没有启动)！</strong></p>
+<p>下面再看一个更加复杂点的情况，添加第二个按钮，在其点击事件中向子线程发送performSelector消息：<br><img src="/img/mainrunloop7.png" alt=""></p>
+<p>子线程的 timer handler、performSelector handler 如下：<br><img src="/img/runloop_thread6.png" alt=""></p>
+<p>在子线程启动并触发 timer，但 timer handler 未返回之前，点击第二个 button：<br><img src="/img/runloop_thread7.png" alt=""></p>
+<p>可以看到，子线程在 timer handler 返回后才处理 performSelector 消息，并且在一次 runloop 中可以处理多个事件。</p>
+<p>奇怪的是，runloop 在处理完performSelector 消息后，还处理了另一个 timer fire 事件，随后退出。</p>
+<p>ok，小结一下：</p>
+<ul>
+<li>main runloop在主界面即将显示前由系统启动(主界面 controller 的 <code>viewWillAppear:</code>执行后启动)；</li>
+<li>runloop 启动后(唤醒后)会依次处理 timer(如果有)、source event(如果有)并在此前通知 observer；</li>
+<li>main runloop每分钟会被唤醒一次！(不明所以)；</li>
+<li>UI事件唤醒 main runloop 直到处理完该事件，如果该事件含有异步操作，runloop 不会等待异步操作完成；</li>
+<li>UIViewController的<code>viewWillAppear:</code>和<code>viewDidAppear:</code>不在同一次 runloop 中被调用；</li>
+<li>timer会唤醒 runloop 但不会使 runloop 退出；</li>
+<li>如果子线程的 runloop 没有绑定 timer 或 source event，其 runloop 不会启动；</li>
+<li>一次 runloop 可以处理多个事件。</li>
+</ul>
+<h1 id="Autorelease-and-Runloop"><a href="#Autorelease-and-Runloop" class="headerlink" title="Autorelease and Runloop"></a>Autorelease and Runloop</h1><hr>
+<p>在 MRC 中，autorelase作为重要的内存管理机制而被广大程序猿们烂记于心。我们都知道，autorelease 对象会被放入 autorelease pool，最终会被自动 release！借用一句广告词：<strong>有了 autorelease，程序猿们再也不用担心内存泄漏了！</strong></p>
+<p>那么，问题来了：autorelease pool 中的对象到底什么时候会被真正的 release？</p>
+<p>嗯，这也是一道很好的面试题！</p>
+<p>答案也很简单，每次 runloop 退出前都会处理 autorelease pool——将其中的所有object 都 release 一次。</p>
+<p>咱们还是通过代码来看看吧，将前面提到的子线程的 performSelector 实现改成如下所示：<br><img src="/img/runloop_thread8.png" alt=""></p>
+<p><img src="/img/runloop_thread9.png" alt=""></p>
+<p>是的，如预期所料，<code>testAutoreleaseObj</code>作为 autorelease object 在 runloop退出前被 release 了。</p>
+<p>autorelease 固然好用，但在使用过程中也需谨慎，否则容易出问题，并且由 autorelease 引发的问题一般较难排查。<br>常见问题有：</p>
+<ul>
+<li>autorelease object 被手动 release；</li>
+<li>跨 runloop 使用 autorelease object。</li>
+</ul>
+<p>一旦在大型项目中出现第一个问题，很难排查，其 crash 堆栈如下：<br><img src="/img/runloop_thread10.png" alt=""></p>
+<p>从这个堆栈中我们能得到的只有：autorelease object 提前被手动 release！<br>呵呵，至于是哪个 object 被提前 release 了，不得而知！</p>
+<p>第二个问题主要出现在类的对象含有 autorelease 的成员变量：<br><img src="/img/runloop_thread11.png" alt=""></p>
+<p><code>testViewController</code>类的实例保存了 autorelease 的<code>_str</code>，由于<code>viewDidAppear:</code>的调用在另一 runloop 中，此时<code>_str</code>已经释放！</p>
+<p>是的，在类的成员变量中保存 autorelease 对象是一件十分危险的事情！</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><hr>
+<p>runloop 作为事件处理的神经中枢，对整个 app 的意义不言而喻。准确而深入地了解 runloop 的机制，对程序猿的意义也不言而喻！</p>
+<p>这两篇文章，我们简要介绍了 runloop 的基本概念、通过 pseudo-code 遐想了 runloop 的实现机制、通过 runloop observer 偷窥了 runloop 的重要时刻。</p>
+<p>当然，runloop 还有很多问题值得探索…</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag"># iOS</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2014/11/15/runloop/" rel="next" title="谜一样的 Runloop(1/2)">
+                <i class="fa fa-chevron-left"></i> 谜一样的 Runloop(1/2)
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/01/10/extension/" rel="prev" title="iOS8新特性之Extension">
+                iOS8新特性之Extension <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#The-Run-Loop-Sequence-of-Events"><span class="nav-number">1.</span> <span class="nav-text">The Run Loop Sequence of Events</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Understanding-Runloop-Internals-by-Runloop-Observer"><span class="nav-number">2.</span> <span class="nav-text">Understanding Runloop Internals by Runloop-Observer</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#CFRunLoopObserver-——-runloop-之窗。"><span class="nav-number">2.1.</span> <span class="nav-text">CFRunLoopObserver —— runloop 之窗。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Runloop-Observer-of-Main-Runloop"><span class="nav-number">2.2.</span> <span class="nav-text">Runloop Observer of Main Runloop</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Runloop-Observer-of-Other-Runloop"><span class="nav-number">2.3.</span> <span class="nav-text">Runloop Observer of Other Runloop</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Autorelease-and-Runloop"><span class="nav-number">3.</span> <span class="nav-text">Autorelease and Runloop</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

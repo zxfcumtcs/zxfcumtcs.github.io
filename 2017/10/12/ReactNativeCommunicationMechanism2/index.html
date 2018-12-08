@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="iOS,框架,ReactNative,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本文通过分析源码，逐步解析 ReactNative 中 Native to JS 的通信机制。">
+<meta name="keywords" content="iOS,框架,ReactNative">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ReactNative源码解析——通信机制详解(2&#x2F;2)">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2017/10/12/ReactNativeCommunicationMechanism2/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本文通过分析源码，逐步解析 ReactNative 中 Native to JS 的通信机制。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RNClassDiagram.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/NativeToJSTimingDiagram.png">
+<meta property="og:updated_time" content="2018-12-08T08:41:32.862Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ReactNative源码解析——通信机制详解(2&#x2F;2)">
+<meta name="twitter:description" content="本文通过分析源码，逐步解析 ReactNative 中 Native to JS 的通信机制。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/RNClassDiagram.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2017/10/12/ReactNativeCommunicationMechanism2/">
+
+
+
+
+
+  <title>ReactNative源码解析——通信机制详解(2/2) | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2017/10/12/ReactNativeCommunicationMechanism2/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">ReactNative源码解析——通信机制详解(2/2)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-12T23:04:38+08:00">
+                2017-10-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/10/12/ReactNativeCommunicationMechanism2/" class="leancloud_visitors" data-flag-title="ReactNative源码解析——通信机制详解(2/2)">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  1,263
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  6
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文通过分析源码，逐步解析 ReactNative 中 Native to JS 的通信机制。<br><a id="more"></a><br>©原创文章，转载请注明出处！</p>
+<h1 id="Native-to-JS"><a href="#Native-to-JS" class="headerlink" title="Native to JS"></a>Native to JS</h1><hr>
+<p>在『<a href="https://zxfcumtcs.github.io/2017/10/08/ReactNativeCommunicationMechanism/">ReactNative源码解析——通信机制详解(1/2)</a>』一文中通过 RN 源码逐步分析了 JS to Native 的通信机制，整个过程相当还是比较复杂。本文同样通过解析源码，逐步分析 Native to JS 的过程。<br>相比 JS to Native，Native to JS 简单不少。<br><img src="/img/RNClassDiagram.png" alt=""><br>这是我们在『<a href="https://zxfcumtcs.github.io/2017/10/08/ReactNativeCommunicationMechanism/">ReactNative源码解析——通信机制详解(1/2)</a>』一文中给出的 RN 关键类类图。<br><img src="/img/NativeToJSTimingDiagram.png" alt=""><br>上图是 Native to JS 的时序图，<code>RCTBridge</code> 作为 RN 对外接口，Native 调用 JS 的方法自然也需要从此发出。上图中的方法调用链比较简单，不一一分析。<br>在『<a href="https://zxfcumtcs.github.io/2017/10/08/ReactNativeCommunicationMechanism/">ReactNative源码解析——通信机制详解(1/2)</a>』中，我们知道<code>NativeToJsBridge</code>是 Native to JS 的桥接，<code>NativeToJsBridge</code>做的最重要的一件事就是线程管理——使所有的 JS 调用都在指定的线程上执行。(RN中关于线程问题，后面会另开文章专门讨论。)<br><code>JSCExecutor</code>是 RN 中 JS 执行引擎，今天的分析就从此开始。<br>JS to Native 的流程进入<code>JSCExecutor::callFunction</code>。</p>
+<h2 id="JSCExecutor-callFunction"><a href="#JSCExecutor-callFunction" class="headerlink" title="JSCExecutor::callFunction"></a>JSCExecutor::callFunction</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> JSCExecutor::callFunction(<span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; moduleId, <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; methodId, <span class="keyword">const</span> folly::dynamic&amp; arguments) &#123;</span><br><span class="line">    <span class="keyword">auto</span> result = [&amp;] &#123;</span><br><span class="line">        <span class="keyword">if</span> (!m_callFunctionReturnResultAndFlushedQueueJS) &#123;</span><br><span class="line">            bindBridge();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> m_callFunctionReturnFlushedQueueJS-&gt;callAsFunction(&#123;</span><br><span class="line">            Value(m_context, String::createExpectingAscii(m_context, moduleId)),</span><br><span class="line">            Value(m_context, String::createExpectingAscii(m_context, methodId)),</span><br><span class="line">            Value::fromDynamic(m_context, <span class="built_in">std</span>::move(arguments))</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;();</span><br><span class="line"></span><br><span class="line">    callNativeModules(<span class="built_in">std</span>::move(result));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在<code>callFunction</code>方法中，首先判断环境是否准备好(第<code>3</code>行)，若尚未准备好，则进入<code>bindBridge</code><br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> JSCExecutor::bindBridge() <span class="keyword">throw</span>(JSException) &#123;</span><br><span class="line">    <span class="built_in">std</span>::call_once(m_bindFlag, [<span class="keyword">this</span>] &#123;</span><br><span class="line">        <span class="keyword">auto</span> global = Object::getGlobalObject(m_context);</span><br><span class="line">        <span class="keyword">auto</span> batchedBridgeValue = global.getProperty(<span class="string">"__fbBatchedBridge"</span>);</span><br><span class="line">        <span class="keyword">auto</span> batchedBridge = batchedBridgeValue.asObject();</span><br><span class="line">        m_callFunctionReturnFlushedQueueJS = batchedBridge.getProperty(<span class="string">"callFunctionReturnFlushedQueue"</span>).asObject();</span><br><span class="line">        m_callFunctionReturnResultAndFlushedQueueJS = batchedBridge.getProperty(<span class="string">"callFunctionReturnResultAndFlushedQueue"</span>).asObject();</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><code>bindBridge</code>方法主要完成一些初始化准备工作：从 JS 则获取<code>batchedBridge</code> object 以及若干个方法(<code>m_callFunctionReturnFlushedQueueJS</code>等)。<br>在<code>BatchedBridge.js</code>中可以找到<code>__fbBatchedBridge</code>的定义：<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> BatchedBridge = <span class="keyword">new</span> MessageQueue();</span><br><span class="line"><span class="built_in">Object</span>.defineProperty(global, <span class="string">'__fbBatchedBridge'</span>, &#123;</span><br><span class="line">  configurable: <span class="literal">true</span>,</span><br><span class="line">  value: BatchedBridge,</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></p>
+<p>可以看到，在 Native 里面拿到的<code>batchedBridge</code>是一个<code>MessageQueue</code>类型的 JS object。<br><code>m_callFunctionReturnFlushedQueueJS</code>则是 JS 类<code>MessageQueue</code>的<code>callFunctionReturnFlushedQueue</code>方法。<br>回到<code>JSCExecutor::callFunction</code>，在第<code>6</code>行执行了<code>callFunctionReturnFlushedQueue</code>方法。</p>
+<h2 id="MessageQueue-callFunctionReturnFlushedQueue-JS"><a href="#MessageQueue-callFunctionReturnFlushedQueue-JS" class="headerlink" title="MessageQueue.callFunctionReturnFlushedQueue(JS)"></a>MessageQueue.callFunctionReturnFlushedQueue(JS)</h2><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">callFunctionReturnFlushedQueue(<span class="built_in">module</span>: string, <span class="attr">method</span>: string, <span class="attr">args</span>: <span class="built_in">Array</span>&lt;any&gt;) &#123;</span><br><span class="line">  <span class="keyword">this</span>.__guard(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">this</span>.__callFunction(<span class="built_in">module</span>, method, args);</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">this</span>.flushedQueue();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>callFunctionReturnFlushedQueue</code>方法调用了内部的<code>__callFunction</code>方法。<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">__callFunction(<span class="built_in">module</span>: string, <span class="attr">method</span>: string, <span class="attr">args</span>: <span class="built_in">Array</span>&lt;any&gt;) &#123;</span><br><span class="line">    <span class="keyword">this</span>._lastFlush = <span class="keyword">new</span> <span class="built_in">Date</span>().getTime();</span><br><span class="line">    <span class="keyword">this</span>._eventLoopStartTime = <span class="keyword">this</span>._lastFlush;</span><br><span class="line">    <span class="keyword">const</span> moduleMethods = <span class="keyword">this</span>._getCallableModule(<span class="built_in">module</span>);</span><br><span class="line">    <span class="keyword">const</span> result = moduleMethods[method].apply(moduleMethods, args);</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure></p>
+<p><code>__callFunction</code>通过 <code>moduleName</code>在 JS Module 注册表中找到该 module，并调用相应的方法。</p>
+<blockquote>
+<p>PS: <code>JSCExecutor::callFunction</code>-&gt;<code>MessageQueue.callFunctionReturnFlushedQueue</code>这套接口不会将要调用的 JS 方法的返回值传给 Native 侧。<br>如需返回 JS 方法的返回值，可调用另外一套接口：<code>JSCExecutor::callFunctionSyncWithValue</code>-&gt;<code>MessageQueue.callFunctionReturnResultAndFlushedQueue</code>。<br>but，在<code>callFunctionSyncWithValue</code>方法的声明处有注释：<strong><em>『This method is experimental, and may be modified or removed』</em></strong></p>
+</blockquote>
+<h2 id="JS-Module-注册表"><a href="#JS-Module-注册表" class="headerlink" title="JS Module 注册表"></a>JS Module 注册表</h2><p>上一节，我们提到 JS Modulde 注册表(<code>_lazyCallableModules</code>)，所有曝露给 Native 的 JS Module都需要注册。<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">registerCallableModule(name: string, <span class="attr">module</span>: <span class="built_in">Object</span>) &#123;</span><br><span class="line">  <span class="keyword">this</span>._lazyCallableModules[name] = <span class="function"><span class="params">()</span> =&gt;</span> <span class="built_in">module</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">registerLazyCallableModule(name: string, <span class="attr">factory</span>: <span class="function"><span class="params">void</span> =&gt;</span> <span class="built_in">Object</span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> <span class="built_in">module</span>: <span class="built_in">Object</span>;</span><br><span class="line">  <span class="keyword">let</span> getValue: ?(<span class="function"><span class="params">void</span> =&gt;</span> <span class="built_in">Object</span>) = factory;</span><br><span class="line">  <span class="keyword">this</span>._lazyCallableModules[name] = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (getValue) &#123;</span><br><span class="line">      <span class="built_in">module</span> = getValue();</span><br><span class="line">      getValue = <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">module</span>;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">_getCallableModule(name: string) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">this</span>._lazyCallableModules[name]();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>JS Module 注册表支持懒加载。</p>
+</blockquote>
+<p>可通过<code>registerCallableModule</code>或<code>registerLazyCallableModule</code>接口注册。<br>如在RCTEventEmitter.js中注册的消息模块<code>RCTEventEmitter</code>:<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">BatchedBridge.registerCallableModule(<span class="string">'RCTEventEmitter'</span>, eventEmitter);</span><br></pre></td></tr></table></figure></p>
+<p>在InitializeCore.js中注册的基础模块(懒加载)：<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">BatchedBridge.registerLazyCallableModule(<span class="string">'Systrace'</span>, () =&gt; <span class="built_in">require</span>(<span class="string">'Systrace'</span>));</span><br><span class="line">BatchedBridge.registerLazyCallableModule(<span class="string">'JSTimers'</span>, () =&gt; <span class="built_in">require</span>(<span class="string">'JSTimers'</span>));</span><br><span class="line">BatchedBridge.registerLazyCallableModule(<span class="string">'HeapCapture'</span>, () =&gt; <span class="built_in">require</span>(<span class="string">'HeapCapture'</span>));</span><br><span class="line">BatchedBridge.registerLazyCallableModule(<span class="string">'SamplingProfiler'</span>, () =&gt; <span class="built_in">require</span>(<span class="string">'SamplingProfiler'</span>));</span><br><span class="line">BatchedBridge.registerLazyCallableModule(<span class="string">'RCTLog'</span>, () =&gt; <span class="built_in">require</span>(<span class="string">'RCTLog'</span>));</span><br><span class="line">BatchedBridge.registerLazyCallableModule(<span class="string">'RCTDeviceEventEmitter'</span>, () =&gt; <span class="built_in">require</span>(<span class="string">'RCTDeviceEventEmitter'</span>));</span><br><span class="line">BatchedBridge.registerLazyCallableModule(<span class="string">'RCTNativeAppEventEmitter'</span>, () =&gt; <span class="built_in">require</span>(<span class="string">'RCTNativeAppEventEmitter'</span>));</span><br><span class="line">BatchedBridge.registerLazyCallableModule(<span class="string">'PerformanceLogger'</span>, () =&gt; <span class="built_in">require</span>(<span class="string">'PerformanceLogger'</span>));</span><br></pre></td></tr></table></figure></p>
+<p>至此，Native to JS 的流程基本结束。<br>but，事情并没有结束。<br>前面讲到，<code>callFunctionReturnFlushedQueue</code>不会返回所调 JS 方法的返回值，但它确有返回值(从 JS 传给 Native)：<br><figure class="highlight js"><figcaption><span>// callFunctionReturnFlushedQueue的 return 语句</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> <span class="keyword">this</span>.flushedQueue();</span><br></pre></td></tr></table></figure></p>
+<p>在分析 JS to Native 时介绍过，出于性能考虑所有从 JS to Native 的调用都会先入队，只有满足一定的条件(离上一次 flush queue 大于5ms)才会被执行。<br>所有 Native to JS的调用，在其结束时都会触发一次 flush queue 的操作，即 flush 所有入队的 JS to Native 的调用。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Native to JS 的通信过程相对比较简单，总结主要有两点：</p>
+<ul>
+<li>所有曝露给 Native 的 JS Module 都需要提前注册；</li>
+<li>在 Native to JS 调用结束时，会触发 flush JS to Native Queue 的操作。</li>
+</ul>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><hr>
+<p>RN 中 Native 与 JS 的通信机制基本分析完成，总结主要有以下几点：</p>
+<ul>
+<li>RN 项目中涉及多种语言，但 Native 与 JS 的通信发生在<code>C++</code>与<code>JavaScript</code>间；</li>
+<li>双方具体负责通信的分别是：Native 的<code>JSCExecutor</code>与 JS 的<code>MessageQueue</code>；</li>
+<li>在 Native 侧维护了一份曝露给 JS 的 module 注册表，在 JS 侧维护了一份曝露给 Native 的 module 注册表；</li>
+<li>RN 中 Native to JS 的通信没有使用<code>JavaScriptCore</code>提供的机制(<code>block</code>、<code>JSExport</code>)，而是自己实现了一套跨平台通信机制。</li>
+</ul>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p><a href="https://facebook.github.io/react-native/docs/getting-started.html" target="_blank" rel="noopener">React Native Docs</a><br><a href="http://awhisper.github.io/2016/06/24/ReactNative%E6%B5%81%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" target="_blank" rel="noopener">ReactNative iOS源码解析</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag"># iOS</a>
+          
+            <a href="/tags/框架/" rel="tag"># 框架</a>
+          
+            <a href="/tags/ReactNative/" rel="tag"># ReactNative</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/10/08/ReactNativeCommunicationMechanism/" rel="next" title="ReactNative源码解析——通信机制详解(1/2)">
+                <i class="fa fa-chevron-left"></i> ReactNative源码解析——通信机制详解(1/2)
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/11/22/RNCommunicationMechanism-AdditionalTerms/" rel="prev" title="ReactNative源码解析——通信机制详解(补充条款)">
+                ReactNative源码解析——通信机制详解(补充条款) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Native-to-JS"><span class="nav-number">1.</span> <span class="nav-text">Native to JS</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#JSCExecutor-callFunction"><span class="nav-number">1.1.</span> <span class="nav-text">JSCExecutor::callFunction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MessageQueue-callFunctionReturnFlushedQueue-JS"><span class="nav-number">1.2.</span> <span class="nav-text">MessageQueue.callFunctionReturnFlushedQueue(JS)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JS-Module-注册表"><span class="nav-number">1.3.</span> <span class="nav-text">JS Module 注册表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小结"><span class="nav-number">1.4.</span> <span class="nav-text">小结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">2.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考资料"><span class="nav-number">3.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

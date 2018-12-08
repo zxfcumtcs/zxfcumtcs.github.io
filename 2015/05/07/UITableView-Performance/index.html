@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="iOS,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本文讨论了优化 UITableView 性能的几种常用方法，并对为何不应直接重载 UITableViewCell 的 drawRect 方法作了详细的分析说明。">
+<meta name="keywords" content="iOS">
+<meta property="og:type" content="article">
+<meta property="og:title" content="性能调优那些事">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2015/05/07/UITableView-Performance/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本文讨论了优化 UITableView 性能的几种常用方法，并对为何不应直接重载 UITableViewCell 的 drawRect 方法作了详细的分析说明。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/PerformanceInvestigationMindset.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/reuseIdentifier.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/Misalignment.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/coreanimationdebugoptions.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/Misalignmentdebugresult.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ColorBlendedLayersDebugResult.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/shadowoffset.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/shadowpath.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/shadowoffsetoffscreenreadering.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/shadowpathnotoffscreenrendering.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/shadowperformance.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/cornerRadius.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/roundperformance.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/shadowoffsetrasterizationexample.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/shadowoffsetnorasterizationfps.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/shadowoffsetrasterizationfps.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RasterizationYes.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RasterizationNO.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/offscreenrenderingsummary.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/imagesize.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/imagecode1.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/imagecode2.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/drawincellcode.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ios7drawcellresult.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ios8drawcellresult.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ios7drawcelldebug.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ios7debugcellviewhierarchy.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ios7cellviewhierarchy.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ios7cellclearcolor.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ios8cellviewhierarchy.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ios8cellviewhierarchy1.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/cellhightlight.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/UITableViewCellSelectedBackground.png">
+<meta property="og:updated_time" content="2018-12-08T08:41:32.862Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="性能调优那些事">
+<meta name="twitter:description" content="本文讨论了优化 UITableView 性能的几种常用方法，并对为何不应直接重载 UITableViewCell 的 drawRect 方法作了详细的分析说明。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/PerformanceInvestigationMindset.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2015/05/07/UITableView-Performance/">
+
+
+
+
+
+  <title>性能调优那些事 | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2015/05/07/UITableView-Performance/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">性能调优那些事</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-05-07T22:19:48+08:00">
+                2015-05-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2015/05/07/UITableView-Performance/" class="leancloud_visitors" data-flag-title="性能调优那些事">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  2,562
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  9
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文讨论了优化 UITableView 性能的几种常用方法，并对为何不应直接重载 UITableViewCell 的 drawRect 方法作了详细的分析说明。<br><a id="more"></a><br>@原创文章，转载请注明出处！</p>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
+<p>App 性能优劣将决定用户第一印象，最近在项目中对 app 做了一次性能上的简单优化，由此做一些相关的总结。在前一篇文章<a href="http://zxfcumtcs.github.io/2015/03/21/CoreAnimation/">Core Animation</a>中，我们分析了影响性能的几个关键原因(Offscreen Rendering、Rasterization、drawRect:、Image等)，主要是理论上的分析，本文将从实战角度出发，结合 UITableView 讨论如何优化性能。</p>
+<p>性能优化是一个纠结的过程，某个特定解决方案对性能的影响在不同的场景下有不同的表现，如：Rasterization特性利用恰当会优化性能，否则会有损性能。因此不能盲目猜测，优化前先通过工具(Instruments)找出性能瓶颈，有目标且针对性地优化，最终还要通过工具检测优化效果。</p>
+<p>Apple 给我们的建议是(Performance Investigation Mindset)：<br><img src="/img/PerformanceInvestigationMindset.png" alt=""></p>
+<h1 id="初级优化"><a href="#初级优化" class="headerlink" title="初级优化"></a>初级优化</h1><hr>
+<h2 id="UITableViewCell-高度"><a href="#UITableViewCell-高度" class="headerlink" title="UITableViewCell 高度"></a>UITableViewCell 高度</h2><p>设置 cell 的高度有两种方式：</p>
+<ul>
+<li>设置 tableview 的 <code>rowHeight</code> 属性；</li>
+<li>实现 UITableViewDelegate 中的 <code>tableView:heightForRowAtIndexPath:</code>方法。</li>
+</ul>
+<p>其中，heightForRowAtIndexPath 方法的优化级高于 rowHeight 属性，在实现了 heightForRowAtIndexPath 方法的情况下，为了正确显示滚动条，tableview 需要计算其整体的高度，意味着针对每一行都会调用一次该方法。如果行数过多、heightForRowAtIndexPath 方法过于复杂，明显会影响 tableview 的性能。</p>
+<p>ps：此情况下，tableview 对 heightForRowAtIndexPath 的调用发生在 tableview 加载过程中，影响的是加载速度。</p>
+<p><strong>因此，对于固定、统一高度的 cell，直接对 rowHeight 属性进行赋值，不要实现 heightForRowAtIndexPath 方法。</strong></p>
+<p>然而，实际情况并非如此简单，大多数情况下 cell 的高度都是动态的。</p>
+<p>此时，我们能做些什么呢？</p>
+<p>首先，从 iOS7 开始 Apple 提供了新的接口：<code>tableView:estimatedHeightForRowAtIndexPath:</code> 用于估算 cell 的高度，主要是用于显示滚动条，因此在该方法中可以返回一个大约的值而没必要经过严格的计算，节省了加载时间，直到 cell 需要显示出来时才调用 heightForRowAtIndexPath 计算精确的高度值。<strong>可知，通过该方法只是将加载时间延迟到 table 滚动时间。</strong></p>
+<p>其次，为了计算 cell 的高度，通常需要对 cell 进行 layout 操作，因此 layout 结果以及得到的高度都可以 cache 起来以免重复计算。</p>
+<h2 id="Reuse-cell"><a href="#Reuse-cell" class="headerlink" title="Reuse cell"></a>Reuse cell</h2><p>为了节省内存，提高性能，tableview 提供了 cell 的重用机制，对于滑出屏幕的 cell tableview 将其加入 reuse 队列，在需要显示新 cell 时从该队列取出重复利用。我们应该要充分利用好这一特性。</p>
+<p>有时，为了提升来回滑动的性能，防止滑出的 cell 立即被重用，而在来回滑动时需要重新 layout cell，可以增加 reuseIdentifier 的间隔.<br><img src="/img/reuseIdentifier.png" alt=""></p>
+<p>如上图，将 cell 复用的周期设为5可以提升来回滑动的流畅度。</p>
+<h2 id="拒绝-Misalignment"><a href="#拒绝-Misalignment" class="headerlink" title="拒绝 Misalignment"></a>拒绝 Misalignment</h2><p>在 <a href="http://zxfcumtcs.github.io/2015/03/21/CoreAnimation/">Core Animation</a> 这篇文章中已经讨论过 misalignment 对性能的影响，当出现 misalignment 时，GPU 需要从 source texture 中 blending 多个像素点的值来生成一个像素，增加了额外的计算量。因此需要避免出现 Misalignment 的情况，最简单的方法无非是对坐标值取整，如 ceil。</p>
+<p>我们也可以定义些宏方便使用：<br><img src="/img/Misalignment.png" alt=""></p>
+<p>像素不对齐问题，可以通过 Instruments 的 Core Animation 功能下的 Color Misaligned Images 选项检测出来。通过该选项，像素不对齐的情况将被标注为紫色，图片大小与最终显示时不一致的情况将被标注为黄色(即图片需要缩放)。<br><img src="/img/coreanimationdebugoptions.png" alt=""><br><img src="/img/Misalignmentdebugresult.png" alt=""></p>
+<h2 id="避免-Transparent"><a href="#避免-Transparent" class="headerlink" title="避免 Transparent"></a>避免 Transparent</h2><p>对 GPU 来说，透明意味着有大量额外的工作要做，在合成最终bitmap 时需要针对透明 layer 的每个像素计算叠加效果。这对于滑动时的性能来说是大忌。在代码中经常会出现：<code>xxView.backgroundColor = [UIColor clearColor];</code>，意味着 xxView 具有透明背景！通过 Instruments 的 Core Animation 功能下的 Color Blended Layers 选项可以检测哪些 layer 是透明的。透明层会被标注为红色，颜色越深说明叠加的透明层就越多。<br><img src="/img/ColorBlendedLayersDebugResult.png" alt=""></p>
+<h1 id="中级优化"><a href="#中级优化" class="headerlink" title="中级优化"></a>中级优化</h1><hr>
+<h2 id="避免-Offscreen-Rendering"><a href="#避免-Offscreen-Rendering" class="headerlink" title="避免 Offscreen Rendering"></a>避免 Offscreen Rendering</h2><p>在 <a href="http://zxfcumtcs.github.io/2015/03/21/CoreAnimation/">Core Animation</a> 这篇文章中对 Offscreen Rendering 有详细的讨论，其对性能有一定的影响，在大多数情况下需要尽力避免。</p>
+<p>例1：生成阴影效果，可以通过多种方式实现：<br><img src="/img/shadowoffset.png" alt=""><br>或：<br><img src="/img/shadowpath.png" alt=""></p>
+<p>然而，前者会产生 Offscreen Rendering：<br><img src="/img/shadowoffsetoffscreenreadering.png" alt=""><br>而后者却不会：<br><img src="/img/shadowpathnotoffscreenrendering.png" alt=""></p>
+<p>上述两种方式对性能的影响：<br><img src="/img/shadowperformance.png" alt=""></p>
+<p>例2：生成圆形图片，首先想到的常规方法是通过结合 layer 的 cornerRadius 和 masksToBounds 属性：<br><img src="/img/cornerRadius.png" alt=""><br>问题是该方式会产生 Offscreen Rendering。另外一种替代方式是在图片上方叠加一张中间有个透明圆形的图片，当然该方式会引起 blending，但据 Apple 在 WWDC 上的介绍，其性能优于前者：<br><img src="/img/roundperformance.png" alt=""></p>
+<p>例3：通过 Rasterization cache 耗时的计算结果：<br>其实这是一个权衡的过程，我们知道 Rasterization 会产生 Offscreen Rendering，有一定的性能损耗，同时还存在 Rasterization 失效的”危险”。</p>
+<p>在例1中我们知道通过 shadowoffset 方式生成的阴影效果会导致 Offscreen Rendering，并且离屏渲染发生在每一帧上，带来性能损耗，此时，可以通过 Rasterization cache 生成的阴影效果，从而只需一次离屏渲染即可。</p>
+<p>在 iOS Core Animation Advanced Techniques 这本书给出的例子中(12.2)，tableview 每行显示的图片和文字都使用 shadowoffset 的方式添加了阴影效果：<br><img src="/img/shadowoffsetrasterizationexample.png" alt=""></p>
+<p>在不使用 Rasterization 时，在 iphone5 上测出的帧率：<br><img src="/img/shadowoffsetnorasterizationfps.png" alt=""><br>使用 Rasterization 时的帧率：<br><img src="/img/shadowoffsetrasterizationfps.png" alt=""><br>后者较前者在帧率上有一定的提升。</p>
+<p>需要注意的是，虽然在该例子中每个 cell 的内容是固定不变的，不会导致 Rasterization 的结果失效，但由于在滚动过程中 cell 是复用的，这将导致之前 Rasterization 的结果失效。</p>
+<p>通过 Instruments 的 Core Animation 功能下的 Color Hits Green and Misses Red 选项可以检测 Rasterization 失效的情况(绿色为 Rasterization 有效，红色为失效)。</p>
+<p>在 tableview 静止时，Rasterization 是有效的：<br><img src="/img/RasterizationYes.png" alt=""><br>而在滑动过程中，由于 cell 的复用导致 Rasterization 失效：<br><img src="/img/RasterizationNO.png" alt=""></p>
+<p>总之，Offscreen Rendering 对性能的影响值得关注，大多数情况下需要尽力避免，在例3中也是以一次 Offscreen Rendering 换取避免多次。<br><img src="/img/offscreenrenderingsummary.png" alt=""></p>
+<h2 id="Lazy-Load"><a href="#Lazy-Load" class="headerlink" title="Lazy Load"></a>Lazy Load</h2><p>延迟加载有时不失为提高性能的有效措施之一，UITableView 本身就采用了延迟加载的策略：只有当 cell 需要显示时才进行加载。<br>我们可以在 tableview 滑动过程中禁止某些非关键的、耗时操作，如：滑动过程中 gif 图片不解码，直到 tableview 停止滑动，才对可见范围内的 gif 解码。</p>
+<h1 id="高级优化"><a href="#高级优化" class="headerlink" title="高级优化"></a>高级优化</h1><hr>
+<h2 id="在子线程预处理图片"><a href="#在子线程预处理图片" class="headerlink" title="在子线程预处理图片"></a>在子线程预处理图片</h2><p>对图片的处理通常有较大的性能损耗，如：读取图片的 io 操作、图片解码、缩放、渲染等，若处理不当将严重影响性能。<br>为了提升图片处理的性能，其中 io、解码、缩放等操作可以在子线程中预处理，再将处理结果转交主线程显示。<br>其中，需要特别注意的是图片的缩放，如果图片本身的尺寸与需要显示的尺寸不一致时，需要做缩放操作，这是一个非常耗时的过程。因此，app 中使用的图标等尽量保持尺寸一致，对于下载的图片虽无法保证，但可以先在子线程按显示尺寸对图片做裁剪。图片在显示过程中需要缩放的情况可以通过 Color Misaligned Images 选项检测，需要缩放的图片会被标注为黄色：<br><img src="/img/imagesize.png" alt=""><br>可以在子线程做如下处理(注：为了节省篇幅，在下面的代码中只处理了UIViewContentMode为UIViewContentModeScaleAspectFill的情况)：<br><img src="/img/imagecode1.png" alt=""><img src="/img/imagecode2.png" alt=""></p>
+<h2 id="不可直接重载-UITableViewCell-的-drawRect-方法"><a href="#不可直接重载-UITableViewCell-的-drawRect-方法" class="headerlink" title="不可直接重载 UITableViewCell 的 drawRect 方法"></a>不可直接重载 UITableViewCell 的 drawRect 方法</h2><p>无论是出于优化性能还是其他目的，经常会看到直接重载 cell 的 drawRect 方法。但这样做是有问题的，暂且不讨论其是否能达到优化性能的目的，从 cell 的结构上来讲，需要显示的内容应该是基于 cell 的 contentView，而不应该直接 draw 在 cell上。</p>
+<p>首先，我们看看如下简单的代码在 iOS7 和 iOS8 上运行的结果：<br><img src="/img/drawincellcode.png" alt=""><br>iOS7:<br><img src="/img/ios7drawcellresult.png" alt=""><br>没错，什么也没有！<br>iOS8:<br><img src="/img/ios8drawcellresult.png" alt=""><br>在 iOS8上显示正常！</p>
+<p>那如何才能在7上显示正常呢？答案是将 cell 的 backgroundcolor 设为 clearcolor，也就意味着透明！<br><img src="/img/ios7drawcelldebug.png" alt=""></p>
+<p>两个问题：为什么 iOS7 不行而 iOS8 行、为什么在 iOS7 需要将 backgroundcolor 设为 clearcolor。</p>
+<p>首先，讨论第二个问题，这是在 iOS7 上调试打印出来的结果：<br><img src="/img/ios7debugcellviewhierarchy.png" alt=""></p>
+<p>可以看到 iOS7 上 cell 的 view hierarchy：<br><img src="/img/ios7cellviewhierarchy.png" alt=""></p>
+<p>在 cell 上有个 subview：UITableViewCellScrollView，并且其默认背景色为白色。<br>若将 cell 的 backgroundcolor 设为 clearcolor：<br><img src="/img/ios7cellclearcolor.png" alt=""><br>可以看到UITableViewCellScrollView的背景色也变为 clearcolor 了。<br>很明显，在 iOS7 上之所以 drawrect 绘制的内容没有显示，原因在于被UITableViewCellScrollView拦住了。</p>
+<p>我们再看一下，iOS8 上 cell 的 view hierarchy：<br><img src="/img/ios8cellviewhierarchy.png" alt=""><br>第一个问题有答案了：iOS8 上 cell 的 view hierarchy 变了，UITableViewCellScrollView不再存在了。<br><img src="/img/ios8cellviewhierarchy1.png" alt=""></p>
+<p>还有另外一个问题：无论是 iOS7 还是 iOS8 上，当 cell 高亮显示时，drawrect 绘制的内容还是会消失！<br><img src="/img/cellhightlight.png" alt=""></p>
+<p>看看此时的 view hierarchy(iOS8)：<br><img src="/img/UITableViewCellSelectedBackground.png" alt=""></p>
+<p>是的，就是UITableViewCellSelectedBackground在搞怪！</p>
+<p>可以看到，直接重载 cell 的 drawrect 方法问题多多！</p>
+<p>正确的做法是：将需要 draw 的内容放到一个单独的 view 上，然后将其作为 contentview 的 subview。<br>ps: 在<a href="http://zxfcumtcs.github.io/2015/03/21/CoreAnimation/">Core Animation</a> 这篇文章中已经讨论过重载 drawrect 方法有一定的性能损耗，在决定重载前需要三思！</p>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><hr>
+<p>性能优化是一个复杂的过程，也是一个权衡、折中的过程。在优化前需要明确性能瓶颈在哪，优化后需要通过工具检测优化效果。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag"># iOS</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/03/21/CoreAnimation/" rel="next" title="Core Animation">
+                <i class="fa fa-chevron-left"></i> Core Animation
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/09/03/MemoryManagement/" rel="prev" title="Inside Memory Management for iOS">
+                Inside Memory Management for iOS <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#初级优化"><span class="nav-number">2.</span> <span class="nav-text">初级优化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#UITableViewCell-高度"><span class="nav-number">2.1.</span> <span class="nav-text">UITableViewCell 高度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reuse-cell"><span class="nav-number">2.2.</span> <span class="nav-text">Reuse cell</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#拒绝-Misalignment"><span class="nav-number">2.3.</span> <span class="nav-text">拒绝 Misalignment</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#避免-Transparent"><span class="nav-number">2.4.</span> <span class="nav-text">避免 Transparent</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#中级优化"><span class="nav-number">3.</span> <span class="nav-text">中级优化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#避免-Offscreen-Rendering"><span class="nav-number">3.1.</span> <span class="nav-text">避免 Offscreen Rendering</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Lazy-Load"><span class="nav-number">3.2.</span> <span class="nav-text">Lazy Load</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#高级优化"><span class="nav-number">4.</span> <span class="nav-text">高级优化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#在子线程预处理图片"><span class="nav-number">4.1.</span> <span class="nav-text">在子线程预处理图片</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#不可直接重载-UITableViewCell-的-drawRect-方法"><span class="nav-number">4.2.</span> <span class="nav-text">不可直接重载 UITableViewCell 的 drawRect 方法</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#小结"><span class="nav-number">5.</span> <span class="nav-text">小结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

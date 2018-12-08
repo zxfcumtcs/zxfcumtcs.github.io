@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="iOS,框架,ReactNative,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本文通过分析 RN 源码，简要介绍了 JS to Native 的 callback 实现原理以及 RN 中的三个重要线程。">
+<meta name="keywords" content="iOS,框架,ReactNative">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ReactNative源码解析——通信机制详解(补充条款)">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2017/11/22/RNCommunicationMechanism-AdditionalTerms/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本文通过分析 RN 源码，简要介绍了 JS to Native 的 callback 实现原理以及 RN 中的三个重要线程。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RCTModuleMethodinvokeWithBridge.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RCTJSThread.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/dispatchJSThread.png">
+<meta property="og:updated_time" content="2018-12-08T08:41:32.860Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ReactNative源码解析——通信机制详解(补充条款)">
+<meta name="twitter:description" content="本文通过分析 RN 源码，简要介绍了 JS to Native 的 callback 实现原理以及 RN 中的三个重要线程。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/RCTModuleMethodinvokeWithBridge.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2017/11/22/RNCommunicationMechanism-AdditionalTerms/">
+
+
+
+
+
+  <title>ReactNative源码解析——通信机制详解(补充条款) | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2017/11/22/RNCommunicationMechanism-AdditionalTerms/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">ReactNative源码解析——通信机制详解(补充条款)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-11-22T23:13:53+08:00">
+                2017-11-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/11/22/RNCommunicationMechanism-AdditionalTerms/" class="leancloud_visitors" data-flag-title="ReactNative源码解析——通信机制详解(补充条款)">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  2,429
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  12
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文通过分析 RN 源码，简要介绍了 JS to Native 的 callback 实现原理以及 RN 中的三个重要线程。<br><a id="more"></a><br>©原创文章，转载请注明出处！</p>
+<h1 id="callback"><a href="#callback" class="headerlink" title="callback"></a>callback</h1><hr>
+<p>前两篇文章<a href="https://zxfcumtcs.github.io/2017/10/08/ReactNativeCommunicationMechanism/">ReactNative源码解析——通信机制详解(1/2)
+</a>、<a href="https://zxfcumtcs.github.io/2017/10/12/ReactNativeCommunicationMechanism2/">ReactNative源码解析——通信机制详解(2/2)</a>分别介绍了 RN 通信机制中的 JS to Native、Native to JS 的执行流程。为了集中注意力抓住主要流程，当时没有分析调用过程中的 callback 问题，下面简要分析一下 JS to Native callback 的实现原理。</p>
+<blockquote>
+<p>文中所列代码均做了简化处理。</p>
+</blockquote>
+<p>首先，来看一个具体的例子：<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">RCT_EXPORT_METHOD(showShareActionSheetWithOptions:(<span class="built_in">NSDictionary</span> *)options</span><br><span class="line">                  failureCallback:(RCTResponseErrorBlock)failureCallback</span><br><span class="line">                  successCallback:(RCTResponseSenderBlock)successCallback)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">UIActivityViewController</span> *shareController =</span><br><span class="line">    [[<span class="built_in">UIActivityViewController</span> alloc] initWithActivityItems:items applicationActivities:<span class="literal">nil</span>];</span><br><span class="line"></span><br><span class="line">    shareController.completionWithItemsHandler = </span><br><span class="line">    ^(<span class="built_in">NSString</span> *activityType, </span><br><span class="line">       <span class="built_in">BOOL</span> completed, </span><br><span class="line">       __unused <span class="built_in">NSArray</span> *returnedItems, </span><br><span class="line">       <span class="built_in">NSError</span> *activityError) &#123;</span><br><span class="line">           <span class="keyword">if</span> (activityError) &#123;</span><br><span class="line">               failureCallback(activityError);</span><br><span class="line">           &#125; </span><br><span class="line">           <span class="keyword">else</span> &#123;</span><br><span class="line">               successCallback(@[@(completed), RCTNullIfNil(activityType)]);</span><br><span class="line">           &#125;</span><br><span class="line">       &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><code>showShareActionSheetWithOptions:failureCallback:successCallback:</code>是<code>RCTActionSheetManager</code>曝露给 JS 的方法之一，其包含两个 callback：<code>failureCallback</code>、<code>successCallback</code>。<br>其中，<code>RCTResponseErrorBlock</code>、<code>RCTResponseSenderBlock</code>的定义如下：<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * The type of a block that is capable of sending a response to a bridged</span></span><br><span class="line"><span class="comment"> * operation. Use this for returning callback methods to JS.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">void</span> (^RCTResponseSenderBlock)(<span class="built_in">NSArray</span> *response);</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * The type of a block that is capable of sending an error response to a</span></span><br><span class="line"><span class="comment"> * bridged operation. Use this for returning error information to JS.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">void</span> (^RCTResponseErrorBlock)(<span class="built_in">NSError</span> *error);</span><br></pre></td></tr></table></figure></p>
+<p>JS 中的调用：<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">ActionSheetIOS.showShareActionSheetWithOptions(&#123;</span><br><span class="line">        url: uri,</span><br><span class="line">        excludedActivityTypes: [</span><br><span class="line">          <span class="string">'com.apple.UIKit.activity.PostToTwitter'</span></span><br><span class="line">        ]</span><br><span class="line">      &#125;,</span><br><span class="line">      (error) =&gt; alert(error),</span><br><span class="line">      (completed, method) =&gt; &#123;</span><br><span class="line">        <span class="keyword">var</span> text;</span><br><span class="line">        <span class="keyword">if</span> (completed) &#123;</span><br><span class="line">          text = <span class="string">`Shared via <span class="subst">$&#123;method&#125;</span>`</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          text = <span class="string">'You didn\'t share'</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">this</span>.setState(&#123;text&#125;);</span><br><span class="line">      &#125;);</span><br></pre></td></tr></table></figure></p>
+<p>上述代码的第<code>7</code>行、<code>8~16</code>行，分别设置了两个 fail、success callback。</p>
+<p><img src="/img/RCTModuleMethodinvokeWithBridge.jpg" alt=""><br>上图所示是 JS to Native 中最终在 Native 侧调用相应方法的调用栈，在<a href="https://zxfcumtcs.github.io/2017/10/08/ReactNativeCommunicationMechanism/">ReactNative源码解析——通信机制详解(1/2)
+</a>中提到过，但限于篇幅没有展开讨论。</p>
+<p>今天的分析就从<code>RCTModuleMethod#invokeWithBridge:module:arguments:</code>开始。</p>
+<h2 id="RCTModuleMethod-invokeWithBridge"><a href="#RCTModuleMethod-invokeWithBridge" class="headerlink" title="RCTModuleMethod#invokeWithBridge:"></a>RCTModuleMethod#invokeWithBridge:</h2><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="keyword">id</span>)invokeWithBridge:(RCTBridge *)bridge</span><br><span class="line">                module:(<span class="keyword">id</span>)module</span><br><span class="line">             arguments:(<span class="built_in">NSArray</span> *)arguments</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (_argumentBlocks == <span class="literal">nil</span>) &#123;</span><br><span class="line">        [<span class="keyword">self</span> processMethodSignature];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Set arguments</span></span><br><span class="line">    <span class="comment">//</span></span><br><span class="line">    <span class="built_in">NSUInteger</span> index = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">id</span> json <span class="keyword">in</span> arguments) &#123;</span><br><span class="line">        RCTArgumentBlock block = _argumentBlocks[index];</span><br><span class="line">        <span class="keyword">if</span> (!block(bridge, index, RCTNilIfNull(json))) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        index++;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Invoke method</span></span><br><span class="line">    <span class="comment">//</span></span><br><span class="line">    [_invocation invokeWithTarget:module];</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在<code>invokeWithBridge:module:arguments:</code>内部(第<code>6</code>行)调用了<code>processMethodSignature</code>方法，从名称可知该方法是处理『方法签名』的(被处理的方法当然是被 JS 调用的 Native method 了)：<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="keyword">void</span>)processMethodSignature</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSArray</span>&lt;RCTMethodArgument *&gt; *arguments;</span><br><span class="line">    _selector = RCTParseMethodSignature(_methodInfo-&gt;objcName, &amp;arguments);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Create method invocation</span></span><br><span class="line">    <span class="built_in">NSMethodSignature</span> *methodSignature =  [_moduleClass instanceMethodSignatureForSelector:_selector];</span><br><span class="line">    <span class="built_in">NSInvocation</span> *invocation = [<span class="built_in">NSInvocation</span> invocationWithMethodSignature:methodSignature];</span><br><span class="line">    invocation.selector = _selector;</span><br><span class="line">    _invocation = invocation;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Process arguments</span></span><br><span class="line">    <span class="comment">//</span></span><br><span class="line">    <span class="built_in">NSUInteger</span> numberOfArguments = methodSignature.numberOfArguments;</span><br><span class="line">    <span class="built_in">NSMutableArray</span>&lt;RCTArgumentBlock&gt; *argumentBlocks =</span><br><span class="line">    [[<span class="built_in">NSMutableArray</span> alloc] initWithCapacity:numberOfArguments - <span class="number">2</span>];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="built_in">NSUInteger</span> i = <span class="number">2</span>; i &lt; numberOfArguments; i++) &#123;</span><br><span class="line">        <span class="keyword">const</span> <span class="keyword">char</span> *objcType = [methodSignature getArgumentTypeAtIndex:i];</span><br><span class="line">        RCTMethodArgument *argument = arguments[i - <span class="number">2</span>];</span><br><span class="line">        <span class="built_in">NSString</span> *typeName = argument.type;</span><br><span class="line">        SEL selector = RCTConvertSelectorForType(typeName);</span><br><span class="line">        <span class="keyword">if</span> ([RCTConvert respondsToSelector:selector]) &#123;</span><br><span class="line">            <span class="keyword">switch</span> (objcType[<span class="number">0</span>]) &#123;</span><br><span class="line">                <span class="keyword">case</span> _C_CHR: &#123;</span><br><span class="line">                    <span class="keyword">char</span> (*convert)(<span class="keyword">id</span>, SEL, <span class="keyword">id</span>) = (<span class="keyword">typeof</span>(convert))objc_msgSend;</span><br><span class="line">                    [argumentBlocks addObject:^(__unused RCTBridge *bridge, <span class="built_in">NSUInteger</span> index, <span class="keyword">id</span> json) &#123;</span><br><span class="line">                        <span class="keyword">char</span> value = convert([RCTConvert <span class="keyword">class</span>], selector, json);</span><br><span class="line">                        [invocation setArgument:&amp;value atIndex:(index) + <span class="number">2</span>];</span><br><span class="line">                        <span class="keyword">return</span> <span class="literal">YES</span>;&#125;];</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> ([typeName isEqualToString:<span class="string">@"RCTResponseSenderBlock"</span>]) &#123;</span><br><span class="line">            [argumentBlocks addObject:^(__unused RCTBridge *bridge, <span class="built_in">NSUInteger</span> index, <span class="keyword">id</span> json) &#123;</span><br><span class="line">                <span class="keyword">void</span> (^block)(<span class="built_in">NSArray</span> *) = ^(<span class="built_in">NSArray</span> *args) &#123;</span><br><span class="line">                    [bridge enqueueCallback:json args:args];</span><br><span class="line">                &#125;;</span><br><span class="line">                <span class="keyword">id</span> value = json ? [block <span class="keyword">copy</span>] : (<span class="keyword">id</span>)^(__unused <span class="built_in">NSArray</span> *_)&#123;&#125;;</span><br><span class="line">                <span class="built_in">CFBridgingRetain</span>(value);</span><br><span class="line"></span><br><span class="line">                [invocation setArgument:&amp;value atIndex:(index) + <span class="number">2</span>];</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">YES</span>;</span><br><span class="line">            &#125;];</span><br><span class="line">        &#125; </span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line">    _argumentBlocks = argumentBlocks;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><code>processMethodSignature</code>方法主要做的工作：</p>
+<ul>
+<li>从被调方法的名称(字符串)中解析出 selector 以及<code>RCTMethodArgument</code>格式的参数(第<code>4</code>行)；</li>
+<li>根据第一步中解析出的 selector 生成methodSignature、invocation(第<code>7~10</code>行)；</li>
+<li>为每个参数生成一个 block(<code>argumentBlock</code>)，并添加到<code>argumentBlocks</code>数组中：<br>  1. 若参数的类型在 JS 与 Native 间可以转换(如：基础类型、字符串、数组等)(第<code>23~34</code>行)，在<code>argumentBlock</code>中完成 JS 类型参数 to Native 类型参数的转换(第<code>28</code>行)，并将得到的结果设置到<code>invocation</code>上(第<code>29</code>行)；<br>  2. 若参数类型是 block(如：<code>RCTResponseSenderBlock</code>、<code>RCTResponseErrorBlock</code>等)(第<code>35~46</code>行)，则在<code>argumentBlock</code>中生成一个 bolck，用作调用方法时的实参(因为 block 类型无法从 JS 直接传给 Native)，在该 block 中调用了<code>bridge</code>的<code>enqueueCallback:args:</code>方法。</li>
+</ul>
+<p>再回到<code>RCTModuleMethod#invokeWithBridge:module:arguments:</code>方法，第<code>12~18</code>行，执行了<code>processMethodSignature</code>方法为每个参数生成的 block，最终的效果就是将 JS 侧传入的参数值转换成 Native 类型并设置到<code>invocation</code>上。</p>
+<p>通过上述分析可知，对于 block 类型的参数(callback)最终会调用了<code>RCTCxxBridge#enqueueCallback:args:</code>方法。<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> JSCExecutor::invokeCallback(<span class="keyword">const</span> <span class="keyword">double</span> callbackId, <span class="keyword">const</span> folly::dynamic&amp; arguments) &#123;</span><br><span class="line">    auto result = [&amp;] &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            <span class="keyword">return</span> m_invokeCallbackAndReturnFlushedQueueJS-&gt;callAsFunction(&#123;</span><br><span class="line">                Value::makeNumber(m_context, callbackId),</span><br><span class="line">                Value::fromDynamic(m_context, std::move(arguments))</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125; catch (...) &#123;&#125;</span><br><span class="line">    &#125;();</span><br><span class="line">    callNativeModules(std::move(result));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>沿调用链最终来到<code>JSCExecutor::invokeCallback</code>，第<code>4</code>行通过 hook，实际调用的是 JS 侧的<code>MessageQueue#invokeCallbackAndReturnFlushedQueue</code>方法。<br>下面我们来看看 JS 侧如何处理 callback。</p>
+<h2 id="NativeModules-genMethod"><a href="#NativeModules-genMethod" class="headerlink" title="NativeModules#genMethod"></a>NativeModules#genMethod</h2><p>还记得<code>genMethod</code>方法吗？<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">genMethod</span>(<span class="params">moduleID: number, methodID: number, type: MethodType</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">let</span> fn = <span class="literal">null</span>;</span><br><span class="line">    fn = <span class="function"><span class="keyword">function</span>(<span class="params">...args: Array&lt;any&gt;</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">const</span> lastArg = args.length &gt; <span class="number">0</span> ? args[args.length - <span class="number">1</span>] : <span class="literal">null</span>;</span><br><span class="line">        <span class="keyword">const</span> secondLastArg = args.length &gt; <span class="number">1</span> ? args[args.length - <span class="number">2</span>] : <span class="literal">null</span>;</span><br><span class="line">        <span class="keyword">const</span> hasSuccessCallback = <span class="keyword">typeof</span> lastArg === <span class="string">'function'</span>;</span><br><span class="line">        <span class="keyword">const</span> hasErrorCallback = <span class="keyword">typeof</span> secondLastArg === <span class="string">'function'</span>;</span><br><span class="line">        <span class="keyword">const</span> onSuccess = hasSuccessCallback ? lastArg : <span class="literal">null</span>;</span><br><span class="line">        <span class="keyword">const</span> onFail = hasErrorCallback ? secondLastArg : <span class="literal">null</span>;</span><br><span class="line">        <span class="keyword">const</span> callbackCount = hasSuccessCallback + hasErrorCallback;</span><br><span class="line">        args = args.slice(<span class="number">0</span>, args.length - callbackCount);</span><br><span class="line">        BatchedBridge.enqueueNativeCall(moduleID, methodID, args, onFail, onSuccess);</span><br><span class="line">    &#125;;</span><br><span class="line">    fn.type = type;</span><br><span class="line">    <span class="keyword">return</span> fn;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在<a href="https://zxfcumtcs.github.io/2017/10/08/ReactNativeCommunicationMechanism/">ReactNative源码解析——通信机制详解(1/2)
+</a>一文中介绍过，JS 在调用 Native 方法时，会在 JS 侧动态生成一个对应的 JS 方法。<br>在<code>genMethod</code>方法的第<code>4~9</code>行，处理了调用参数的最后2个，判断是否是 callback 类型(function 类型)。<br>从上述处理代码中可以得出：</p>
+<ul>
+<li>对于 callback 类型的参数，作了特殊处理，将其从参数列表中剥离出来；</li>
+<li>一个方法最多只能有两个 callback 类型的参数；</li>
+<li>callback 类型的参数只能位于参数列表的最后。</li>
+</ul>
+<p>下面再来看看<code>MessageQueue.enqueueNativeCall</code>：<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">enqueueNativeCall(</span><br><span class="line">    moduleID: number,</span><br><span class="line">    methodID: number,</span><br><span class="line">    params: any[],</span><br><span class="line">    onFail: ?<span class="built_in">Function</span>,</span><br><span class="line">    onSucc: ?<span class="built_in">Function</span>,</span><br><span class="line">  ) &#123;</span><br><span class="line">    <span class="keyword">if</span> (onFail || onSucc) &#123;</span><br><span class="line">        <span class="comment">// Encode callIDs into pairs of callback identifiers by shifting left and using the rightmost bit</span></span><br><span class="line">        <span class="comment">// to indicate fail (0) or success (1)</span></span><br><span class="line">        <span class="comment">// eslint-disable-next-line no-bitwise</span></span><br><span class="line">        onFail &amp;&amp; params.push(<span class="keyword">this</span>._callID &lt;&lt; <span class="number">1</span>);</span><br><span class="line">        <span class="comment">// eslint-disable-next-line no-bitwise</span></span><br><span class="line">        onSucc &amp;&amp; params.push((<span class="keyword">this</span>._callID &lt;&lt; <span class="number">1</span>) | <span class="number">1</span>);</span><br><span class="line">        <span class="keyword">this</span>._successCallbacks[<span class="keyword">this</span>._callID] = onSucc;</span><br><span class="line">        <span class="keyword">this</span>._failureCallbacks[<span class="keyword">this</span>._callID] = onFail;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">this</span>._callID++;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可以看到：</p>
+<ul>
+<li>对于 callback 类型的参数，在 JS 与 Native 间传递的是 callbackID(<code>_successCallbacks</code>、<code>_failureCallbacks</code>中的下标)；</li>
+<li>JS 侧的 callback function 存储在<code>_successCallbacks</code>、<code>_failureCallbacks</code>中。</li>
+</ul>
+<p>我们再回到调用流程中的<code>MessageQueue#invokeCallbackAndReturnFlushedQueue</code>方法，在该方法中调用了<code>__invokeCallback</code>方法：<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">__invokeCallback(cbID: number, <span class="attr">args</span>: any[]) &#123;</span><br><span class="line">    <span class="comment">// The rightmost bit of cbID indicates fail (0) or success (1), the other bits are the callID shifted left.</span></span><br><span class="line">    <span class="comment">// eslint-disable-next-line no-bitwise</span></span><br><span class="line">    <span class="keyword">const</span> callID = cbID &gt;&gt;&gt; <span class="number">1</span>;</span><br><span class="line">    <span class="comment">// eslint-disable-next-line no-bitwise</span></span><br><span class="line">    <span class="keyword">const</span> isSuccess = cbID &amp; <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">const</span> callback = isSuccess</span><br><span class="line">      ? <span class="keyword">this</span>._successCallbacks[callID]</span><br><span class="line">      : <span class="keyword">this</span>._failureCallbacks[callID];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!callback) &#123;</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">this</span>._successCallbacks[callID] = <span class="keyword">this</span>._failureCallbacks[callID] = <span class="literal">null</span>;</span><br><span class="line">    callback(...args);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在<code>__invokeCallback</code>方法中，通过 cbID 在<code>_successCallbacks</code>、<code>_failureCallbacks</code>中找到相应的 callback function，并执行。至此，callback 的流程全部结束。</p>
+<blockquote>
+<p>RN 通过 callbackID 的最后一位是0还是1，确定callback 是 success 还是 fail。</p>
+</blockquote>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><ul>
+<li>JS 与 Native 间传递的是 callbackID；</li>
+<li>callback 参数只能位于方法参数列表的最后面并且最多只能有2个；</li>
+<li>RN 通过 callbackID 二进制的最后一位是0还是1，确定是 success 还是 fail；</li>
+<li>由于 JS callback function 无法直接传递给 Native，Native 侧会生成一个 block。</li>
+</ul>
+<h1 id="线程模型"><a href="#线程模型" class="headerlink" title="线程模型"></a>线程模型</h1><hr>
+<p>在 RN 中，有3类线程需要关注：</p>
+<ul>
+<li>JS Thread；</li>
+<li>Native Module Thread；</li>
+<li>UI Manager Thread(Shadow Thread)。</li>
+</ul>
+<h2 id="JS-Thread"><a href="#JS-Thread" class="headerlink" title="JS Thread"></a>JS Thread</h2><p>JS Thread 是 JS 执行以及 JS 与 Native 通信线程。<br>简单讲，Native 在此线程执行 JS 代码，JS 调用 Native 接口也发生在此线程上。<br>JS Thread 的初始化发生在<code>RCTCxxBridge#start</code>方法中：<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">_jsThread = [[<span class="built_in">NSThread</span> alloc] initWithTarget:[<span class="keyword">self</span> <span class="keyword">class</span>]</span><br><span class="line">                                                   selector:<span class="keyword">@selector</span>(runRunLoop)</span><br><span class="line">                                                     object:<span class="literal">nil</span>];</span><br><span class="line">_jsThread.name = RCTJSThreadName;</span><br><span class="line">_jsThread.qualityOfService = <span class="built_in">NSOperationQualityOfServiceUserInteractive</span>;</span><br><span class="line">[_jsThread start];</span><br></pre></td></tr></table></figure></p>
+<p>在阅读 RN 源码时可能会发现<code>RCTMessageThread</code>类，它是对 JS Thread 的 C++封装。具体源码就不列了。<br>还会发现<code>RCTJSThread</code>变量：<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">dispatch_queue_t</span> RCTJSThread;</span><br><span class="line">RCTJSThread = (<span class="keyword">id</span>)kCFNull;</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>NOTE: RCTJSThread is not a real libdispatch queue</p>
+</blockquote>
+<p><code>RCTJSThread</code>的作用只是用于标识，确保需要在 JSThread 上执行的操作能在该线程上执行：<br><img src="/img/RCTJSThread.png" alt=""> <img src="/img/dispatchJSThread.png" alt=""></p>
+<h2 id="Native-module-Thread"><a href="#Native-module-Thread" class="headerlink" title="Native module Thread"></a>Native module Thread</h2><p>JS 在调用 Native 方法时，Native 方法在哪个线程上执行？<br>Native Module 可以实现<code>methodQueue</code>方法，指定执行队列：<code>- (dispatch_queue_t)methodQueue</code>。<br>那如果 Native Module 没有实现<code>methodQueue</code>方法，会如何？<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="keyword">void</span>)setUpMethodQueue</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">BOOL</span> implementsMethodQueue = [_instance respondsToSelector:<span class="keyword">@selector</span>(methodQueue)];</span><br><span class="line">    <span class="keyword">if</span> (implementsMethodQueue &amp;&amp; _bridge.valid) &#123;</span><br><span class="line">        _methodQueue = _instance.methodQueue;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (!_methodQueue &amp;&amp; _bridge.valid) &#123;</span><br><span class="line">        <span class="comment">// Create new queue (store queueName, as it isn't retained by dispatch_queue)</span></span><br><span class="line">        _queueName = [<span class="built_in">NSString</span> stringWithFormat:<span class="string">@"com.facebook.react.%@Queue"</span>, <span class="keyword">self</span>.name];</span><br><span class="line">        _methodQueue = dispatch_queue_create(_queueName.UTF8String, DISPATCH_QUEUE_SERIAL);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在<code>RCTModuleData#setUpMethodQueue</code>方法中可以看到：若Native Module 没有实现<code>methodQueue</code>方法，则为该 Native Module 生成一个串行队列。<br>那么在实现 <code>Native module#methodQueue</code> 方法时需要注意什么？<br>来了解一下 RN 自带的 module 实现情况：</p>
+<ul>
+<li>main thread — 如 RCTActionSheetManager，在接口中有 UI 操作；</li>
+<li>JSThread — 如 RCTTiming、RCTEventDispatcher，实时性要求较高的<br>(慎用，This can have serious implications for performance, so only use this if you’re sure it’s what you need)；</li>
+<li>UI Manager thread — 如 RCTUIManager、RCTViewManager，UI 组件；</li>
+<li>Custom thread — 如 RCTAsyncLocalStorage，耗时操作。</li>
+</ul>
+<h2 id="UI-Manager-Thread-Shadow-Thread"><a href="#UI-Manager-Thread-Shadow-Thread" class="headerlink" title="UI Manager Thread(Shadow Thread)"></a>UI Manager Thread(Shadow Thread)</h2><p>UI Manager Thread，UI 组件(UI module)接口执行线程。<br>UI 不应该在 main thread？<br>RN 为了提高效率(如: 帧率)，会先在UI Manager Thread做一些预处理操作(如计算 frame)，最终在渲染上屏时会切到 main thread。<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">dispatch_queue_t</span> RCTGetUIManagerQueue(<span class="keyword">void</span>)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="built_in">dispatch_queue_t</span> shadowQueue;</span><br><span class="line">    <span class="keyword">static</span> <span class="built_in">dispatch_once_t</span> onceToken;</span><br><span class="line">    <span class="built_in">dispatch_once</span>(&amp;onceToken, ^&#123;</span><br><span class="line">        <span class="keyword">if</span> ([<span class="built_in">NSOperation</span> instancesRespondToSelector:<span class="keyword">@selector</span>(qualityOfService)]) &#123;</span><br><span class="line">            dispatch_queue_attr_t attr = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_USER_INTERACTIVE, <span class="number">0</span>);</span><br><span class="line">            shadowQueue = dispatch_queue_create(RCTUIManagerQueueName, attr);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            shadowQueue = dispatch_queue_create(RCTUIManagerQueueName, DISPATCH_QUEUE_SERIAL);</span><br><span class="line">            dispatch_set_target_queue(shadowQueue, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, <span class="number">0</span>));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="keyword">return</span> shadowQueue;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可以看到，UI Manager Thread 是一个高优先级的串行队列。</p>
+<h2 id="小结-1"><a href="#小结-1" class="headerlink" title="小结"></a>小结</h2><ul>
+<li>所有 JS 代码都会在独立线程 JSThread 上执行；</li>
+<li>可通过 methodQueue 方法自定义 Native module 执行线程；</li>
+<li>为了提高效率，所有 UI 组件都会在 UI Manager thread 上预处理，再在 main thread 上渲染上屏。</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag"># iOS</a>
+          
+            <a href="/tags/框架/" rel="tag"># 框架</a>
+          
+            <a href="/tags/ReactNative/" rel="tag"># ReactNative</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/10/12/ReactNativeCommunicationMechanism2/" rel="next" title="ReactNative源码解析——通信机制详解(2/2)">
+                <i class="fa fa-chevron-left"></i> ReactNative源码解析——通信机制详解(2/2)
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/02/03/RNRendering/" rel="prev" title="ReactNative源码解析——渲染机制详解">
+                ReactNative源码解析——渲染机制详解 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#callback"><span class="nav-number">1.</span> <span class="nav-text">callback</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#RCTModuleMethod-invokeWithBridge"><span class="nav-number">1.1.</span> <span class="nav-text">RCTModuleMethod#invokeWithBridge:</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NativeModules-genMethod"><span class="nav-number">1.2.</span> <span class="nav-text">NativeModules#genMethod</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小结"><span class="nav-number">1.3.</span> <span class="nav-text">小结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#线程模型"><span class="nav-number">2.</span> <span class="nav-text">线程模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#JS-Thread"><span class="nav-number">2.1.</span> <span class="nav-text">JS Thread</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Native-module-Thread"><span class="nav-number">2.2.</span> <span class="nav-text">Native module Thread</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#UI-Manager-Thread-Shadow-Thread"><span class="nav-number">2.3.</span> <span class="nav-text">UI Manager Thread(Shadow Thread)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小结-1"><span class="nav-number">2.4.</span> <span class="nav-text">小结</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

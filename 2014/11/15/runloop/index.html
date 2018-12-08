@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="iOS,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="希望通过本文的介绍，大家能更清晰地认识 runloop。本文是 runloop 系列的第一篇文章，主要介绍 runloop 的基本概念及其与线程的关系，并试图通过pseudo-code的方式探索 runloop 的内部实现机制。">
+<meta name="keywords" content="iOS">
+<meta property="og:type" content="article">
+<meta property="og:title" content="谜一样的 Runloop(1&#x2F;2)">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2014/11/15/runloop/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="希望通过本文的介绍，大家能更清晰地认识 runloop。本文是 runloop 系列的第一篇文章，主要介绍 runloop 的基本概念及其与线程的关系，并试图通过pseudo-code的方式探索 runloop 的内部实现机制。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/Predefinedrunloopmodes.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/threadandrunloop.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/threadrunloopsource.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/runmethodsofrunloop.png">
+<meta property="og:updated_time" content="2018-12-08T08:41:32.866Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="谜一样的 Runloop(1&#x2F;2)">
+<meta name="twitter:description" content="希望通过本文的介绍，大家能更清晰地认识 runloop。本文是 runloop 系列的第一篇文章，主要介绍 runloop 的基本概念及其与线程的关系，并试图通过pseudo-code的方式探索 runloop 的内部实现机制。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/Predefinedrunloopmodes.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2014/11/15/runloop/">
+
+
+
+
+
+  <title>谜一样的 Runloop(1/2) | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2014/11/15/runloop/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">谜一样的 Runloop(1/2)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2014-11-15T10:25:31+08:00">
+                2014-11-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2014/11/15/runloop/" class="leancloud_visitors" data-flag-title="谜一样的 Runloop(1/2)">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  1,878
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  8
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>希望通过本文的介绍，大家能更清晰地认识 runloop。本文是 runloop 系列的第一篇文章，主要介绍 runloop 的基本概念及其与线程的关系，并试图通过pseudo-code的方式探索 runloop 的内部实现机制。<br><a id="more"></a><br>©原创文章，转载请注明出处！</p>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
+<p>刚开始接触 iOS 时，block 和 runloop 让我望而生畏。block 那神奇的语法以及与外部变量纠缠不清的关系，还有 retain cycle 这个恶魔，短时间确实难以接受！runloop 更是谜一样的虚无飘渺，又似乎若隐若现，仿佛能感受到它的存在，但始终又不得其真面目！</p>
+<p>Apple 官方给 run loop 的定义：run loop 是线程的基础支撑，是循环处理事件的机制，一个具体的 run loop 就是一个事件处理循环。</p>
+<p>run loop 的目的是使线程在没有事情可做时进入休眠状态，避免 CPU 空转。</p>
+<blockquote>
+<p>Run loops are part of the fundamental infrastructure associated with threads. A run loop is an event processing loop that you use to schedule work and coordinate the receipt of incoming events. The purpose of a run loop is to keep your thread busy when there is work to do and put your thread to sleep when there is none.</p>
+</blockquote>
+<h1 id="Runloop-Modes"><a href="#Runloop-Modes" class="headerlink" title="Runloop Modes"></a>Runloop Modes</h1><hr>
+<p>简单地说，runloop mode 是事件源的集合 + runloop观察者的集合。runloop 每次都运行在某个特定的 mode 上。</p>
+<p>之所以要引入 mode 的概念，是希望 runloop 在监听过程中过滤掉不关心的事件源，只专注于某些特定的事件。</p>
+<p>Cocoa and Core Foundation已经为我们预定义了若干 mode，而我们也可以自定义 mode。</p>
+<p><img src="/img/Predefinedrunloopmodes.png" alt=""></p>
+<p>如果某个 input source 所属的 mode 不是当前监听的 mode，那其产生的所有事件都将被 hold 住，直到 runloop 运行在与其匹配的 mode 上。</p>
+<p>注意：当有 UI 滑动事件时，系统会将main runloop切换到<code>NSEventTrackingRunLoopMode</code>，以限定此时的事件源，确保滑动的流畅性。</p>
+<p>同时，在默认情况下<code>NSRunLoopCommonModes</code>包含<code>NSEventTrackingRunLoopMode</code>，也就是说与<code>NSRunLoopCommonModes</code>关联的事件源也与<code>NSEventTrackingRunLoopMode</code>关联。</p>
+<p>而此时，如果有子线程想通过<code>performSelecorOnMainThread...</code>或<code>dispatch_async(dispatch_get_main_queue(),^{})</code>在主线程上执行某 <code>selector</code>，默认情况下上述两种方式产生的事件是关联到<code>NSRunLoopCommonModes</code>，因此在 UI 滑动时也会响应该事件并执行指定的 <code>selector</code>，从而影响滑动的流畅性。</p>
+<p>为了避免此问题，可以封装上述接口，使其指定的 <code>selector</code> 运行在 main runloop 的其他 mode 上，如：<code>NSDefaultRunLoopMode</code>。</p>
+<h1 id="Runloop-and-Thread"><a href="#Runloop-and-Thread" class="headerlink" title="Runloop and Thread"></a>Runloop and Thread</h1><hr>
+<p>如果要问runloop 与 thread 是什么关系？</p>
+<p>答：runloop 是 thread 不断跳动的心脏！</p>
+<p>每个 thread 都有自己的 runloop，可以通过<code>NSRunLoop</code>的类方法<code>currentRunLoop</code>获取当前线程的 runloop。但只有 main thread 的 runloop 默认是开启的，其他线程如果希望持续存活下去，就需要手动开启runloop。</p>
+<p>当线程没有开启 runloop 时，其生命周期将随其 <code>main</code> 函数的结束而终结；当开启 runloop 时，线程会进入休眠状态，直到相应的事件到来。形象地说前者生命周期是条直线，后者是个圆。<br><img src="/img/threadandrunloop.png" alt=""></p>
+<p>那么什么情况下需要开启线程的 runloop 呢？(当然，这里讨论的对象是子线程)</p>
+<p>基本原则是：<strong>线程需要处理异步事件。</strong></p>
+<p>如果线程只是用来处理同步任务，没必要开启 runloop，也就是说 runloop 一定是与异步事件相关的！</p>
+<p>具体来讲大概以下几种情况需要开启 runloop：</p>
+<ul>
+<li>需要通过端口或自定义输入源与其他线程通讯；</li>
+<li>在线程中需要使用定时器；</li>
+<li>在线程上使用<code>performSelector</code>系列方法；</li>
+<li>需要线程周期性地执行一些任务。</li>
+</ul>
+<p>至于如何开启子线程的 runloop 就不过多的讲了，可以参考一下 Apple 的官方文档:<a href="https://developer.apple.com/library/ios/documentation/Cocoa/Conceptual/Multithreading/RunLoopManagement/RunLoopManagement.html" target="_blank" rel="noopener">Threading Programming Guide</a></p>
+<p>需要注意的是，在开启 runloop 前，至少要绑定一个事件源到 runloop 上，否则 runloop 将直接退出。</p>
+<p>事件源大概有四类：</p>
+<ul>
+<li>Port-Based Sources</li>
+<li>Custom Input Sources</li>
+<li>Cocoa Perform Selector Sources</li>
+<li>Timer Sources</li>
+</ul>
+<p>严格来讲，前三种事件源自来线程外部，Apple 将其称之为 input sources，timer 是来自线程内部的，与前三者有所区别。</p>
+<p>对于上述事件源有几个要注意的点：</p>
+<ul>
+<li>在子线程上执行 performSelector 时，子线程需要开启 runloop，不然selector将会入队，直到 runloop 启动才会被执行；</li>
+<li>所有入队的 perform selector 将会在一次 runloop 中全部被处理，而不是每次 runloop 处理一个 selector；</li>
+<li>当 selector 执行后，该 perform source 会被从runloop 上移除掉；</li>
+<li>因 timer 触发的事件不会使 runloop 退出，(port-based input source even会使 runloop 退出)；</li>
+<li>当 timer 触发时 runloop 正在处理其他事件，timer handler需要等到下一个 loop 才会被执行；</li>
+<li>如果 runloop 没有启动，timer 永远不会触发。</li>
+</ul>
+<p>线程、runloop 以及 event source 之间的关系(<a href="https://developer.apple.com/library/ios/documentation/Cocoa/Conceptual/Multithreading/RunLoopManagement/RunLoopManagement.html" target="_blank" rel="noopener">来自</a>)：<br><img src="/img/threadrunloopsource.png" alt=""></p>
+<h1 id="NSRunLoop-Internals"><a href="#NSRunLoop-Internals" class="headerlink" title="NSRunLoop Internals"></a>NSRunLoop Internals</h1><hr>
+<p><code>NSRunLoop</code>向外提供了多个接口可以启动 runloop，详细描述如下表所示：<br><img src="/img/runmethodsofrunloop.png" alt=""></p>
+<p>可以看到，<code>run</code>以及<code>runUntilDate:</code>内部都是通过调用<code>runMode:beforeDate:</code>函数实现的。</p>
+<p><em>对于熟悉服务器网络编程的同学来说，后台服务器其实就是一个大 runloop，其主要通过 <code>select</code>、<code>pool</code> 或 <code>epool</code> 等方式实现这个 runloop。以<code>select</code>为例，系统内核不断轮询该<code>select</code>关注的 fd，当有网络事件需要处理时，唤醒服务器进程处理事件，否则不断轮询。</em></p>
+<p><a href="https://mikeash.com/pyblog/friday-qa-2010-01-01-nsrunloop-internals.html" target="_blank" rel="noopener">Mike Ash</a>大神通过<code>select</code>，以pseudo-code的方式描述了<code>runMode:beforeDate:</code>的实现，同时也形象地说明了 runloop 的实质：</p>
+<figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="built_in">BOOL</span>)runMode:(<span class="built_in">NSString</span> *)mode beforeDate:(<span class="built_in">NSDate</span> *)limitDate</span><br><span class="line">&#123;</span><br><span class="line">   <span class="keyword">if</span>(![<span class="keyword">self</span> hasSourcesOrTimersForMode:mode])</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">NO</span>;</span><br><span class="line">        </span><br><span class="line">   <span class="comment">// with timer support, this code has to loop until an input source fires</span></span><br><span class="line">   <span class="built_in">BOOL</span> didFireInputSource = <span class="literal">NO</span>;</span><br><span class="line">   <span class="keyword">while</span>(!didFireInputSource)</span><br><span class="line">   &#123;</span><br><span class="line">       fd_set fdset;</span><br><span class="line">       FD_ZERO(&amp;fdset);</span><br><span class="line">       </span><br><span class="line">       <span class="keyword">for</span>(inputSource <span class="keyword">in</span> [_inputSources objectForKey: mode])</span><br><span class="line">           FD_SET([inputSource fileDescriptor], &amp;fdset);</span><br><span class="line">       </span><br><span class="line">       <span class="comment">// the timeout needs to be set from the limitDateand from the list of timers</span></span><br><span class="line">       <span class="comment">// start with the limitDate</span></span><br><span class="line">       <span class="built_in">NSTimeInterval</span> timeout = [limitDate timeIntervalSinceNow];</span><br><span class="line">       </span><br><span class="line">       <span class="comment">// now run through the list of timers and set the</span></span><br><span class="line">       <span class="comment">// timeout to the smallest one found in them and</span></span><br><span class="line">       <span class="comment">// in the limitDate</span></span><br><span class="line">       <span class="keyword">for</span>(timer <span class="keyword">in</span> [_timerSources objectForKey: mode])</span><br><span class="line">           timeout = MIN(timeout, [[timer fireDate] timeIntervalSinceNow]);</span><br><span class="line">       </span><br><span class="line">       <span class="comment">// now run select</span></span><br><span class="line">       select(fdset, timeout);</span><br><span class="line">       </span><br><span class="line">       <span class="comment">// process input sources first (this choice is arbitrary)</span></span><br><span class="line">       <span class="keyword">for</span>(inputSource <span class="keyword">in</span> [[[_inputSources objectForKey: mode] <span class="keyword">copy</span>] autorelease])</span><br><span class="line">           <span class="keyword">if</span>(FD_ISSET([inputSource fileDescrptor], &amp;fdset))</span><br><span class="line">           &#123;</span><br><span class="line">               didFireInputSource = <span class="literal">YES</span>;</span><br><span class="line">               [inputSource fileDescriptorIsReady];</span><br><span class="line">           &#125;</span><br><span class="line">       </span><br><span class="line">       <span class="comment">// now process timers</span></span><br><span class="line">       <span class="comment">// responsibility for updating fireDate for repeating timers</span></span><br><span class="line">       <span class="comment">// and for removing the timer from the runloop for non-repeating timers</span></span><br><span class="line">       <span class="comment">// rests in the timer class, not in the runloop</span></span><br><span class="line">       <span class="keyword">for</span>(timer <span class="keyword">in</span> [[[_timerSources objectForKey: mode] <span class="keyword">copy</span>] autorelease])</span><br><span class="line">           <span class="keyword">if</span>([[timer fireDate] timeIntervalSinceNow] &lt;= <span class="number">0</span>)</span><br><span class="line">               [timer fire];</span><br><span class="line">       </span><br><span class="line">       <span class="comment">// see if we timed out, if so, abort!</span></span><br><span class="line">       <span class="comment">// this is checked at the end to ensure that timers and inputs are</span></span><br><span class="line">       <span class="comment">// always processed at least once before returning</span></span><br><span class="line">       <span class="keyword">if</span>([limitDate timeIntervalSinceNow] &lt; <span class="number">0</span>)</span><br><span class="line">           <span class="keyword">break</span>;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="keyword">return</span> <span class="literal">YES</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在上述<code>runMode:beforeDate:</code>的pseudo-code中：</p>
+<ul>
+<li>第3行，首先判断是否有 input source 或 timer 绑定到 runloop 的指定 mode 下；</li>
+<li>第13行，用指定 mode 下的 inputsource 设置 fdset；</li>
+<li>第23~24行，找出此次轮询的最小过期时间；</li>
+<li>第27行，启动 runloop；</li>
+<li>第30行，select 返回，表明有 inputsource 到达或timer fire；</li>
+<li>30行以下代码用于处理到达的事件，需要注意的时：如果 select 是因为 inputsource 到达而返回的，第33行会将<code>didFireInputSource</code>设为 YES，从而导致<code>runMode:beforeDate:</code>退出，而 timer fire 时没有设该标志位，也就是所谓的 timer fire不会导致 runloop 退出。</li>
+</ul>
+<p>是的，runloop 其实就这么简单。当然，由于没有 runloop 的源码，其内部真正如何实现不得而知。但总体思路应该大同小异！</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag"># iOS</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2014/10/26/iosapplifecycle/" rel="next" title="iOS App Life Cycle">
+                <i class="fa fa-chevron-left"></i> iOS App Life Cycle
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2014/11/30/runloop2/" rel="prev" title="谜一样的 Runloop(2/2)">
+                谜一样的 Runloop(2/2) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Runloop-Modes"><span class="nav-number">2.</span> <span class="nav-text">Runloop Modes</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Runloop-and-Thread"><span class="nav-number">3.</span> <span class="nav-text">Runloop and Thread</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NSRunLoop-Internals"><span class="nav-number">4.</span> <span class="nav-text">NSRunLoop Internals</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

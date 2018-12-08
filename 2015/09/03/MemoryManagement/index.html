@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="iOS,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本文探讨了在 Memory Management 中的命名规则、引用计数的实现机制以及 weak 变量的内部实现。">
+<meta name="keywords" content="iOS">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Inside Memory Management for iOS">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2015/09/03/MemoryManagement/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本文探讨了在 Memory Management 中的命名规则、引用计数的实现机制以及 weak 变量的内部实现。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/MRCAlloc.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/MRCAllocString.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ARCuseMRC.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ARCUseMRCCrash.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ARCPseudoconde.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/CrashStack.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ARCAllocString.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/GNUstepReferenceCounting.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/GNUstepObjectMemory.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/AppleRetain.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/SideTable.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/weak.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/weakpseudocode.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/objc_initWeak.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/objc_storeWeak.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/weak_register_no_lock.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/weaktable.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/weak_entry_t.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/weak_entry_for_referent.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/weak_unregister_no_lock.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/bridge_retainedARC.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/bridge_retainedMRC.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/bridge_transferARC.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/bridge_transferMRC.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/CFBridgingRetainRelease.png">
+<meta property="og:updated_time" content="2018-12-08T08:41:32.858Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Inside Memory Management for iOS">
+<meta name="twitter:description" content="本文探讨了在 Memory Management 中的命名规则、引用计数的实现机制以及 weak 变量的内部实现。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/MRCAlloc.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2015/09/03/MemoryManagement/">
+
+
+
+
+
+  <title>Inside Memory Management for iOS | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2015/09/03/MemoryManagement/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Inside Memory Management for iOS</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-09-03T16:28:55+08:00">
+                2015-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2015/09/03/MemoryManagement/" class="leancloud_visitors" data-flag-title="Inside Memory Management for iOS">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  2,975
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  11
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文探讨了在 Memory Management 中的命名规则、引用计数的实现机制以及 weak 变量的内部实现。<br><a id="more"></a><br>©原创文章，转载请注明出处！</p>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
+<p>Memory Management 在 C 语言体系中一直是个重要的话题，它们没有像 Java 那样的 Garbage Collection，内存管理完全由程序员负责。因此，稍有不慎就会出现 Memory Leak 或 Dangling Pointer 等严重问题，这对于程序来说是致命的！</p>
+<p>Objective-C 作为在 C 语言基础上发展起来的面向对象语言，自身自然也没有内存管理机制。因此，作为 iOS 程序员的我们也需要小心翼翼地处理着内存问题。然而，这一切随着 ARC 的到来有很大的改观。</p>
+<p>由 iOS5 和 Xcode4.2 内置的编译器 LLVM3.0 共同支持的 ARC(Automatic Reference Counting)，如其名称所示实现了内存的自动管理。简单地说，其实质就是将内存管理的工作由程序员转交给编译器来完成，当然某些特性需要 runtime 的支持。</p>
+<h1 id="内存管理中的命名规则"><a href="#内存管理中的命名规则" class="headerlink" title="内存管理中的命名规则"></a>内存管理中的命名规则</h1><hr>
+<p>与 ARC 相比，我们将手动内存管理机制称作 MRC(Mannul Reference Counting)，就像 ARC 与 MRC 名称所展示的那样，两者从内存管理的本质上讲没有区别，都是通过引用计数(Reference Counting)机制管理内存。不同的是，在 ARC 中内存管理相关的代码由编译器在编译代码时自动插入。</p>
+<p>那么问题来了~</p>
+<p>ARC 下编译器如何自动插入内存管理代码？更直白点，编译器如何知道在某处需要插入相关的代码？</p>
+<p>首先，能想到的是在类的 <code>dealloc</code> 方法中，对该类的实例对象所持有的成员变量(strong)执行 release 操作。</p>
+<p>那么，对于局部变量，编译器如何管理内存？<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    NSString *str = [[NSString alloc] initWithFormat:@&quot;test ARC&quot;];</span><br><span class="line">    NSLog(@&quot;%@&quot;, str);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>我们知道，在 ARC 下，上面的代码片段会被编译器处理成(仅是示例，编译器最终的处理可能不完全一致)：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    NSString * str = [[NSString alloc] initWithFormat:@&quot;test ARC&quot;];</span><br><span class="line">    NSLog(@&quot;%@&quot;, str);</span><br><span class="line">    [str release];			// 编译器插入了 release</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>而下面的代码片段，编译器没有为内存管理添加任何代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    NSString *str = [NSString stringWithFormat:@&quot;test ARC&quot;];</span><br><span class="line">    NSLog(@&quot;%@&quot;, str);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>为什么编译器在处理上述两段代码时，采取不同的态度？</p>
+<p>答案很明显，代码2返回的是 autorelese 对象，其已被纳入内存管理之中，故不需要编译器再作处理，而代码1却没有。</p>
+<p>嗯，问题似乎已得到完美的解答！<br>然而，这一切都是站在人的角度去分析的，编译器如何知道代码1需要其管理内存，而代码2不需要？</p>
+<p>ok，这就是本节主题：『命名规则』要解决的问题。</p>
+<p>任何以下列名称为前缀的方法，若其返回值为 object，则方法调用者持有该 object：</p>
+<ul>
+<li>alloc</li>
+<li>new</li>
+<li>copy</li>
+<li>mutableCopy</li>
+</ul>
+<p>还有一个更为严格的规则：任何以 init 为前缀的方法必须遵守下列规则：</p>
+<ul>
+<li>该方法必须是实例方法；</li>
+<li>该方法必须返回类型为<code>id</code>或其所属class、superclass、subclass 的对象；</li>
+<li>该方法返回的 object 不能是 autorelese，即方法调用者持有返回的 object。</li>
+</ul>
+<p>『方法调用者持有该 object』也就意味着该 object 的内存问题需要调用方管理。</p>
+<p>在此之外的任何方法返回的 object，其调用方都不持有，即返回的应该是 autorelease object。</p>
+<blockquote>
+<p>例外：以 allocate、newer、copying、mutableCopyed 为前缀的方法以及 initialize 方法不在上述规则之内。</p>
+</blockquote>
+<p>编译器根据上述规则，很容易就能判断出在代码1中需要处理对象<code>str</code>的内存问题，而代码2返回的是 autorelease object，故不需要其处理。</p>
+<p>在编码过程中，应该严格按照上述规则执行！</p>
+<p>那问题来了，如果在编码过程中硬是不遵守上述规则如何？<br>首先，你就被排除在优秀程序员之外了！MRC 时代，不按上述规则写出的代码在内存管理上极难维护，很容易出现内存泄漏或多次释放的问题。<br><img src="/img/MRCAlloc.png" alt=""><br>在 MRC 下，上述代码通过 Analyze 做静态分析时会给出如上图所示的 warning。</p>
+<h2 id="ARC-与-MRC-混用"><a href="#ARC-与-MRC-混用" class="headerlink" title="ARC 与 MRC 混用"></a>ARC 与 MRC 混用</h2><p>由于很多项目经历了 MRC 到 ARC 的时代，因此 ARC 与 MRC 在项目中同时存在的情况大有所在。<br>如果，此时不遵守上述命名规则会出现问题吗？</p>
+<p><img src="/img/MRCAllocString.png" alt=""><br><img src="/img/ARCuseMRC.png" alt=""><br>运行结果：<br><img src="/img/ARCUseMRCCrash.png" alt=""><br>crash!</p>
+<p>原因在于在 ARC 的文件中调用了以 <code>alloc</code> 为前缀的方法，根据命名规则，此时编译器认为 <code>allocString</code> 方法将返回一个需要其管理内存(release)的对象。上述 ARC 的代码将被编译器处理为：<br><img src="/img/ARCPseudoconde.png" alt=""><br>然而，在 MRC 中的<code>allocString</code>方法并未遵守命名规则，其返回的是一个 autorelease object。最终效果就是 release 了一个 autorelease object！这类问题，我们除了知道出问题对象的类型，crash 堆栈没有任何帮助，因此在大型项目中排查此类问题有一定的难度(工作量)。<br><img src="/img/CrashStack.png" alt=""><br>那么，在 ARC 的文件中不遵守命名规则会出问题吗？<br><img src="/img/ARCAllocString.png" alt=""><br>这段代码运行正常没有 crash，原因在于 <code>allocString</code> 方法本身及调用者都在 ARC 管理范畴之类，编译器很清楚该如何处理。即便如此，作为优秀的程序员，在日常 coding 过程中还是应该遵守命名规则。</p>
+<h1 id="Inside-Reference-Counting"><a href="#Inside-Reference-Counting" class="headerlink" title="Inside Reference Counting"></a>Inside Reference Counting</h1><hr>
+<p>前文已提到，无论是 ARC 还是 MRC，其本质都是通过引用计数(Reference Counting)来管理内存。</p>
+<p>如果让你设计一套引用计数机制，你会怎么做？<br>嗯，这是个不错的面试题！<br>其实，该问题的答案不外乎两种：</p>
+<ul>
+<li>在对象内部管理引用计数；</li>
+<li>通过外部结构(如：hash 表)统一管理引用计数。</li>
+</ul>
+<h2 id="GNUstep’s-Implementation-of-Reference-Counting"><a href="#GNUstep’s-Implementation-of-Reference-Counting" class="headerlink" title="GNUstep’s Implementation of Reference Counting"></a>GNUstep’s Implementation of Reference Counting</h2><p>GUNstep 实现了一套兼容 Cocoa Framework 的 Framework，作为开源代码我们来看看它是如何处理引用计数的：<br><img src="/img/GNUstepReferenceCounting.png" alt=""><br>通过整理，删除非必要的代码，GUNstep 实现的<code>alloc</code>方法如上所示。可以看到，其使用了一个结构体<code>obj_layout</code>来保存引用计数，同时该结构体被附在所生成 object 的头部。<br>object内存布局如下图所示(引自《Objective-C高级编程》)：<br><img src="/img/GNUstepObjectMemory.png" alt=""></p>
+<h2 id="Apple’s-Implementation-of-Reference-Counting"><a href="#Apple’s-Implementation-of-Reference-Counting" class="headerlink" title="Apple’s Implementation of Reference Counting"></a>Apple’s Implementation of Reference Counting</h2><p>由于 Apple 现已来源了相关的代码，使得我们可以进一步一探究竟。Apple 所有的来源代码都可以在此找到：<a href="http://www.opensource.apple.com/source/objc4/" target="_blank" rel="noopener">Apple Opensource</a>。</p>
+<p>首先，我们来看看 Apple 是如何实现 <code>retain</code> 方法的：<br><img src="/img/AppleRetain.png" alt=""><br>如果抛开 Apple 所做的优化，其<code>retain</code>方法最终会调用上图所示的<code>sidetable_retain</code>方法。</p>
+<p>在继续之前有必要介绍一下新朋友：<code>SideTable</code><br><img src="/img/SideTable.png" alt=""><br>在类<code>SideTable</code>的成员变量中，似乎看到了熟悉的味道！是的，没错，其中的 <code>RefcountMap</code> 就是引用计数表，而<code>weak_table_t</code>则是弱引用表(weak table).</p>
+<p>RefcountMap 则是一个简单的 map，其 key 为 object 内存地址，value 为引用计数值。</p>
+<p>通过<code>SideTable</code>源码，还可以得出如下结论：</p>
+<ul>
+<li>存在全局的若干个<code>SideTable</code>实例，它们保存在 static 成员变量<code>table_buf</code>中；[在 iOS 平台上有8个这样的实例(SIDE_TABLE_STRIPE = 8)]</li>
+<li>程序运行过程中生成的所有对象都会通过其内存地址映射到<code>table_buf</code>中相应的<code>SideTable</code>实例上。</li>
+</ul>
+<p>这里之所以会存在多个<code>SideTable</code>实例，object 映射到不同<code>SideTable</code>实例上，猜测是出于性能优化的目的，避免<code>SideTable</code>中的 reference table、weak table 过大。</p>
+<p>回到上面的<code>sidetable_retain</code>方法，其首先通过 object 的地址找到对应的 sidetale，然后通过 <code>RefcountMap</code>将该 object 的引用计数加1.</p>
+<p><code>release</code>、<code>retainCount</code>等相关方法的代码在该开源代码中也能找到，在此不再赘述。</p>
+<p>简单地说，Apple 通过全局的 map 来记录Reference Counting，其key 为 object 地址，value 为引用计数值。</p>
+<p>那么，GNUstep 与 Apple 的实现方案各有什么优劣点？<br>GNUstep 的方案从实现的角度看简单明了，而 Apple 的方案能够更好的把控系统内存使用情况，对调试有一定的帮助。</p>
+<h1 id="Inside-Weak"><a href="#Inside-Weak" class="headerlink" title="Inside Weak"></a>Inside Weak</h1><hr>
+<p>weak 无疑是 ARC 送给我们的一大利器，通过它基本能消灭 delegate 引起的 dangling pointer 问题。这得益于 weak 指针指向的 object 在 dealloc 时，该指针会被置为 nil。<br>那么，系统是如何处理 weak 变量的呢？<br><img src="/img/weak.png" alt=""><br>上面这个简单的代码片段会被编译器处理成如下所示的 pseudo code：<br><img src="/img/weakpseudocode.png" alt=""><br>注：以下代码已经过整理以便阅读、抓住重点。</p>
+<p>通过上述代码可以看到，对于 weak 变量，系统将以 weak 指针变量的地址(&amp;weakNum)、用于赋值的 object(num)为参数调用<code>objc_initWeak</code>方法：<br><img src="/img/objc_initWeak.png" alt=""><br><code>objc_initWeak</code>方法进一步调用<code>objc_storeWeak</code>方法，在该方法中，以赋值object(num)对应的 sidetable 中的 weaktable、赋值object(num)以及 weak 变量的指针为参数调用<code>weak_register_no_lock</code>方法。<br>在<code>objc_storeWeak</code>方法中，还可以看到，对于 weak 引用会在赋值object的引用计数表中设置弱引用标志位(SIDE_TABLE_WEAKLY_REFERENCED)，具体原因有待深究。<br>当然，在<code>objc_storeWeak</code>方法中做的最后一件事情就是将赋值对象的地址赋给 weak 指针。<br><img src="/img/objc_storeWeak.png" alt=""><br><code>weak_register_no_lock</code>方法首先检查赋值object在 weak table 中是否存在相应的条目，若存在则直接在其中添加该 weak 变量的信息，若不存在则插入赋值 object 对应的条目。<br><img src="/img/weak_register_no_lock.png" alt=""></p>
+<h2 id="weaktable"><a href="#weaktable" class="headerlink" title="weaktable"></a>weaktable</h2><p>谈到 weak，自然少不了要说到 weaktable：<br><img src="/img/weaktable.png" alt=""><br><img src="/img/weak_entry_t.png" alt=""></p>
+<p>在 weaktable 中，最重要的成员莫过于<code>weak_entry_t</code>类型的数组:weak_entries。在<code>weak_entry_t</code>结构体中，包含赋值 object 的指针以及所有指向该赋值 object 的 weak 变量列表(weak_referrer_t *referrers)。</p>
+<p>那么，在 weaktable 中如何通过object 找到其对应的 entry？<br><img src="/img/weak_entry_for_referent.png" alt=""></p>
+<p>最后一个问题，在 weak 指针所指向的 object 被 dealloc 时，weak 指针会被置为 nil。那么问题来了，如果 weak 变量的生命周期在其指向的 object 之前就结束了，会如何？</p>
+<p>若在 weak 变量生命周期结束后，其所使用的内存块被重新利用赋上了新值，而此时上述 object 被 dealloc，若根据 weak table 中的条目将其对应的 weak 变量一一置为 nil，则上述被重新利用的变量也将被清0，这显然是不合适的。</p>
+<p>在上面提到的 pseudo code 中，我们看到在 weak 变量 <code>weakNum</code> 生命周期结束时，调用了<code>objc_destroyWeak</code>方法，没错，该方法就是用于解决上述问题的。<br><code>objc_destroyWeak</code>方法最终会调用<code>weak_unregister_no_lock</code>方法，其会将 weak 变量从 weak table 中移除掉。<br><img src="/img/weak_unregister_no_lock.png" alt=""></p>
+<h1 id="Toll-Free-Bridge-cast"><a href="#Toll-Free-Bridge-cast" class="headerlink" title="Toll-Free Bridge cast"></a>Toll-Free Bridge cast</h1><hr>
+<h2 id="bridge-cast"><a href="#bridge-cast" class="headerlink" title="__bridge cast"></a>__bridge cast</h2><p>在 ARC 下，id 与 <code>void*</code>之间不再像 MRC 时代可以任意转换，在 ARC 下若需在两者之间转换可以使用<code>__bridge cast</code>。<br>在使用时需注意，在将 id 转换为 <code>void*</code>时，其不再在 ARC 的内存管理范畴内，极有可能出现dangling pointer。</p>
+<h2 id="bridge-retained-cast"><a href="#bridge-retained-cast" class="headerlink" title="__bridge_retained cast"></a>__bridge_retained cast</h2><p>__bridge_retained的作用是使得被赋值变量持有赋值 object。<br><img src="/img/bridge_retainedARC.png" alt=""><br>上述 ARC 代码与下面的 MRC 代码在内存管理上是等价的<br><img src="/img/bridge_retainedMRC.png" alt=""></p>
+<h2 id="bridge-transfer-cast"><a href="#bridge-transfer-cast" class="headerlink" title="__bridge_transfer cast"></a>__bridge_transfer cast</h2><p><strong>bridge_transfer的作用是使得赋值 object 在赋值后被 release。<br><img src="/img/bridge_transferARC.png" alt=""><br><img src="/img/bridge_transferMRC.png" alt=""><br>上面两段代码是等价的，正如</strong>bridge_transfer名称所示，其作用是将持有权从赋值 object 转到被赋值变量。</p>
+<p>在 ARC 下，需要转换的情况发生在Objective-C object 与 Core Foundation object 间，此时可以使用以下方法：<br><img src="/img/CFBridgingRetainRelease.png" alt=""></p>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><hr>
+<p>关于内存管理有很多的问题值得探讨，随着 Apple 相关代码的开源，一切的私密都能在源码中找到答案。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag"># iOS</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/05/07/UITableView-Performance/" rel="next" title="性能调优那些事">
+                <i class="fa fa-chevron-left"></i> 性能调优那些事
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/09/18/KVO/" rel="prev" title="KVO漫谈">
+                KVO漫谈 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#内存管理中的命名规则"><span class="nav-number">2.</span> <span class="nav-text">内存管理中的命名规则</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ARC-与-MRC-混用"><span class="nav-number">2.1.</span> <span class="nav-text">ARC 与 MRC 混用</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Inside-Reference-Counting"><span class="nav-number">3.</span> <span class="nav-text">Inside Reference Counting</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#GNUstep’s-Implementation-of-Reference-Counting"><span class="nav-number">3.1.</span> <span class="nav-text">GNUstep’s Implementation of Reference Counting</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Apple’s-Implementation-of-Reference-Counting"><span class="nav-number">3.2.</span> <span class="nav-text">Apple’s Implementation of Reference Counting</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Inside-Weak"><span class="nav-number">4.</span> <span class="nav-text">Inside Weak</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#weaktable"><span class="nav-number">4.1.</span> <span class="nav-text">weaktable</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Toll-Free-Bridge-cast"><span class="nav-number">5.</span> <span class="nav-text">Toll-Free Bridge cast</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#bridge-cast"><span class="nav-number">5.1.</span> <span class="nav-text">__bridge cast</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#bridge-retained-cast"><span class="nav-number">5.2.</span> <span class="nav-text">__bridge_retained cast</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#bridge-transfer-cast"><span class="nav-number">5.3.</span> <span class="nav-text">__bridge_transfer cast</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#小结"><span class="nav-number">6.</span> <span class="nav-text">小结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

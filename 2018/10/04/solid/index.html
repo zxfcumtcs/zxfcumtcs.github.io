@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="OOD,设计模式,敏捷开发,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本文详细分析了面向对象设计五大原则 S(单一职责原则『SRP』)、O(开放-封闭原则 『OCP』)、L(Liskov 替换原则『LSP』)、I(接口隔离原则『ISP』)、D(依赖倒置原则『DIP』)，并假以实例辅之。">
+<meta name="keywords" content="OOD,设计模式,敏捷开发">
+<meta property="og:type" content="article">
+<meta property="og:title" content="以 SOLID 为友">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2018/10/04/solid/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本文详细分析了面向对象设计五大原则 S(单一职责原则『SRP』)、O(开放-封闭原则 『OCP』)、L(Liskov 替换原则『LSP』)、I(接口隔离原则『ISP』)、D(依赖倒置原则『DIP』)，并假以实例辅之。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/TemplateMethod.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/Strategy.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/OldLoginClassDiagram.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/NewLoginClassDiagram.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ListSceneClassDiagram.png">
+<meta property="og:updated_time" content="2018-12-08T08:41:32.866Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="以 SOLID 为友">
+<meta name="twitter:description" content="本文详细分析了面向对象设计五大原则 S(单一职责原则『SRP』)、O(开放-封闭原则 『OCP』)、L(Liskov 替换原则『LSP』)、I(接口隔离原则『ISP』)、D(依赖倒置原则『DIP』)，并假以实例辅之。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/TemplateMethod.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2018/10/04/solid/">
+
+
+
+
+
+  <title>以 SOLID 为友 | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2018/10/04/solid/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">以 SOLID 为友</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-10-04T18:07:41+08:00">
+                2018-10-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/10/04/solid/" class="leancloud_visitors" data-flag-title="以 SOLID 为友">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  5,744
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  20
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文详细分析了面向对象设计五大原则 S(单一职责原则『SRP』)、O(开放-封闭原则 『OCP』)、L(Liskov 替换原则『LSP』)、I(接口隔离原则『ISP』)、D(依赖倒置原则『DIP』)，并假以实例辅之。<br><a id="more"></a><br>©原创文章，转载请注明出处！</p>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
+<p>软件设计五大原则『SOLID』以及23种经典设计模式自成型以来已有些年头，目前在实际开发中对待它们有两种较为极端的态度：敬而远之、嗤之以鼻。<br>显然，笔者用了『极端』二字表明并不赞同这样的观点。<br>SOLID 以及经典设计模式是前人在长期的软件开发中总结出来的宝贵实践经验，值得我们学习和借鉴。当然，这并不意味着我们要时刻把它们挂在嘴边，以彰显我们的『内力』，也并不意味着就要把它们作为『最高律令』、『不可逾越的红线』早早地就套用在软件开发的过程中(这无疑将增加开发的复杂性)。<br><strong><em>应将其作为解决问题的方案。</em></strong><br>此时，有必要再谈谈『敏捷开发』：<br>在移动互联网时代大家都是以『小步快跑、快速迭代、快速试错』的节奏与时间赛跑、抢占流量。『敏捷开发』因而被时常提及，遗憾的是其大多数时候也仅是停留在嘴边。<br>在移动互联网时代，笔者认为敏捷开发的核心有两点：</p>
+<ul>
+<li>不做过度设计，始终尽力保持代码简洁、易理解、好维护(不用一开始就套用各种原则、设计模式，徒增复杂)；</li>
+<li>拥抱变化，无论是因需求还是其他原因引起变化导致现有代码结构不能满足需要时，要积极地对代码进行重构，始终保持良好的代码结构，对代码的腐朽保持零容忍(出现问题后可借鉴 SOLID、设计模式等去解决问题)。</li>
+</ul>
+<p>从上述两点可以看出：<strong>敏捷开发是一个持续的过程，而非一个心血来潮的事件。</strong></p>
+<blockquote>
+<p>ps：重构不一定是翻天覆地的大改，重命名变量、分解复杂方法等等都是重构。</p>
+</blockquote>
+<p>本文将以 SOLID 五大设计原则为主线，辅以设计模式为解决方案，谈谈 QQ 阅读、iOS 系统 API 在代码设计上的得失(失主要是对 QQ 阅读个别代码的反思)。</p>
+<h1 id="单一职责原则『SRP』"><a href="#单一职责原则『SRP』" class="headerlink" title="单一职责原则『SRP』"></a>单一职责原则『SRP』</h1><hr>
+<p>SRP 非常好理解，与『内聚性』表达的是同样的关注点。<br>SRP 在 SOLID 五大原则中可以说是最简单、最基础的原则。然而在实际开发中，对 SRP 的把握又是最难的。单一职责，到底什么是职责？单一的粒度如何？总之不好把握，就像生活中的各种适量『煮饭时适量加点水、做菜时适量放点盐』(经常让人抓狂 v_v)。<br>Bob 大叔在《敏捷软件开发》一书中将职责定义为：<strong><em>变化的原因</em></strong>，单一职责即为：<strong><em>仅有一个引起实体(模块、类、方法等)变化的原因</em></strong>。在把握单一职责时，这不失为一个很好的抓手，通过观察、思考设计的实体是否有一个以上的变化原因来判断其职责是否单一。</p>
+<blockquote>
+<p>后文为叙述方便，如无特别说明，实体指模块、类、方法等功能代码块。</p>
+</blockquote>
+<p>笔者认为 SRP 作为最基础的设计原则，主要有两点收益：</p>
+<ul>
+<li>降低实体的复杂度，提升可维护性；</li>
+<li>提高实体的可复用性，当一个实体中耦合了多个职责时，其可复用性必然受到影响。即使多处复用了，其中一个职责的变化对复用其他职责的实体也会造成意想不到的影响，这不是我们想看到的。这也是 Bob 大叔将职责定义为『变化』的原因。</li>
+</ul>
+<h2 id="例1-UIView-与-CALayer"><a href="#例1-UIView-与-CALayer" class="headerlink" title="例1 UIView 与 CALayer"></a>例1 UIView 与 CALayer</h2><p>在 UIView 的层级结构中，我们知道每个 View 背后都有一个 CALayer 与之对应。<br>其中，UIView 的主要职责是处理用户交互，CALayer 则是布局、渲染以及动画等。<br>Apple 之所以要设计 UIView 与 CALayer 两套体系，就是为了使它们的职责更加单一，能更好的复用。<br>在 iOS 与 Mac OS 上，用户交互处理方式有本质的区别，然而在布局、渲染、动画等方面又是一致的。因此，通过将上述职责分离，CALayer 可以很好地在 iOS 与 Mac OS 间复用，而用户交互的处理则各自独立，于是有了 UIKit、AppKit。</p>
+<h2 id="例2-View-与-ViewModel"><a href="#例2-View-与-ViewModel" class="headerlink" title="例2 View 与 ViewModel"></a>例2 View 与 ViewModel</h2><p>例1中的 View 与 Layer 属于系统实现层面，在应用层面 UIView 的职责是明确的、单一的：<strong>UI 布局</strong>。然而在实际开发中有大量展示相关的业务逻辑写到了 View 里面，严重影响了 View 的可复用性。究其原因，在非 MVVM 模式下，展示逻辑只能放在 Controller 中，势必造成 Controller 过于臃肿。于是，在 QQ 阅读中我们提出以 View-ViewModel 模式构建 UI 组件，将展示逻辑放到 ViewModel 中，View 仅处理布局逻辑。目前看效果良好，View 的逻辑更加清晰、可复用性得到很大提高。详细信息请参看<a href="https://zxfcumtcs.github.io/2017/03/04/CustomUIControls/">『自定义 UI 组件库』</a>一文。</p>
+<h1 id="开放-封闭原则-『OCP』"><a href="#开放-封闭原则-『OCP』" class="headerlink" title="开放-封闭原则 『OCP』"></a>开放-封闭原则 『OCP』</h1><hr>
+<p>『唯有变化才是永恒』，对于软件开发来说更是如此，一个模块、类、方法等实体几乎不可能在第一个版本开发出来后就一直保持不变。因此，变化是开发人员必须要面对的问题(可谓爱之恨之)。<br>OCP 就是用于指导我们如何应对变化。<br>OCP 的含义是：『对扩展开放，对修改封闭』。<br>具体说，实体的功能可以不断扩展(变化)，但实体的源码不允许修改。<br>看似十分矛盾！就像『东西可以随便买，但钱不允许花』。<br>仔细分析，OCP 的重点是<strong>扩展新功能</strong>，也就是扩展新功能时可以添加新代码，但不能修改已有代码。因为对已有代码的修改带来的影响是难于预料的，如果修改导致链锁反应，后果更是灾难性的。<br>如何做到？<br><strong>关键在抽象</strong>。<br>『面向接口编程，而非实现编程』这是我们经常挂在嘴边的话。<br>面向接口编程，也就是说依赖的是抽象接口，为的就是可以灵活的替换接口背后的实现。这不正是 OCP 需要的吗！</p>
+<h2 id="实现方案"><a href="#实现方案" class="headerlink" title="实现方案"></a>实现方案</h2><p>在23种经典设计模式中『Template Method 模式』以及『Strategy 模式』都可以很好地实现 OCP，其中 Template Method 模式的实现依赖于继承，Strategy 模式使用的委托(接口)。</p>
+<h3 id="Template-Method-模式"><a href="#Template-Method-模式" class="headerlink" title="Template Method 模式"></a>Template Method 模式</h3><p><img src="/img/TemplateMethod.png" alt=""><br>Template Method 模式类图如上图所示(来自 GoF 的《Design patterns》)。<br>Template Method 模式在抽象基类中定义 <code>TemplateMethod</code>方法，但该方法并不做实际工作，只是调用其它方法(<code>PrimitiveOperation...</code>，C++中须是虚函数)来完成具体的工作。<br>可见，<code>TemplateMethod</code>方法只是定义了一个任务或算法的骨架、执行步骤。<br>因此，可以通过派生新的子类，并实现<code>PrimitiveOperation...</code>方法来扩展功能。</p>
+<h3 id="Strategy-模式"><a href="#Strategy-模式" class="headerlink" title="Strategy 模式"></a>Strategy 模式</h3><p><img src="/img/Strategy.png" alt=""><br>Strategy 模式类图如上图所示(来自 GoF 的《Design patterns》)。<br>Strategy 模式是典型的面向接口编程，通过接口使得业务层(使用方)与实现细节完全解耦，从而可以很方便地通过扩展实现来扩展新功能，而无须对业务层进行修改。<br>纵观 Template Method 与 Strategy 模式，前者通过继承并重写方法(C++中的虚函数)来扩展新功能，后者通过新增实现了特定接口的类开添加新功能。<br>两者无谓优劣，不同的场景使用不同的方案。但是，继承会增加复杂度，这是共识，在使用 Template Method 模式时需要考虑到这点。</p>
+<h2 id="例1-QQ-阅读登录模块"><a href="#例1-QQ-阅读登录模块" class="headerlink" title="例1 QQ 阅读登录模块"></a>例1 QQ 阅读登录模块</h2><p>QQ 阅读起初只有 QQ 一种登录方式，突然有一天 Apple 爸爸说不得强制用户必须登录才能使用 App。无奈之下，我们添加了游客登录模式。<br><img src="/img/OldLoginClassDiagram.png" alt=""><br>上图就是增加游客登录后的结构简图。QQ 登录、游客登录看似相安无事。<br>但，<strong>众多业务模块</strong>直接与两种登录方式交互，严重破坏了 OCP。<br>后果如何？<br>后果是严重的！后面如果要增加其他登录方式，所有与登录态有关的模块全都要改一遍！</p>
+<blockquote>
+<p>问题出在哪里？笔者认为最初业务层直接与 QQ 登录交互并无大碍，关键是在添加游客登录时需要察觉到其中的问题，并立即做出重构，而不是在现有代码基础上糊乱堆叠代码。</p>
+</blockquote>
+<p>果不其然，没多久产品要求添加微信登录。于是趁机对登录做了一次彻底的重构。<br><img src="/img/NewLoginClassDiagram.png" alt=""><br>重构过程中，我们添加了『鉴权中心』模块<code>QRAuthenticatonCenter</code>统一处理登录相关的问题，同时使用了 Strategy 模式将各种登录方式的实现细节与<code>QRAuthenticatonCenter</code>以及业务层隔离开来。<br>不久之后，我们又添加了起点登录、QQ 登录也由原来腾讯内部的 Wlogin 登录方式切换到统一互联登录。<br>针对这两个变动，业务层无任何修改，<code>QRAuthenticatonCenter</code>也只是添加了初始化<code>QRYWAuthenticator</code>、<code>QROpenQQAuthenticator</code>的代码。变动的主要工作就是按照<code>QRAuthenticatorDelegate</code>接口分别去实现<code>QRYWAuthenticator</code>以及<code>QROpenQQAuthenticator</code>。</p>
+<blockquote>
+<p>通过 Abstract Factory 模式，可以使得在添加新登录方式时<code>QRAuthenticatonCenter</code>也无需修改，但笔者认为在该场景下其带来的收益不足以弥补其复杂性，即弊大于利，故弃之。</p>
+</blockquote>
+<p>上述可见，通过 Strategy 模式重构后的登录模块实现了 OCP，也在后续迭代变更过程中充分享受了其带来的收益。</p>
+<h2 id="例2-QQ-阅读引擎模块"><a href="#例2-QQ-阅读引擎模块" class="headerlink" title="例2 QQ 阅读引擎模块"></a>例2 QQ 阅读引擎模块</h2><p>QQ 阅读的 txt 引擎是整个工程里面最核心，也是最古老的一个模块。<br>起初，引擎里面有两种类型的段落：文字、空段落，并通过一个<code>int</code>型变量<code>type</code>加以表示。<br>随着迭代，越来越多非内容本身的交互性元素加入阅读页，如：作者的话、大神说等等。目前<code>type</code>的值已扩展到十五、六类之多，每添加一种新类型都要在最核心的引擎里面修改一、二十处，可谓如覆薄冰。<br>这就是一个严重违反 OCP，并产生严重后果的例子。<br>找到了问题所在，重构方案也就变得明了：通过 Strategy 模式，将每种类型段落的逻辑抽取成一个类，并遵守相同的接口，txt 引擎依赖抽象接口，使之遵守 OCP。</p>
+<h1 id="Liskov-替换原则『LSP』"><a href="#Liskov-替换原则『LSP』" class="headerlink" title="Liskov 替换原则『LSP』"></a>Liskov 替换原则『LSP』</h1><hr>
+<p>LSP：子类型必须能够替换其基类型。<br>直白点，就是任何使用基类类型的地方(如调用方法时的入参)都能替换成其子类类型，而不会出现意想不到的错误。<br>看完 LSP 的定义，不禁要问：其有何用？<br>为了回答这个问题，不防从反面思考一下：若不遵守 LSP 如何？<br>以方法参数为例：若方法 <code>M</code> 有一个类型为类 <code>B</code> 的参数，如果类 <code>B</code> 的子类没有遵守 LSP，在调用方法 <code>M</code> 时传入了一个类 <code>B</code> 的子类，<code>M</code> 会出错。此时，为了不出错，方法 <code>M</code> 势必要对 <code>B</code> 的子类作特殊处理(<code>if...else...</code>)。<br>熟悉的味道！这是不是违反了 OCP！</p>
+<blockquote>
+<p>引自《敏捷软件开发》：对于 LSP 的违反往往会导致以明显违反 OCP 的方式使用运行时类型识别『RTTI』。</p>
+</blockquote>
+<h2 id="例1-正方形与长方形"><a href="#例1-正方形与长方形" class="headerlink" title="例1 正方形与长方形"></a>例1 正方形与长方形</h2><p>Bob 大叔在《敏捷软件开发》中有一个关于正方形和长方形的例子。<br>『正方形是一种特殊的长方形』，这可谓是常识。因此，让正方形类<code>Square</code>继承自长方形类<code>Rectangle</code>再合理不过。<br>然而在对待长度、宽度上，正方形与长方形似乎不那么一致：<br>正方形的长、宽必须相等，因此<code>Square</code>类必须重写其基类<code>Rectangle</code>的<code>setWidth</code>、<code>setHeight</code>方法来保证每次调用这两个方法后正方形的长宽依然相等。这看上去似乎也并无不妥，然而在下面这个方法中就有问题了：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">g</span><span class="params">(Rectangle &amp;r)</span> </span>&#123;</span><br><span class="line">    r.setWidth(<span class="number">5</span>);</span><br><span class="line">    r.setHeight(<span class="number">4</span>);</span><br><span class="line">    assert(r.area() == <span class="number">20</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>函数<code>g</code>对于长方形的认知完全正确，然而若调用函数<code>g</code>时传入的是个<code>Square</code>类型的引用，就出错了！<br>很明显，<code>Square</code>与<code>Rectangle</code>间的继承关系违反了 LSP。</p>
+<blockquote>
+<p>引自《敏捷软件开发》：LSP 让我们得出一个非常重要的结论：一个模型，如果孤立地看，并不具有真正意义上的有效性。<strong>模型的有效性只能通过它的客户程序来表现。</strong>在考虑一个特定设计是否恰当时，不能完全孤立地来看这个解决方案。必须要根据该设计的使用者所做出的合理假设来审视它。<br><strong><em>因此，是否违反 LSP，在很大程度上取决于客户程序。</em></strong></p>
+</blockquote>
+<p><code>Square</code>与<code>Rectangle</code>间的继承之所以会违反 LSP，是因为在设置长、宽的行为上它们间不具备”IS-A”关系。</p>
+<blockquote>
+<p>引自《敏捷软件开发》：从行为方式的角度来看，<code>Square</code>不是<code>Rectangle</code>，对象的行为方式才是软件真正所关注的问题。LSP 清楚地指出，OOD 中 IS-A 关系是就行为方式而言的，行为方式是可以进行合理假设的，是客户程序所依赖的。</p>
+</blockquote>
+<h2 id="LSP-与多态"><a href="#LSP-与多态" class="headerlink" title="LSP 与多态"></a>LSP 与多态</h2><p>讨论 LSP 的前提就是多态，否则无从谈起。<br>然而，多态本质上就是子类的方法覆盖基类的虚函数。这与 LSP 要求的子类可以替换基类是否矛盾？因为通过基类指针最终调用的是子类的方法。<br>答案自是不矛盾，相反 LSP 能够更好地指导我们如何使用继承。<br>为了满足 LSP，子类只能对基类的功能进行扩展，而不能『篡改』。<br>这不正是『继承』的本质内涵吗！</p>
+<p>因此，LSP至少有三点作用：</p>
+<ul>
+<li>实现 OCP 的重要保障之一；</li>
+<li>降低继承带来的复杂度，继承只能扩展基类的功能，而非『篡改』(可以无差别的对待基类及其所有子类)；</li>
+<li>在决定使用继承前，可以更好地判别两者是否真具有”IS-A”的关系。</li>
+</ul>
+<h2 id="启发式判断规则与改进方案"><a href="#启发式判断规则与改进方案" class="headerlink" title="启发式判断规则与改进方案"></a>启发式判断规则与改进方案</h2><p>LSP 有时是很微妙的，在开发过程中往往难于察觉。<br>Bob 大叔提出两个启发式规则供大家参考：</p>
+<ul>
+<li><p>派生类存在退化函数，如下述代码基类<code>Base</code>中的方法<code>f</code>是有功能的，但到其子类<code>Derived</code>中<code>f</code>退化为空方法，这往往预示违反了 LSP，值得警惕：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Base</span> &#123;</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">f</span><span class="params">()</span> </span>&#123; <span class="comment">/*some code*/</span> &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> calss Derived : Base &#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">f</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>从派生类中抛出异常，即从派生类的方法中抛出了基类不会抛出的异常，这往往是调用方不曾预料的。</p>
+</li>
+</ul>
+<p>违反 LSP 说明继承已经不适合了，此时可以将这对『父子』中公共的代码提取出来。<br>之后要么让他们成为『兄弟』，都从提取的代码派生、要么以组合的方式集成提取的代码。</p>
+<h1 id="接口隔离原则『ISP』"><a href="#接口隔离原则『ISP』" class="headerlink" title="接口隔离原则『ISP』"></a>接口隔离原则『ISP』</h1><hr>
+<p> ISP：不应迫使客户程序依赖于它们不需要的接口。即，客户程序依赖的类中不应该含有其不需要的方法，从而降低系统的复杂度，减少类之间的耦合。<br>相反，若某客户程序依赖的类含有大量其不需要的方法，而这些方法又是其他客户程序所需的，当这些方法因需求需要变化时或需要添加新方法时，势必会殃及不需要这些方法的客户程序，从而增加系统的耦合度。<br>怎么解决？<br>当然是『隔离、拆分』接口了！<br>在支持接口/协议的语言(如Objective-C)中，很好处理，将类的公共方法分解到多个接口中；<br>而在像 C++ 这样不支持接口的语言中，可通过多继承、委托等方式分解接口。</p>
+<h2 id="例1-UITableView-之-DataSource、Delegate"><a href="#例1-UITableView-之-DataSource、Delegate" class="headerlink" title="例1 UITableView 之 DataSource、Delegate"></a>例1 UITableView 之 DataSource、Delegate</h2><p>iOS 开发对 UITableView 恐是再熟悉不过了，其提供了两套接口：<code>UITableViewDataSource</code>、<code>UITableViewDelegate</code>。<br>从场景上说，这两套接口都是为 UITableView 提供服务的。<br>之所以要把它们分开，就是为了可以将为 UITableView 提供数据、处理用户交互的职责拆分到不同的类中。</p>
+<h2 id="例2-QQ-阅读登录接口"><a href="#例2-QQ-阅读登录接口" class="headerlink" title="例2 QQ 阅读登录接口"></a>例2 QQ 阅读登录接口</h2><p>在『OCP』一节，简要介绍了 QQ 阅读的登录模块，我们知道具体的登录细节由<code>QRQQAuthenticator</code>、<code>QRWechatAuthenticator</code>以及<code>QRGuestAuthenticator</code>等处理。这些<code>Authenticator</code>都实现了<code>QRAuthenticatorDelegate</code>接口：<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@protocol</span> <span class="title">QRAuthenticatorDelegate</span> &lt;<span class="title">NSObject</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 主动登录</span></span><br><span class="line">- (<span class="keyword">void</span>)authenticateWithCompletion:(QRAuthenticateCompletion)completion;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 续期</span></span><br><span class="line">- (<span class="keyword">void</span>)refreshTokenWithCompletion:(QRAuthenticateCompletion)completion;</span><br><span class="line">...</span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure></p>
+<p>然而，对于 QQ 登录，在没有安装 QQ 时，需要<code>QRQQAuthenticator</code>作特殊处理。<br>由于这样的特殊处理只是 QQ 登录需要，因此把对应的接口放到<code>QRAuthenticatorDelegate</code>中是不合适的。<br>最终，我们将其定义为独立的接口<code>QRQQManuallyAuthenticationDelegate</code>：<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@protocol</span> <span class="title">QRQQManuallyAuthenticationDelegate</span> &lt;<span class="title">NSObject</span>&gt;</span></span><br><span class="line"></span><br><span class="line">- (<span class="keyword">void</span>)manuallyAuthenticateWithAccount:(Account *)account;</span><br><span class="line">- (<span class="keyword">void</span>)checkVerifyCode:(<span class="built_in">NSString</span> *)verifyCode account:(Account *)account;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure></p>
+<p>并让<code>QRQQAuthenticator</code>实现这两个接口：<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">QRQQAuthenticator</span> : <span class="title">NSObject</span>&lt;<span class="title">QRAuthenticatorDelegate</span>, <span class="title">QRQQManuallyAuthenticationDelegate</span>&gt;</span></span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure></p>
+<p>而<code>QRWechatAuthenticator</code>、<code>QRGuestAuthenticator</code>等只需实现<code>QRAuthenticatorDelegate</code>即可。</p>
+<blockquote>
+<p>对于 ISP 大家可能会有疑问：根据 SRP，类的职责应该是单一的，为何需要实现多个接口？<br>在现实中，确实存在从接口层面内聚性较低的类。如，例2中的<code>QRQQAuthenticator</code>类，正常的登录、续期需要处理，手动登录同样需要处理，在接口上就不具备高内聚的特征。<br>ISP 就是用于在此情况下指导如何拆分接口。</p>
+</blockquote>
+<h1 id="依赖倒置原则『DIP』"><a href="#依赖倒置原则『DIP』" class="headerlink" title="依赖倒置原则『DIP』"></a>依赖倒置原则『DIP』</h1><hr>
+<p>在开发中，较大的模块一般会由几位同学协同开发，分工一般会按分层的方式进行。<br>此时，经常会听到负责低层模块的同学向负责高层模块的同学说：『我给你提供了这这几个方法，代码已提交，你看一下。』<br>从 DIP 的角度看，犯了两个错误！<br>其一，在制定双方接口上低层模块起了主导作用；其二，两者间缺少抽象。<br>DIP：</p>
+<ul>
+<li>高层模块不应该依赖于低层模块，二者都应该依赖于抽象；</li>
+<li>抽象不应该依赖于细节，细节应该依赖于抽象。</li>
+</ul>
+<p>依赖倒置原则其中的『倒置』强调的就是高层模块与低层模块间的关系：<strong>高层模块作为需求方提出需求(提出接口)，低层模块去实现高层模块提出的需求(接口)。</strong><br>为何？</p>
+<ul>
+<li>高层模块不应知道低层模块的细节；</li>
+<li>若是由低层模块制定接口，很可能不由自主地将实现细节曝露在接口中，这是我们不希望看到的。</li>
+</ul>
+<h2 id="例1-分页加载"><a href="#例1-分页加载" class="headerlink" title="例1 分页加载"></a>例1 分页加载</h2><p>在<a href="https://zxfcumtcs.github.io/2018/09/17/ListSceneTemplating/">列表类应用场景模板化</a>一文中，我们提到『大多数 App 的大多数应用场景都是列表类的』，分页加载是列表类应用场景的标配。<br>那么在制定接口时，若由低层模块(Model)负责，很可能会将分页的细节曝露在接口中：<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="keyword">void</span>)requestMoreDataWithPageStamp:(<span class="built_in">NSInteger</span>)pageStamp completion:(<span class="keyword">void</span> (^)(<span class="built_in">NSError</span> *, <span class="keyword">id</span>))completion;</span><br></pre></td></tr></table></figure></p>
+<p>很明显，<code>pageStamp</code>是 Model 与服务端交互的细节，是高层模块不关心，也不应关心的问题。<br>若是由高层模块(Controller)提出需求(接口），接口可能会是这样：<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="keyword">void</span>)requestMoreDataWithCompletion:(<span class="keyword">void</span> (^)(<span class="built_in">NSError</span> *, <span class="keyword">id</span>))completion;</span><br></pre></td></tr></table></figure></p>
+<p>当然，这个例子较简单，稍有经验的开发人员也不会在接口中曝露pageStamp信息。<br>但，由低层模块制定接口会曝露细节的问题值得关注。</p>
+<h2 id="例2-通过抽象解耦高、低层模块"><a href="#例2-通过抽象解耦高、低层模块" class="headerlink" title="例2 通过抽象解耦高、低层模块"></a>例2 通过抽象解耦高、低层模块</h2><p>同时，DIP 提出高层模块与低层模块不能直接有依赖关系，它们都应依赖于抽象(接口)。<br>如此可使得高层模块与低层模块解耦，促使高层模块具有更好的可复用性。<br><img src="/img/ListSceneClassDiagram.png" alt=""><br>上图是在<a href="https://zxfcumtcs.github.io/2018/09/17/ListSceneTemplating/">『列表类应用场景模板化』</a>一文中介绍的列表类模块的类图。<br>其中，Controller 与 Manager 、Controller 与 Module 间都是面向接口编程(依赖于抽象)。<br>在 QQ 阅读中，书籍分为 txt 和精排两种格式，它们都支持批量下载。在展示、用户交互上两者并无太大区别，但背后的业务逻辑却大不相同。<br>因此，批量下载的 Controller 可以复用，但 Manager 不可。<br>通过 DIP 可以很方便的隔离 Controller 与 Manager，使批量下载的 Controller 在两种格式间复用。</p>
+<p>DIP 可以说是 SOLID 中实现成本最小的原则，但其带来的收益却十分可观，因此，DIP 应该是我们自始至终都应遵守的原则。</p>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><hr>
+<p>综观 S、O、L、I、D 五大原则，本质上它们都是帮助我们降低软件系统的复杂度。只不过，各自关注的维度不同：</p>
+<ul>
+<li>SRP：要求软件实体(模块、类、方法)只有单一的职责，降低实体的复杂度，提高实体的内聚性；</li>
+<li>OCP：要求软件实体对扩展开放、对修改封闭，使得软件系统在扩展功能时，减少对系统已有部分的影响；</li>
+<li>LSP：对继承关系提出要求，子类须可替换基类，降低继承带来的复杂度以及减少误用继承的可能；</li>
+<li>ISP：将复杂接口拆分开来，避免强迫高层模块依赖于其不需要的接口，减少不必要的耦合；</li>
+<li>DIP：避免由低层模块制定接口时无意曝露低层细节，通过抽象解耦高层与低层模块。</li>
+</ul>
+<p>正如本文标题，『以 SOLID 为友』，笔者认为真正的朋友无须天天挂在嘴边、嘘寒问暖，而是在有困难时能雪中送炭。<br>SOLID 之于开发亦是如此，无须天天挂在嘴边，而是在遇到问题时，能通过它们解决问题。</p>
+<p>参考资料：<br><a href="https://book.douban.com/subject/1140457/" target="_blank" rel="noopener">《敏捷软件开发——原则、模式与实践》</a><br><a href="https://book.douban.com/subject/1436745/" target="_blank" rel="noopener">《Design Patterns: Elements of Reusable Object-Oriented Software》</a><br><a href="https://book.douban.com/subject/1229923/" target="_blank" rel="noopener">《重构——改善既有代码的设计》</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/OOD/" rel="tag"># OOD</a>
+          
+            <a href="/tags/设计模式/" rel="tag"># 设计模式</a>
+          
+            <a href="/tags/敏捷开发/" rel="tag"># 敏捷开发</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/09/17/ListSceneTemplating/" rel="next" title="列表类应用场景模板化">
+                <i class="fa fa-chevron-left"></i> 列表类应用场景模板化
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#单一职责原则『SRP』"><span class="nav-number">2.</span> <span class="nav-text">单一职责原则『SRP』</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#例1-UIView-与-CALayer"><span class="nav-number">2.1.</span> <span class="nav-text">例1 UIView 与 CALayer</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#例2-View-与-ViewModel"><span class="nav-number">2.2.</span> <span class="nav-text">例2 View 与 ViewModel</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#开放-封闭原则-『OCP』"><span class="nav-number">3.</span> <span class="nav-text">开放-封闭原则 『OCP』</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#实现方案"><span class="nav-number">3.1.</span> <span class="nav-text">实现方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Template-Method-模式"><span class="nav-number">3.1.1.</span> <span class="nav-text">Template Method 模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Strategy-模式"><span class="nav-number">3.1.2.</span> <span class="nav-text">Strategy 模式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#例1-QQ-阅读登录模块"><span class="nav-number">3.2.</span> <span class="nav-text">例1 QQ 阅读登录模块</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#例2-QQ-阅读引擎模块"><span class="nav-number">3.3.</span> <span class="nav-text">例2 QQ 阅读引擎模块</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Liskov-替换原则『LSP』"><span class="nav-number">4.</span> <span class="nav-text">Liskov 替换原则『LSP』</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#例1-正方形与长方形"><span class="nav-number">4.1.</span> <span class="nav-text">例1 正方形与长方形</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LSP-与多态"><span class="nav-number">4.2.</span> <span class="nav-text">LSP 与多态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#启发式判断规则与改进方案"><span class="nav-number">4.3.</span> <span class="nav-text">启发式判断规则与改进方案</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#接口隔离原则『ISP』"><span class="nav-number">5.</span> <span class="nav-text">接口隔离原则『ISP』</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#例1-UITableView-之-DataSource、Delegate"><span class="nav-number">5.1.</span> <span class="nav-text">例1 UITableView 之 DataSource、Delegate</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#例2-QQ-阅读登录接口"><span class="nav-number">5.2.</span> <span class="nav-text">例2 QQ 阅读登录接口</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#依赖倒置原则『DIP』"><span class="nav-number">6.</span> <span class="nav-text">依赖倒置原则『DIP』</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#例1-分页加载"><span class="nav-number">6.1.</span> <span class="nav-text">例1 分页加载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#例2-通过抽象解耦高、低层模块"><span class="nav-number">6.2.</span> <span class="nav-text">例2 通过抽象解耦高、低层模块</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#小结"><span class="nav-number">7.</span> <span class="nav-text">小结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

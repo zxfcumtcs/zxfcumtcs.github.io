@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="iOS,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本文简单介绍了 Extension 的基本原理，包括：life cycle、communicates、share data、share code 以及开发 widget 时需要注意的点。">
+<meta name="keywords" content="iOS">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS8新特性之Extension">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2015/01/10/extension/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本文简单介绍了 Extension 的基本原理，包括：life cycle、communicates、share data、share code 以及开发 widget 时需要注意的点。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/lifecycleofanappextension.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/CommunicatesBetweenExtension.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/appsandbox.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/AppCrashed.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/sharedcontainer.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/sharedcontainer1.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/good.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/appgroup.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/NSUserDefaults.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/NewNSUserDefaults.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/normalfilemanager.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/appgroupfilemanager.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/allowappextensionapionly.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ExtensionUIplist.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/extensionopenurl.png">
+<meta property="og:updated_time" content="2018-12-08T08:41:32.864Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="iOS8新特性之Extension">
+<meta name="twitter:description" content="本文简单介绍了 Extension 的基本原理，包括：life cycle、communicates、share data、share code 以及开发 widget 时需要注意的点。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/lifecycleofanappextension.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2015/01/10/extension/">
+
+
+
+
+
+  <title>iOS8新特性之Extension | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2015/01/10/extension/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">iOS8新特性之Extension</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-01-10T16:41:25+08:00">
+                2015-01-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2015/01/10/extension/" class="leancloud_visitors" data-flag-title="iOS8新特性之Extension">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  3,512
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  13
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文简单介绍了 Extension 的基本原理，包括：life cycle、communicates、share data、share code 以及开发 widget 时需要注意的点。<br><a id="more"></a><br>©原创文章，转载请注明出处！</p>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
+<p>此刻写这篇文章都感觉不好意思了，Apple 自 WWDC2014 推出 Extension 这项引人注目的新特性已半年之久，广大前辈及同行以迅雷不及掩耳之速写下大量关于这方面的优秀文章。在这个拥抱变化、适应变化、快速学习、注重分享的互联网时代，足以令我自愧不如！后知后觉的我，作为自娱自乐的方式之一，还是鼓起勇气写下这篇文章，作为自我学习的总结。</p>
+<p>言归正传，很明显，Extension 即扩展之意也！说白了，Extension 使 App 的功能可以轻松地”入侵”系统或三方 App。当然，在对方眼里 Extension 自然就是所谓的插件了！</p>
+<p>官方一点的说法：Extension 的目的是使用户在使用系统功能或三方app时还能使用我们的app提供的功能。</p>
+<p>iOS 支持的 Extension 类型有：<code>Today Extension(俗称widget)</code>、 <code>Share Extension</code>、 <code>Action Extension</code>、 <code>Photo Editing Extension</code>、 <code>Document Provider Extension</code> 以及 <code>Custom Keyboard Extension</code>。</p>
+<p>广大 App 比较感兴趣的应该是 <code>Today Extension</code>，这也是本文要拿来说道的主角(其他的还不会ಥ_ಥ)。</p>
+<p>ok，在继续之前先来两个名词解释：</p>
+<ul>
+<li><code>Host App</code> —— 宿主 App，即 Extension”入侵”的 App，用户最终是在 Host App 中使用 Extension；</li>
+<li><code>Container App</code> —— 容器 App，即 Extension 的主人，Extension 包含在Container App中，并通过Container App发布。</li>
+</ul>
+<h1 id="Life-Cycle-of-an-App-Extension"><a href="#Life-Cycle-of-an-App-Extension" class="headerlink" title="Life Cycle of an App Extension"></a>Life Cycle of an App Extension</h1><hr>
+<p>虽然，Extension 包含于其 Container App 中，并通过 Container App 发布到 App Store 最终安装到用户设备上。但 Extension 有独立于其 Container App 的二进制可执行文件，也就是说 Extension 和 Container App 在运行时分属于二个独立进程(相当于二个独立 App)。这就导致在 iOS 这个”隔离”至上的系统上有两个问题需要解决：Extension 和 Container App 之间的通讯以及彼此间的数据共享(Sandbox)。</p>
+<p>OK, 既然 Extension 和 Container App 有各自独立的可执行文件，其生命周期也就互不干扰，Extension 在运行时 Container App 可能早已被 kill。但 Extension 终究是 Extension，在 App 面前似乎低人一等，属于 iOS 中的”二等”公民.</p>
+<p>Extension 的生命周期起于 Host App 响应用户事件令其执行一项任务，止于其完成该任务。当然，所谓完成任务可以是即时的同步完成该任务，也可以是发起一个异步的、后台执行的任务。</p>
+<p>Extension 生命周期如下图所示(来自<a href="https://developer.apple.com/library/prerelease/ios/documentation/General/Conceptual/ExtensibilityPG/ExtensionOverview.html#//apple_ref/doc/uid/TP40014214-CH2-SW2" target="_blank" rel="noopener">App Extension Programming Guide</a>)：</p>
+<p><img src="/img/lifecycleofanappextension.png" alt=""></p>
+<p>是的，Extension 在其完成任务后，系统会无情地将其 kill 掉(没办法，”二等”公民)。</p>
+<p>嗯，关于 Extension 的”二等”公民身份，咱们再多捞道几句(ｖ_ｖ)：</p>
+<ul>
+<li>Extension 应该是轻量级的、启动要迅速，最好在1秒之内，启动过慢将被系统终止；</li>
+<li>在使用内存方面，对 Extension 也有更多的限制，尤其是 widget，因为在 Notification Center 几乎会同时存在多个 widget。在系统内存不足时，会优先 kill Extension；</li>
+<li>在使用系统共享资源上(如GPU)，Extension 也没有优先权；</li>
+<li>一些 API 在 Extension 上不可用；</li>
+<li>Extension 可以利用 NSURLSession 开启后台网络任务，但仅此而已，如VoIP、playing background audio等其它类型的后台任务在 Extension 中是不允许的；</li>
+<li>Extension 必须支持arm64；</li>
+<li>Extension 的 UI 应该是简洁流畅的、专注于单一功能。</li>
+</ul>
+<h1 id="About-App-Extension-Communicates"><a href="#About-App-Extension-Communicates" class="headerlink" title="About App Extension Communicates"></a>About App Extension Communicates</h1><hr>
+<p>理解 Extension、Container App 以及 Host App 间你中有我、我中有你的关系是理解 Apple Extension 机制的关键所在。正如前文所述，上述三者各自有自己的二进制可执行文件，运行时分属于三个独立的进程。而我们知道在 iOS 系统中，进程间(App间)有着很深的”隔阂”，Sandbox 机制不允许 App 间有过多的交流，数据共享更是不可能。</p>
+<p>那么 Extension、Container App 以及 Host App 间是如何交流的呢？</p>
+<ul>
+<li>Host App and Container App —— 分属于两个正常的 App，没啥好说的；</li>
+<li>Extension and Container App —— 虽然两者独立运行，但毕竟是”同根生”，有着”血浓于水”的亲情。Apple 也为它们间的数据共享提供了很好的支持，即 App Group。当然在必要时 Extension 还可以通过<code>NSExtensionContext</code>类的实例方法<code>openUrl</code>呼起 Container App(似乎在 widget 中这也是一项必备技能)；</li>
+<li>Extension and Host App —— 两者间似乎有种”主仆”关系，Host App 通过<code>NSExtensionContext</code>向 Extension 发出指令要求其完成某项任务，Extension 则通过<code>NSExtensionContext</code>向 Host App 反馈任务响应。</li>
+</ul>
+<p>三者间的关系如下图所示(来自<a href="https://developer.apple.com/library/prerelease/ios/documentation/General/Conceptual/ExtensibilityPG/ExtensionOverview.html#//apple_ref/doc/uid/TP40014214-CH2-SW2" target="_blank" rel="noopener">App Extension Programming Guide</a>):<br><img src="/img/CommunicatesBetweenExtension.png" alt=""></p>
+<h1 id="Share-Data-between-Extension-and-Container-App"><a href="#Share-Data-between-Extension-and-Container-App" class="headerlink" title="Share Data between Extension and Container App"></a>Share Data between Extension and Container App</h1><hr>
+<p>Extension 作为 Container App 的延伸，两者间的数据共享在所难免。然而，iOS 的 Sandbox 机制又将该需求拒之门外。<br><img src="/img/appsandbox.png" alt=""><br><img src="/img/AppCrashed.jpg" alt=""><br>不过，不用桑心，Apple 君自然会考虑到该问题。</p>
+<p>是的，为了解决 Extension 与 Container App 间数据共享的问题，Apple 在 iOS8 中引入了 App Group 的概念。在同一 App Group 中的 App 可以共享Shared Container中的数据。</p>
+<p>来自<a href="https://developer.apple.com/library/prerelease/ios/documentation/General/Conceptual/ExtensibilityPG/ExtensionScenarios.html#//apple_ref/doc/uid/TP40014214-CH21-SW1" target="_blank" rel="noopener">App Extension Programming Guide</a>:<br><img src="/img/sharedcontainer.png" alt=""></p>
+<p>来自<a href="http://www.raywenderlich.com/store/ios-8-by-tutorials" target="_blank" rel="noopener">iOS8 by Tutorias</a>:<br><img src="/img/sharedcontainer1.png" alt=""></p>
+<p>通过上面两张图可以看出Extension 与 Container App 可以通过 Shared Container 共享数据。<br><img src="/img/good.png" alt=""></p>
+<h2 id="App-Group"><a href="#App-Group" class="headerlink" title="App Group"></a>App Group</h2><p>我们知道，Extension 与 Container App 间之所以能共享数据，App Group 起到关键性的作用。</p>
+<p>处于同一 App Group 下的 App 可以绕过 Sandbox 机制共享数据，正是由于 App Group 的特殊性，Apple 对 App Group 有着严格的管理，App Group 与开发者帐号绑定，以确保只有同一 team 下的 App 才可以共享数据。并且只有管理员才可以配置 App ID 下的App Group。</p>
+<p>App Group 由 App Group ID 唯一标识，其格式通常为：group.bundle identifier。</p>
+<p>开启 App Group 需要同时在 Container App 与 Extension 的 target 上进行相应的设置：<br><img src="/img/appgroup.png" alt=""></p>
+<p>开启 App Group 后，XCode 会分别为 Extension 及 Container App 生成相应的 entitlements 文件。</p>
+<p>OK，有了 App Group，我们就可以任性地在 Extension 和 Container App 间共享数据了。通过 Shared Container 共享数据有两种方式：NSUserDefaults 以及文件系统。</p>
+<p>当然，NSUserDefaults 通常用于共享简单的数据。对于复杂的数据还是要通过 Shared Container(即以及文件的方式)共享。</p>
+<p>以 NSUserDefaults 方式共享数据简单明了：只要将我们熟悉的方式<br><img src="/img/NSUserDefaults.png" alt=""><br>改为：<br><img src="/img/NewNSUserDefaults.png" alt=""></p>
+<p>然后就能方便的通过 NSUserDefault 在 Extension 和 Container App 间共享数据了。但有些数据如图片、特定格式的数据则无法通过 NSUserDefault 分享，此时就需要使用文件系统了。</p>
+<p>通过文件系统分享，其原理也非常简单，就是让 Extension 和 Container App 共同访问某个特定的共享目录。<br>正常情况下，我们要获得 Sandbox 中的某个路径，可以通过下述方式：<br><img src="/img/normalfilemanager.png" alt=""><br>在访问共享目录时，需要通过以下方式，可以看到共享目录是由 app group id唯一标识的：<br><img src="/img/appgroupfilemanager.png" alt=""></p>
+<p>通过共享目录在 Extension 和 Container App 间共享数据固然方便，但我们知道 Extension 和 Container App 是两个独立的进程。是的，没错，存在数据同步问题，我们要确保共享数据的完整性。</p>
+<blockquote>
+<p>Use Core Data, SQLite, or Posix locks to help coordinate data access in a shared container.</p>
+</blockquote>
+<p>这就是 Apple 君给我们的建议！</p>
+<p>最简单的方式恐怕就是通过<code>writeToFile:atomically:encoding:error:</code>接口写数据了。</p>
+<h2 id="Share-Core-Data-between-Extension-and-Container-App"><a href="#Share-Core-Data-between-Extension-and-Container-App" class="headerlink" title="Share Core Data between Extension and Container App"></a>Share Core Data between Extension and Container App</h2><p>正常情况下 Core Data 会在 App Sandbox 中按指定的路径生成相应的数据存储文件。为了在 Extension 和 Container App 间共享 Core Data，关键点就在于将 Core Data 对应的数据存储文件保存到共享目录下。</p>
+<p>为了实现共享 Core Data 有以下几个步骤：</p>
+<ul>
+<li>在 Extension、Container App 中将 Core Data 的数据存储文件保存到共享目录下的同一路径上；</li>
+<li>将 xcdatamodeld 文件以及相应的 model 文件分别添加到 Extension 以及 Container App 的 target 中；</li>
+<li>在 Extension 的 Copy Bundle Resources 中添加 xcdatamodeld 文件。</li>
+</ul>
+<p>OK，通过上述简单的几步，就可以在 Extension 和 Container App 间通过 Core Data 共享数据了。</p>
+<p>那且不是可以在 Extension 中共享 Container App 已有的 Core Data 数据！</p>
+<p>然而，”前途是光明的，道路是曲折的”！</p>
+<p>别忘了，App Group 是 iOS8 才有的新特性！将 Core Data 数据存储文件保存到共享目录在 iOS8 之前的系统上是没法用的！因此，在 App 还支持 iOS8 以下的系统时，Core Data 最多只能作为两者共享数据的桥梁，但这似乎有点重，可能普通的文件更适合，当然也要视具体情况而定。</p>
+<p>因此，真正意义上，要想在 Extension 和 Container App 间共享 Core Data 数据，我们只能坐等 App 从 iOS8开始支持了！</p>
+<h1 id="Share-Code-between-Extension-and-Container-App"><a href="#Share-Code-between-Extension-and-Container-App" class="headerlink" title="Share Code between Extension and Container App"></a>Share Code between Extension and Container App</h1><hr>
+<p>Extension 作为 Container App 功能触角的延伸而”入侵”系统或三方 App，更多时侯 Extension 提供的功能是 Container App 已有的功能。因此，在 Extension 和 Container App 间存在code共享问题。然而，Extension 和 Container App 分属于两个 target，共享 code 似乎有点棘手。</p>
+<p>最笨的方法可能就是 copy code，恭喜你，如果这么做，将会获得”劣质”程序猿的”光荣称号”！</p>
+<p>那么我们还可以将需要共享的 code 对应的源文件分别添加到 Extension 和 Container App 的 target 中。虽然没有 copy code，但将会存在两个完全相同的二进制文件，此仍非上策也！</p>
+<p>为了，完美解决该问题，Apple 君在 iOS8 引入了 Embedded Frameworks的概念。</p>
+<p>具体如何操作 Embedded Frameworks 就不过多的阐述了。需要注意的，有些 API 在 Embedded Framework 中是不可用的，具体参见<a href="https://developer.apple.com/library/ios/documentation/General/Conceptual/ExtensibilityPG/ExtensionOverview.html#//apple_ref/doc/uid/TP40014214-CH2-SW6" target="_blank" rel="noopener">App Extension Programming Guide</a></p>
+<p>可以让 XCode 在 Embedded Framework 使用了不该使用的 API 时发出 warning，只需要在 Embedded Framework Target 的 General 选项中作如下设置：<br><img src="/img/allowappextensionapionly.png" alt=""></p>
+<p>还有一个要注意的问题，如果 Container App link 了 Embedded Framework，该Container App同样要支持arm64。</p>
+<p>遗憾的是，同App Group一样，Embedded Framework也是 iOS8 才支持的新特性！如果，你的 App 还要支持 iOS7 之类的系统，那么基本可以和Embedded Framework说再见了！</p>
+<p>为了解决该问题，Apple 君给我们的建议是不要在 XCode 中为 Container App link Embedded Framework，而是在运行时根据系统版本号动态地在 iOS8 系统中通过<code>dlopen</code> link 所需的 Embedded Framework。此时，就可以通过<code>CFBundleGetFunctionPointerForName</code>、<code>CFBundleGetFunctionPointersforNames</code>以及<code>NSBundle</code>类的<code>load</code>、<code>loadAndReturnError:</code>、<code>classNamed:</code> 等 API 获取 Embedded Framework 中的接口。</p>
+<p>Apple 君特定说明的是，这些 API 只能在 iOS8 及以上的系统中调用！</p>
+<p>这样看似解决了iOS8 以下系统不支持 Embedded Frameworks 的问题，但并未解决Share Code的核心问题！试想，Embedded Frameworks 中包含的功能在 iOS7 上如何使用？最终还是要将这些功能包含在 Container App 的 target 中以供 iOS8 以下的系统享用。是不是有种”一夜回到解放前”的凄凉之感！要想真正使用 Embedded Frameworks 这个新特性只能坐等 App 从 iOS8 开始支持了！</p>
+<h1 id="Today-Extension"><a href="#Today-Extension" class="headerlink" title="Today Extension"></a>Today Extension</h1><hr>
+<p>唠唠叨叨讲了不少，最后看个实例吧——Today Extension(江湖人称 widget)。</p>
+<p>关于如何在 XCode 中创建 Today Extension 就不截图了(省点流量)。</p>
+<p>下面的文字可能没有一个良好的逻辑顺序，想到哪写到哪，都是一些我认为有意思的点。</p>
+<p>通过 XCode Extension Template 生成的 Today Extension，会自动生成 UI 文件<em>MainInterface.storyboard</em>。如果你不习惯或者是不会使用storyboard，而是希望通过 code 的方式实现 UI，可以在 Extension 的 Info.plist 文件中作相应的设置：<br><img src="/img/ExtensionUIplist.png" alt=""></p>
+<p>是的，没错，<code>TodayViewController</code>就是Today Extension 实现 UI 逻辑的类。可以看到，Today Extension UI 的载体是我们十分熟悉的 <code>UIViewController</code>。</p>
+<p>对于 UI 的布局 Apple 君推荐使用 autolayout，如果不使用要注意在各种尺寸的屏幕上 Extension 都能正常显示。</p>
+<p>要改变Today Extension的高度，可以设置<code>TodayViewController</code>的<code>preferredContentSize</code>属性。如：<code>self.preferredContentSize = CGSizeMake(0, 100);</code></p>
+<p>需要注意的是，在 Today Extension 中尽量不要包含能滚动的 scrollview，这给用户带来的体验将非常糟糕！</p>
+<p>XCode 自动生成的<code>TodayViewController</code>声明支持<code>NCWidgetProviding</code>协议。</p>
+<p>在<code>NCWidgetProviding</code>协议中包含两个方法：</p>
+<ul>
+<li><code>- (UIEdgeInsets)widgetMarginInsetsForProposedMarginInsets:(UIEdgeInsets)defaultMarginInsets;</code></li>
+</ul>
+<p>如果需要修改 widget 在通知中心的左右边距可以实现该方法。</p>
+<ul>
+<li><code>- (void)widgetPerformUpdateWithCompletionHandler:(void (^)(NCUpdateResult result))completionHandler;</code></li>
+</ul>
+<p>该方法用于 widget 更新其内容，当加载 widget 时系统会调用该方法获取新数据，更重要的是，当Notification Center不在前台显示时，系统也会”时不时”的调用该方法在后台获取新数据，并在获取到新数据时更新 widget snapshot。</p>
+<p>要注意的是在该方法中需要调用其参数传递进来的<code>completionHandler</code>，调用参数如下：</p>
+<ul>
+<li>NCUpdateResultNewData —— The new content required you to redraw the view;</li>
+<li>NCUpdateResultNoData —— The widget doesn’t require updating;</li>
+<li>NCUpdateResultFailed —— An error occurred during the update process.</li>
+</ul>
+<p>当以<code>NCUpdateResultNewData</code>调用<code>completionHandler</code>时，系统会更新 widget snapshot。此刻是不是想到了 <code>NSURLSession</code>，是的，它们有异曲同工之妙——让用户看到的数据永远都是最新的！</p>
+<p>widget 最喜欢做的一件事情恐怕就是呼起 Container App 了，方法也很简单，通过 <code>NSExtensionContext</code> 的 <code>openUrl</code> 方法实现：<br><img src="/img/extensionopenurl.png" alt=""></p>
+<p>有时候，我们可能不希望在Notification Center显示 widget，如没有可用的数据等，此时，我们可以调用 <code>NCWidgetController</code> 的类方法： <code>setHasContent:forWidgetWithBundleIdentifier:</code>，通过该方法可以轻松控制 widget 是否要显示，该方法既可以在 Container App 中调用，也可以在 widget 中调用。</p>
+<h1 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h1><hr>
+<p>Extension 作为 iOS8 推出的新特性，深受广大 App 欢迎。但我们始终要记住 Extension 不是正常的 App，只是 Container App 功能触角的延伸，其功能要简单、专注，UI 要简洁、明了，切不可滥用。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag"># iOS</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2014/11/30/runloop2/" rel="next" title="谜一样的 Runloop(2/2)">
+                <i class="fa fa-chevron-left"></i> 谜一样的 Runloop(2/2)
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/03/21/CoreAnimation/" rel="prev" title="Core Animation">
+                Core Animation <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Life-Cycle-of-an-App-Extension"><span class="nav-number">2.</span> <span class="nav-text">Life Cycle of an App Extension</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#About-App-Extension-Communicates"><span class="nav-number">3.</span> <span class="nav-text">About App Extension Communicates</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Share-Data-between-Extension-and-Container-App"><span class="nav-number">4.</span> <span class="nav-text">Share Data between Extension and Container App</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#App-Group"><span class="nav-number">4.1.</span> <span class="nav-text">App Group</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Share-Core-Data-between-Extension-and-Container-App"><span class="nav-number">4.2.</span> <span class="nav-text">Share Core Data between Extension and Container App</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Share-Code-between-Extension-and-Container-App"><span class="nav-number">5.</span> <span class="nav-text">Share Code between Extension and Container App</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Today-Extension"><span class="nav-number">6.</span> <span class="nav-text">Today Extension</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Conclusion"><span class="nav-number">7.</span> <span class="nav-text">Conclusion</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

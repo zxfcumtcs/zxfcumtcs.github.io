@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="iOS,Objective-C,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本文主要介绍__forwarding指针，retain、release以及copy对三种block的影响。">
+<meta name="keywords" content="iOS,Objective-C">
+<meta property="og:type" content="article">
+<meta property="og:title" content="block那些事——__forwarding(4&#x2F;5)">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2014/07/17/block4/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本文主要介绍__forwarding指针，retain、release以及copy对三种block的影响。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/forwardingvar.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/forwardcopytoheap.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/blockretainrelease1.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/blockretainrelease2.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/blockretainrelease3.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/blockretainreleasesummary.png">
+<meta property="og:updated_time" content="2018-12-08T08:41:32.863Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="block那些事——__forwarding(4&#x2F;5)">
+<meta name="twitter:description" content="本文主要介绍__forwarding指针，retain、release以及copy对三种block的影响。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/forwardingvar.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2014/07/17/block4/">
+
+
+
+
+
+  <title>block那些事——__forwarding(4/5) | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2014/07/17/block4/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">block那些事——__forwarding(4/5)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2014-07-17T09:35:53+08:00">
+                2014-07-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2014/07/17/block4/" class="leancloud_visitors" data-flag-title="block那些事——__forwarding(4/5)">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  765
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  3
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文主要介绍<code>__forwarding</code>指针，<code>retain</code>、<code>release</code>以及<code>copy</code>对三种block的影响。<br><a id="more"></a><br>©原创文章，转载请注明出处！</p>
+<h1 id="forwarding"><a href="#forwarding" class="headerlink" title="__forwarding"></a>__forwarding</h1><hr>
+<p>在<a href="http://zxfcumtcs.github.io/2014/07/15/block3/">前文</a>代码片段<strong>codeF</strong>中提到编译器为<strong>__block变量</strong><code>blockArr</code>合成的结构体<code>struct __Block_byref_blockArr_0</code>，<br>在该结构体中有一个指向结构自身类型的指针<code>__Block_byref_blockArr_0 *__forwarding</code>。</p>
+<p>ok，问题出来，这些<code>__forwarding</code>指针的作用是什么呢？</p>
+<p>前面我们讲到<strong>__block变量会随block copy到heap而同样被copy到heap</strong>，因此，在此情况下就存在同时访问stack上和heap上__block变量的情况：</p>
+<p><img src="/img/forwardingvar.png" alt=""></p>
+<hr>
+<p>很明显，第一次访问的<code>var</code>位于heap上，第二次访问的<code>var</code>位于stack上，因此，如果不采用特殊机制，将导致<code>var</code>的值不正确。</p>
+<p>嗯，这就是<strong>__forwarding</strong>指针的使命所在——<strong>确保能正确的访问__block变量</strong>。</p>
+<p><strong>当<strong>block变量从stack到copy到heap上时，stack上的</strong>forwarding被修改为指向heap上的<strong>block变量，通过该机制，使得无论是在stack上还是heap上都能访问到同一个</strong>block变量。</strong></p>
+<p><a href="http://zxfcumtcs.github.io/2014/07/15/block3/">前文</a>代码片段<strong>codeH</strong>中的第44行就是修改stack上<strong>block变量的</strong>forwarding指针，使其指向heap上的__block变量：<code>_Block_assign(src-&gt;forwarding, (void **)destp)</code>。</p>
+<p>最后再亮出我们的看家法宝——【<a href="http://book.douban.com/subject/10536953/" target="_blank" rel="noopener">图</a>】：</p>
+<p><img src="/img/forwardcopytoheap.jpg" alt=""></p>
+<h1 id="block与retain、release以及copy"><a href="#block与retain、release以及copy" class="headerlink" title="block与retain、release以及copy"></a>block与retain、release以及copy</h1><hr>
+<p>对block来说，<code>release</code>与<code>Block_release</code>、<code>copy</code>与<code>Block_copy</code>等同。</p>
+<p>还是用源码说话吧：</p>
+<figure class="highlight objectivec"><figcaption><span>Block_release</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> _Block_release(<span class="keyword">void</span> *arg) </span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">struct</span> Block_layout *aBlock = (<span class="keyword">struct</span> Block_layout *)arg;</span><br><span class="line">    int32_t newCount;</span><br><span class="line">    <span class="keyword">if</span> (!aBlock) </span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">        </span><br><span class="line">    newCount = latching_decr_int(&amp;aBlock-&gt;flags) &amp; BLOCK_REFCOUNT_MASK;        <span class="comment">// BLOCK_REFCOUNT_MASK = (0xffff)</span></span><br><span class="line">    <span class="keyword">if</span> (newCount &gt; <span class="number">0</span>) </span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">        </span><br><span class="line">    <span class="comment">// Hit zero</span></span><br><span class="line">    <span class="keyword">if</span> (aBlock-&gt;flags &amp; BLOCK_NEEDS_FREE)                                     <span class="comment">// NSConcreteMallocBlock</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (aBlock-&gt;flags &amp; BLOCK_HAS_COPY_DISPOSE)(*aBlock-&gt;descriptor-&gt;dispose)(aBlock);</span><br><span class="line">        _Block_deallocator(aBlock);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (aBlock-&gt;flags &amp; BLOCK_IS_GLOBAL)                                 <span class="comment">// NSConcreteGlobalBlock</span></span><br><span class="line">    &#123;</span><br><span class="line">        ;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span>                                                                     <span class="comment">// NSConcreteStackBlock</span></span><br><span class="line">    &#123;</span><br><span class="line">        printf(<span class="string">"Block_release called upon a stack Block: %p, ignored\n"</span>, (<span class="keyword">void</span> *)aBlock);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由<code>_Block_release</code>的源码可以得出如下结论：</p>
+<ul>
+<li><p>block在其内部标记<code>flags</code>中保存了自己的引用计数，且引用计数占用<code>flags</code>的前16位(BLOCK_REFCOUNT_MASK = 0xffff)(第8行)；</p>
+</li>
+<li><p>release NSConcreteMallocBlock类型的block，会将其引用计数-1，当引用计数&lt;=0时，先调用block的dispose函数，再释放block本身(第13~17行)；</p>
+</li>
+<li><p>release NSConcreteGlobalBlock或NSConcreteStackBlock类型的block没有任何实质操作。</p>
+</li>
+</ul>
+<p>block retain操作没有相关的源码，但从效果来看：</p>
+<ul>
+<li><p>retain NSConcreteMallocBlock类型的block，其引用计数会+1；</p>
+</li>
+<li><p>retain NSConcreteGlobalBlock或NSConcreteStackBlock类型的block没有任何实质操作.</p>
+</li>
+</ul>
+<figure class="highlight objectivec"><figcaption><span>Block_copy</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> *_Block_copy(<span class="keyword">const</span> <span class="keyword">void</span> *arg)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> _Block_copy_internal(arg, WANTS_ONE);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> *_Block_copy_internal(<span class="keyword">const</span> <span class="keyword">void</span> *arg, <span class="keyword">const</span> <span class="keyword">int</span> flags) </span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">struct</span> Block_layout *aBlock;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">bool</span> wantsOne = (WANTS_ONE &amp; flags) == WANTS_ONE;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!arg) <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    </span><br><span class="line">    aBlock = (<span class="keyword">struct</span> Block_layout *)arg;</span><br><span class="line">    <span class="keyword">if</span> (aBlock-&gt;flags &amp; BLOCK_NEEDS_FREE)         <span class="comment">// NSConcreteMallocBlock</span></span><br><span class="line">    &#123;</span><br><span class="line">        latching_incr_int(&amp;aBlock-&gt;flags);</span><br><span class="line">        <span class="keyword">return</span> aBlock;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (aBlock-&gt;flags &amp; BLOCK_IS_GLOBAL)     <span class="comment">// NSConcreteGlobalBlock</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span> aBlock;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">                                                 <span class="comment">// Its a stack block.  Make a copy.</span></span><br><span class="line">    <span class="keyword">struct</span> Block_layout *result = malloc(aBlock-&gt;descriptor-&gt;size);</span><br><span class="line">    <span class="keyword">if</span> (!result) <span class="keyword">return</span> (<span class="keyword">void</span> *)<span class="number">0</span>;</span><br><span class="line">    memmove(result, aBlock, aBlock-&gt;descriptor-&gt;size); <span class="comment">// bitcopy first</span></span><br><span class="line">    <span class="comment">// reset refcount</span></span><br><span class="line">    result-&gt;flags &amp;= ~(BLOCK_REFCOUNT_MASK);    <span class="comment">// XXX not needed</span></span><br><span class="line">    result-&gt;flags |= BLOCK_NEEDS_FREE | <span class="number">1</span>;</span><br><span class="line">    result-&gt;isa = _NSConcreteMallocBlock;</span><br><span class="line">    <span class="keyword">if</span> (result-&gt;flags &amp; BLOCK_HAS_COPY_DISPOSE) </span><br><span class="line">    &#123;</span><br><span class="line">            (*aBlock-&gt;descriptor-&gt;<span class="keyword">copy</span>)(result, aBlock); <span class="comment">// do fixup</span></span><br><span class="line">    &#125;</span><br><span class="line">        </span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由Block_copy的源码可以看出：</p>
+<ul>
+<li><p>NSConcreteMallocBlock类型的block在copy时引用计数+1；</p>
+</li>
+<li><p>NSConcreteGlobalBlock类型的block在copy时直接返回；</p>
+</li>
+<li><p>NSConcreteStackBlock类型的block在copy时才会进行真正的copy操作。</p>
+</li>
+</ul>
+<p>看个有趣的例子：</p>
+<p><img src="/img/blockretainrelease1.jpg" alt=""></p>
+<p><img src="/img/blockretainrelease2.jpg" alt=""></p>
+<p><img src="/img/blockretainrelease3.jpg" alt=""></p>
+<p>应该很清楚了，不用多说。</p>
+<p>ok，最后总结一下：<br><img src="/img/blockretainreleasesummary.png" alt=""></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag"># iOS</a>
+          
+            <a href="/tags/Objective-C/" rel="tag"># Objective-C</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2014/07/15/block3/" rel="next" title="block那些事——__block storage-class-specifier(3/5)">
+                <i class="fa fa-chevron-left"></i> block那些事——__block storage-class-specifier(3/5)
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2014/07/17/block5/" rel="prev" title="block那些事——block误用与终极总结(5/5)">
+                block那些事——block误用与终极总结(5/5) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#forwarding"><span class="nav-number">1.</span> <span class="nav-text">__forwarding</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#block与retain、release以及copy"><span class="nav-number">2.</span> <span class="nav-text">block与retain、release以及copy</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

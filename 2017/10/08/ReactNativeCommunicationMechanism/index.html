@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="iOS,框架,ReactNative,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本文通过分析源码，逐步解析 ReactNative 中 JS to Native 的通信机制。">
+<meta name="keywords" content="iOS,框架,ReactNative">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ReactNative源码解析——通信机制详解(1&#x2F;2)">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2017/10/08/ReactNativeCommunicationMechanism/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本文通过分析源码，逐步解析 ReactNative 中 JS to Native 的通信机制。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RNLanguageComposition.jpeg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ReactReactCommon.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/BatchedBridgePath.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RNClassDiagram.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RNTimingDiagram.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RCTCxxBrigdeInitModulesWithDispatchGroup.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/JSCExecutor.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/NativeModuleClassDiagram.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/NativeModuleConfig.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RCTNativeModuleinvoke.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RCTModuleMethodinvokeWithBridge.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/JSToNativeCallTimingDiagram.png">
+<meta property="og:updated_time" content="2018-12-08T08:41:32.862Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ReactNative源码解析——通信机制详解(1&#x2F;2)">
+<meta name="twitter:description" content="本文通过分析源码，逐步解析 ReactNative 中 JS to Native 的通信机制。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/RNLanguageComposition.jpeg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2017/10/08/ReactNativeCommunicationMechanism/">
+
+
+
+
+
+  <title>ReactNative源码解析——通信机制详解(1/2) | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2017/10/08/ReactNativeCommunicationMechanism/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">ReactNative源码解析——通信机制详解(1/2)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-08T19:19:59+08:00">
+                2017-10-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/10/08/ReactNativeCommunicationMechanism/" class="leancloud_visitors" data-flag-title="ReactNative源码解析——通信机制详解(1/2)">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  3,836
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  17
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文通过分析源码，逐步解析 ReactNative 中 JS to Native 的通信机制。<br><a id="more"></a><br>©原创文章，转载请注明出处！</p>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
+<p>本文详细分析了 JS to Native 的调用过程，包括：ReactNative 的初始化、native module 注册、JS 获取 native module 信息、JS 调用 native module。</p>
+<blockquote>
+<p>本文分析的源码基于 ReactNative 0.47，为了叙述方便后文将 ReactNative 简称为 RN。<br>另外，为了精减篇幅聚焦重点，文中所列源码均做过简化，删除非关键代码。<br>由于本文具体分析的是 iOS 侧的实现，故后文所有内容都是针对 iOS 平台(其中有一大部分是共用的)。</p>
+</blockquote>
+<h1 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h1><hr>
+<blockquote>
+<p>阅读源码大概有两类目的，一是想通过源码了解某个实现细节；二是想了解其实现的整体结构、原理。对于第一种情形可以直接深入源码，快速抓住关注点；而后者如果也一股脑扎入源码，很容易陷入各种实现细节而迷失方向(尤其是大型源码)。此时，应先了解代码整体结构，抓住关键路径，必要时辅以类图。</p>
+</blockquote>
+<p>本文讨论的 RN 通信机制是整个 RN 的核心，贯穿始末，涉及<code>Objective-C</code>/<code>Java</code>、<code>C++</code>、<code>JavaScript</code>间的交互。因此，在深入分析前有必要先了解一下 RN 整体结构以及关键类的类图。<br><img src="/img/RNLanguageComposition.jpeg" alt=""><br>RN 最大的优势在于<strong><em>跨平台、热更新</em></strong>。因此，RN 库本身也需要在多个平台(iOS、Android)上运行，从上图可知，在 RN 中 <code>C++</code>与<code>JS</code>部分的实现为多平台共用，在此基础上再分化为各平台实现。其中，iOS 平台特有的实现(<code>Objective-C</code>、<code>C++</code>)主要集中在 React 下，以<code>C++</code>语言实现的共有部分在 ReactCommon 下：<br><img src="/img/ReactReactCommon.png" alt=""><br>JS侧与本文关系紧密的内容主要集中在：<br><img src="/img/BatchedBridgePath.jpg" alt="">下的<code>BatchedBridge.js</code>、<code>MessageQueue.js</code>以及<code>NativeModules.js</code>中。</p>
+<p>我们先大概了解几个关键类及其间的关系，对整体结构有个大致印象：<br><img src="/img/RNClassDiagram.png" alt=""><br>如上图：</p>
+<ul>
+<li><code>RCTBridge</code>与<code>RCTCxxBridge</code>属于 iOS 平台特有，前者是 RN 对业务层接口(图中其他类都属于内部类，业务层无感知)，具体工作在其子类<code>RCTCxxBridge</code>中完成；</li>
+<li>整个 RN 的核心在跨平台的 C++层，其中很多类的功能从其名称即可略知一二，后文也会有详细的描述；</li>
+<li>在 RN 中肯定少不了 JS 的支持，从上图可知，JS 与 Native 的通信发生在 <code>JavaScript</code> 与 <code>C++</code>间，这也是本文分析的重点。</li>
+</ul>
+<p>说到通信，无外乎 JS to Native、Native to JS，本篇我们重点分析JS to Native。</p>
+<h1 id="JavaScript—-gt-Native"><a href="#JavaScript—-gt-Native" class="headerlink" title="JavaScript—&gt;Native"></a>JavaScript—&gt;Native</h1><hr>
+<p>通过 Apple 推出的 <code>JavaScriptCore</code>，要实现 JS to Native 的通信并非难事，主要有两条途径：</p>
+<ul>
+<li><code>block</code>——在 RN 这样复杂的应用场景中<code>block</code>显得有些力不从心；</li>
+<li><code>JSExport</code>协议——通过实现该协议可以向 JS 曝露 Native 接口(但不具备跨平台能力)。</li>
+</ul>
+<p>因此，RN 并没有使用 <code>JavaScriptCore</code>提供的这两种方式，而是自己实现了一套通信机制。<br>我们先从一个简单的例子入手：<code>CalendarManager</code>封装了 iOS 平台的日历控件，供 JS 调用。<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// CalendarManager.h</span></span><br><span class="line"><span class="meta">#import <span class="meta-string">&lt;React/RCTBridgeModule.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">CalendarManager</span> : <span class="title">NSObject</span> &lt;<span class="title">RCTBridgeModule</span>&gt;</span></span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure></p>
+<figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// CalendarManager.m</span></span><br><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">CalendarManager</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// To export a module named CalendarManager</span></span><br><span class="line">RCT_EXPORT_MODULE();</span><br><span class="line"></span><br><span class="line">RCT_EXPORT_METHOD(addEvent:(<span class="built_in">NSString</span> *)name location:(<span class="built_in">NSString</span> *)location) &#123;</span><br><span class="line">    RCTLogInfo(<span class="string">@"Pretending to create an event %@ at %@"</span>, name, location);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+<p>我们知道，要将 Native module(类、接口)曝露给 JS，module需要实现<code>RCTBridgeModule</code>协议，并且在实现中要插入<code>RCT_EXPORT_MODULE</code>宏。具体曝露的方法也需要通过<code>RCT_EXPORT_METHOD</code>宏定义。<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// JS</span></span><br><span class="line"><span class="keyword">import</span> &#123; NativeModules &#125; <span class="keyword">from</span> <span class="string">'react-native'</span>;</span><br><span class="line"><span class="keyword">var</span> CalendarManager = NativeModules.CalendarManager;</span><br><span class="line">CalendarManager.addEvent(<span class="string">'Birthday Party'</span>, <span class="string">'4 Privet Drive, Surrey'</span>);</span><br></pre></td></tr></table></figure></p>
+<p>此时，在 JS 中就可以通过<code>NativeModules.CalendarManager.addEvent(...)</code>方式调用 Native 接口了。<br>下面将对这一过程逐一分析，先来了解上面提到的两个关键的宏：</p>
+<h2 id="RCT-EXPORT-MODULE"><a href="#RCT-EXPORT-MODULE" class="headerlink" title="RCT_EXPORT_MODULE"></a>RCT_EXPORT_MODULE</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> RCT_EXPORT_MODULE(js_name) \</span></span><br><span class="line"><span class="function">RCT_EXTERN <span class="keyword">void</span> <span class="title">RCTRegisterModule</span><span class="params">(Class)</span></span>; \</span><br><span class="line">+ (NSString *)moduleName &#123; <span class="keyword">return</span> @#js_name; &#125; \</span><br><span class="line">+ (<span class="keyword">void</span>)load &#123; RCTRegisterModule(self); &#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到，添加<code>RCT_EXPORT_MODULE</code>宏，相当定义了<code>load</code>、<code>moduleName</code>方法。正是在<code>load</code>方法中调用了<code>RCTRegisterModule</code>方法注册 Module(会影响 App 启动速度^_^)。<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> RCTRegisterModule(Class moduleClass) &#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="built_in">dispatch_once_t</span> onceToken;</span><br><span class="line">    <span class="built_in">dispatch_once</span>(&amp;onceToken, ^&#123;</span><br><span class="line">        RCTModuleClasses = [<span class="built_in">NSMutableArray</span> new];</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="comment">// Register module</span></span><br><span class="line">    [RCTModuleClasses addObject:moduleClass];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p><code>RCTRegisterModule</code>只是简单收集所有需要曝露给 JS 的类。</p>
+</blockquote>
+<h2 id="RCT-EXPORT-METHOD"><a href="#RCT-EXPORT-METHOD" class="headerlink" title="RCT_EXPORT_METHOD"></a>RCT_EXPORT_METHOD</h2><p>曝露给 JS 的接口需要通过<code>RCT_EXPORT_METHOD</code>宏来定义，上文中：<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">RCT_EXPORT_METHOD(addEvent:(<span class="built_in">NSString</span> *)name location:(<span class="built_in">NSString</span> *)location) &#123;</span><br><span class="line">    RCTLogInfo(<span class="string">@"Pretending to create an event %@ at %@"</span>, name, location);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>最终展开后的样子(由于篇幅关系具体的展开过程不作描述)：<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">+ (<span class="built_in">NSArray</span> *)__rct_export__531 &#123;</span><br><span class="line">    <span class="keyword">return</span> @[<span class="string">@""</span>, <span class="string">@"addEvent:(NSString *)name location:(NSString *)location"</span>, @NO];</span><br><span class="line">&#125;</span><br><span class="line">- (<span class="keyword">void</span>)addEvent:(<span class="built_in">NSString</span> *)name location:(<span class="built_in">NSString</span> *)location &#123;</span><br><span class="line">    RCTLogInfo(<span class="string">@"Pretending to create an event %@ at %@"</span>, name, location);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可以看到通过宏添加了一个新方法，其命名规则：<code>__rct_export__</code>+<code>__LINE__</code>+<code>__COUNTER__</code>。同时注意到，所有曝露给 JS 的方法返回值都是 <code>void</code>，要返回结果时，需通过 callback 方式实现。</p>
+<blockquote>
+<p>优雅、巧妙地使用宏充满技巧。</p>
+</blockquote>
+<p>上面介绍的<code>RCT_EXPORT_MODULE</code>以及<code>RCT_EXPORT_METHOD</code>宏属于编译阶段的处理，下面我们从执行角度一步一步进行分析。<br><img src="/img/RNTimingDiagram.png" alt=""><br>上图是RN 初始化过程的时序图，我们将沿着图中的步骤逐步分析。</p>
+<h2 id="注册NativeModule"><a href="#注册NativeModule" class="headerlink" title="注册NativeModule"></a>注册NativeModule</h2><p><img src="/img/RCTCxxBrigdeInitModulesWithDispatchGroup.png" alt=""><br>通过上述坐标，最终定位到<code>RCTCxxBridge._initModulesWithDispatchGroup</code>：<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="keyword">void</span>)_initModulesWithDispatchGroup:(dispatch_group_t)dispatchGroup</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSMutableArray</span>&lt;Class&gt; *moduleClassesByID = [<span class="built_in">NSMutableArray</span> new];</span><br><span class="line">    <span class="built_in">NSMutableArray</span>&lt;RCTModuleData *&gt; *moduleDataByID = [<span class="built_in">NSMutableArray</span> new];</span><br><span class="line">    <span class="built_in">NSMutableDictionary</span>&lt;<span class="built_in">NSString</span> *, RCTModuleData *&gt; *moduleDataByName = [<span class="built_in">NSMutableDictionary</span> new];</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Set up moduleData for automatically-exported modules</span></span><br><span class="line">    <span class="keyword">for</span> (Class moduleClass <span class="keyword">in</span> RCTGetModuleClasses()) &#123;</span><br><span class="line">        <span class="built_in">NSString</span> *moduleName = RCTBridgeModuleNameForClass(moduleClass);</span><br><span class="line">        moduleData = [[RCTModuleData alloc] initWithModuleClass:moduleClass bridge:<span class="keyword">self</span>];</span><br><span class="line">       </span><br><span class="line">        moduleDataByName[moduleName] = moduleData;</span><br><span class="line">        [moduleClassesByID addObject:moduleClass];</span><br><span class="line">        [moduleDataByID addObject:moduleData];       </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Store modules</span></span><br><span class="line">    _moduleDataByID = [moduleDataByID <span class="keyword">copy</span>];</span><br><span class="line">    _moduleDataByName = [moduleDataByName <span class="keyword">copy</span>];</span><br><span class="line">    _moduleClassesByID = [moduleClassesByID <span class="keyword">copy</span>];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>上述代码第<code>8</code>行<code>RCTGetModuleClasses()</code>即是获取通过<code>RCTRegisterModule</code>注册的 module 类(即所有曝露给 JS 的类)；</li>
+<li>通过<code>RCTRegisterModule</code>注册的 module 默认使用<code>init</code>方法进行初始化，若某个 module 的初始化需要参数，可通过<code>RCTBridgeDelegate</code>-&gt;<code>extraModulesForBridge</code>或<code>moduleProvider</code>提供已初始化的 module 实例。</li>
+</ul>
+<p>至此，所有需要曝露给 JS 的 module 都已注册完成，并以<code>RCTModuleData</code>格式存储在<code>RCTCxxBridge</code>中。</p>
+<blockquote>
+<p>大部分 module 都是懒加载，只有那些需要在主线程完成初始化以及有常量需要导出的 module才会在注册时实例化。</p>
+</blockquote>
+<h2 id="Instance"><a href="#Instance" class="headerlink" title="Instance"></a>Instance</h2><p><img src="/img/JSCExecutor.png" alt=""><br>坐标定位到<code>RCTCxxBridge._initializeBridge</code>方法中：<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="keyword">void</span>)_initializeBridge:(std::shared_ptr&lt;JSExecutorFactory&gt;)executorFactory</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (_reactInstance) &#123;</span><br><span class="line">        _reactInstance-&gt;initializeBridge(</span><br><span class="line">          std::unique_ptr&lt;RCTInstanceCallback&gt;(new RCTInstanceCallback(<span class="keyword">self</span>)),</span><br><span class="line">          executorFactory,</span><br><span class="line">          _jsMessageThread,</span><br><span class="line">          [<span class="keyword">self</span> _buildModuleRegistry]);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><code>_initializeBridge</code>方法做的最重要的事情就是初始化<code>Instance</code>实例<code>_reactInstance</code>，此过程将所有曝露给 JS 的 module 由<code>RCTModuleData</code>格式转化为<code>ModuleRegistry</code>格式传入<code>Instance</code>。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="built_in">std</span>::<span class="built_in">shared_ptr</span>&lt;ModuleRegistry&gt;)_buildModuleRegistry</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">auto</span> registry = <span class="built_in">std</span>::make_shared&lt;ModuleRegistry&gt;(createNativeModules(_moduleDataByID, self, _reactInstance));</span><br><span class="line">    <span class="keyword">return</span> registry;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>此时，有必要介绍与 NativeModule 有关的几个类：<br><img src="/img/NativeModuleClassDiagram.png" alt=""></p>
+<ul>
+<li><code>JSCNativeModules</code>——<code>C++</code>类，在<code>JSCExecutor</code>中使用；</li>
+<li><code>ModuleRegistry</code>——<code>C++</code>类，是<code>NativeModule</code>的集合；</li>
+<li><code>NativeModule</code>——<code>C++</code>抽象类，定义了与 NativeModule 有关的接口；</li>
+<li><code>RCTNativeModule</code>——实现了<code>NativeModule</code>中定义的接口；</li>
+<li><code>RCTModuleData</code>——<code>OC</code>类，是存储曝露的moudle 的数据结构；</li>
+<li><code>RCTBridgeMethod</code>——<code>OC</code>类，是存储曝露给 JS 接口(方法)的数据结构。</li>
+</ul>
+<p><code>Instance</code>是一个中转类，没有做太多的事情，我们继续向前。</p>
+<h2 id="NativeToJsBridge"><a href="#NativeToJsBridge" class="headerlink" title="NativeToJsBridge"></a>NativeToJsBridge</h2><p>此时，来到<code>Instance::initializeBridge</code>-&gt;<code>NativeToJsBridge::NativeToJsBridge</code>，很明显<code>NativeToJsBridge</code>是 Native to JS 的桥接。<br>所有从 Native 到 JS 的调用都是从<code>NativeToJsBridge</code>中的接口发出去的。<br>在其构造函数中会初始化两个成员变量：</p>
+<ul>
+<li><code>m_executor</code>—<code>JSExecutor</code>类型的指针，从上文可知<code>JSExecutor</code>是个 <code>C++</code>抽象类，<code>m_executor</code>实际指向<code>JSCExecutor</code>的实例，作为 JS 的引擎，无论是 Native to JS 还是 JS to Native 最终都需要该类来处理，后面我们会逐一分析；</li>
+<li><code>m_delegate</code>—<code>JsToNativeBridge</code>类型的指针，顾名思义，JS to Native 的桥接，该成员变量仅用于初始化<code>JSCExecutor</code>实例。</li>
+</ul>
+<h2 id="JSCExecutor"><a href="#JSCExecutor" class="headerlink" title="JSCExecutor"></a>JSCExecutor</h2><p>坐标定位到<code>NativeToJsBridge::NativeToJsBridge</code>-&gt;<code>JSCExecutor::JSCExecutor</code>：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">JSCExecutor::JSCExecutor(<span class="built_in">std</span>::<span class="built_in">shared_ptr</span>&lt;ExecutorDelegate&gt; delegate,</span><br><span class="line">                         <span class="built_in">std</span>::<span class="built_in">shared_ptr</span>&lt;MessageQueueThread&gt; messageQueueThread,</span><br><span class="line">                         <span class="keyword">const</span> folly::dynamic&amp; jscConfig) <span class="keyword">throw</span>(JSException) :</span><br><span class="line">                         m_delegate(delegate),</span><br><span class="line">                         m_messageQueueThread(messageQueueThread),</span><br><span class="line">                         m_nativeModules(delegate ? delegate-&gt;getModuleRegistry() : <span class="literal">nullptr</span>),</span><br><span class="line">                         m_jscConfig(jscConfig) &#123;</span><br><span class="line">    initOnJSVMThread();</span><br><span class="line">    installGlobalProxy(m_context, <span class="string">"nativeModuleProxy"</span>,</span><br><span class="line">                       exceptionWrapMethod&lt;&amp;JSCExecutor::getNativeModule&gt;());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><code>JSCExecutor</code>的构造函数做了一条非常重要的事情：<strong><em>在 JS Context 中设置了一个全局代理<code>nativeModuleProxy</code>，其最终指向<code>JSCExecutor</code>类的<code>getNativeModule</code>方法</em></strong>。<br>至于说<code>nativeModuleProxy</code>为什么非常重要，留个悬念，后文再解，我们先看看<code>installGlobalProxy</code>。<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">installGlobalProxy</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    JSGlobalContextRef ctx,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">const</span> <span class="keyword">char</span>* name,</span></span></span><br><span class="line"><span class="function"><span class="params">    JSObjectGetPropertyCallback callback)</span> </span>&#123;</span><br><span class="line">  JSClassDefinition proxyClassDefintion = kJSClassDefinitionEmpty;</span><br><span class="line">  proxyClassDefintion.attributes |= kJSClassAttributeNoAutomaticPrototype;</span><br><span class="line">  proxyClassDefintion.getProperty = callback;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> <span class="keyword">bool</span> isCustomJSC = isCustomJSCPtr(ctx);</span><br><span class="line">  JSClassRef proxyClass = JSC_JSClassCreate(isCustomJSC, &amp;proxyClassDefintion);</span><br><span class="line">  JSObjectRef proxyObj = JSC_JSObjectMake(ctx, proxyClass, <span class="literal">nullptr</span>);</span><br><span class="line">  JSC_JSClassRelease(isCustomJSC, proxyClass);</span><br><span class="line"></span><br><span class="line">  Object::getGlobalObject(ctx).setProperty(name, Value(ctx, proxyObj));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>结合上面两段代码总结一下：</p>
+<ul>
+<li><code>nativeModuleProxy</code>在JS Context 中是一个具有<code>JSObjectGetPropertyCallback</code>属性的对象(object)；</li>
+<li><code>JSObjectGetPropertyCallback</code>非常神奇，其特点是在 JS 中访问对象属性(object.propertyName)时会触发 callback；</li>
+<li><code>nativeModuleProxy</code>对应的 callback 最终会调用<code>JSCExecutor::getNativeModule</code>。</li>
+</ul>
+<p>在<code>JSCExecutor</code>构造函数中还调用了<code>initOnJSVMThread</code>方法：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> JSCExecutor::initOnJSVMThread()  &#123;</span><br><span class="line">    installNativeHook&lt;&amp;JSCExecutor::nativeFlushQueueImmediate&gt;(<span class="string">"nativeFlushQueueImmediate"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><code>initOnJSVMThread</code>方法中有个值得关注的点：在 JS Context 中 hook 了<code>JSCExecutor::nativeFlushQueueImmediate</code>。<br>简单讲，hook 后，在 JS 中调用<code>global.nativeFlushQueueImmediate(...)</code>，实际调用 Native 的<code>JSCExecutor::nativeFlushQueueImmediate</code>方法。<br>另外，在构造函数中也将native module 注册信息转换为<code>JSCNativeModules</code>格式存储了下来。</p>
+<h2 id="JsToNativeBridge"><a href="#JsToNativeBridge" class="headerlink" title="JsToNativeBridge"></a>JsToNativeBridge</h2><p>坐标定位到<code>NativeToJsBridge::NativeToJsBridge</code>-&gt;<code>JsToNativeBridge::JsToNativeBridge</code>：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">JsToNativeBridge(<span class="built_in">std</span>::<span class="built_in">shared_ptr</span>&lt;ModuleRegistry&gt; registry,</span><br><span class="line">                 <span class="built_in">std</span>::<span class="built_in">shared_ptr</span>&lt;InstanceCallback&gt; callback)</span><br><span class="line">  : m_registry(registry)</span><br><span class="line">  , m_callback(callback) &#123;&#125;</span><br></pre></td></tr></table></figure></p>
+<p>沿着调用链一路下来，最终 module 注册信息传入<code>JsToNativeBridge</code>，随后 JS to Native 的调用将用到这份信息。<br>至此，RN 初始化过程中与本文讨论的通信机制相关的内容基本结束。总结下来大概有几点：</p>
+<ul>
+<li>收集了所有曝露给 JS 的 module(也可称之为生成了一份 native module 注册表)；</li>
+<li>在 JS Context 中设置了<code>nativeModuleProxy</code>以及<code>nativeFlushQueueImmediate</code>；</li>
+<li>初始化了相关的类，如：<code>NativeToJsBridge</code>、<code>JsToNativeBridge</code>以及<code>JSCExecutor</code>等。</li>
+</ul>
+<p>现在可以说是『万事具备，只欠东风』——由 JS 发起对 Native 的调用了。<br>下面我们沿着调用路径继续往下分析。</p>
+<h2 id="JS-NativeModules"><a href="#JS-NativeModules" class="headerlink" title="JS NativeModules"></a>JS NativeModules</h2><blockquote>
+<p>这小节我们在 JS 中^-^</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// JS</span></span><br><span class="line"><span class="keyword">import</span> &#123; NativeModules &#125; <span class="keyword">from</span> <span class="string">'react-native'</span>;</span><br><span class="line"><span class="keyword">var</span> CalendarManager = NativeModules.CalendarManager;</span><br><span class="line">CalendarManager.addEvent(<span class="string">'Birthday Party'</span>, <span class="string">'4 Privet Drive, Surrey'</span>);</span><br></pre></td></tr></table></figure>
+<p>回到之前那个例子，其调用的是<code>CalendarManager</code>module 的<code>addEvent:location:</code>方法。<br>展开上面的调用，最终的形式是：<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">NativeModules.CalendarManager.addEvent(<span class="string">'Birthday Party'</span>, <span class="string">'4 Privet Drive, Surrey'</span>)</span><br></pre></td></tr></table></figure></p>
+<p><code>NativeModules</code>定义在node_modules-&gt;react-native-&gt;Libraries-&gt;BatchedBridge-&gt;NativeModules.js。<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> NativeModules : &#123;[moduleName: string]: <span class="built_in">Object</span>&#125; = &#123;&#125;;</span><br><span class="line"><span class="keyword">if</span> (global.nativeModuleProxy) &#123;</span><br><span class="line">  NativeModules = global.nativeModuleProxy;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><code>nativeModuleProxy</code>正是上文提到的，由 Native 注入 JS 的具有<code>JSObjectGetPropertyCallback</code>属性的 object。<br>因此，JS 中的<code>NativeModules.CalendarManager</code>(取属性值)等价于调用：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">JSCExecutor::getNativeModule(NativeModules, `CalendarManager`)</span><br></pre></td></tr></table></figure></p>
+<p>格式化：<br>JS中<code>NativeModules.moduleName</code> 等价于 Native 的：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">JSCExecutor::getNativeModule(NativeModules, `moduleName`)</span><br></pre></td></tr></table></figure></p>
+<p>也这是为什么说<code>nativeModuleProxy</code>非常重要的原因，所有从 JS to Native 的调用都需要其作为中间代理。<br>此时，又要切入 Native 环境了。</p>
+<h2 id="ModuleRegistry-getConfig"><a href="#ModuleRegistry-getConfig" class="headerlink" title="ModuleRegistry::getConfig"></a>ModuleRegistry::getConfig</h2><p>由于接下来马上要用到 nativemodule 的信息，在此先提前准备好。<br>定位到<code>ModuleRegistry::getConfig</code>，通过上文可知在<code>ModuleRegistry</code>中存储了 nativemodule 的信息，<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">folly::Optional&lt;ModuleConfig&gt; ModuleRegistry::getConfig(<span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; name) &#123;</span><br><span class="line">    <span class="keyword">auto</span> it = modulesByName_.find(name);</span><br><span class="line">    NativeModule* <span class="keyword">module</span> = modules_[it-&gt;second].get();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// string name, object constants, array methodNames (methodId is index), [array promiseMethodIds], [array syncMethodIds]</span></span><br><span class="line">    folly::dynamic config = folly::dynamic::<span class="built_in">array</span>(name);</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;MethodDescriptor&gt; methods = <span class="keyword">module</span>-&gt;getMethods();</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; descriptor : methods) &#123;</span><br><span class="line">        methodNames.push_back(<span class="built_in">std</span>::move(descriptor.name));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!methodNames.empty()) &#123;</span><br><span class="line">        config.push_back(<span class="built_in">std</span>::move(methodNames));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ModuleConfig(&#123;it-&gt;second, config&#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><code>getConfig</code>方法最终将 native module 信息组装成一个数组，其格式：<br>[modulename, module 导出的 constants, [methodNames], [promiseMethodIds], [syncMethodIds]]<br>下面是<code>RCTWebSocketModule</code>导出的信息：<br><img src="/img/NativeModuleConfig.jpg" alt=""></p>
+<p>在这过程中<code>RCTModuleData.methods</code>起到关键作用：<br>ModuleRegistry::getConfig-&gt;RCTNativeModule::getMethods-&gt;RCTModuleData.methods<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RCTModuleData.m</span></span><br><span class="line">- (<span class="built_in">NSArray</span>&lt;<span class="keyword">id</span>&lt;RCTBridgeMethod&gt;&gt; *)methods</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (!_methods) &#123;</span><br><span class="line">        <span class="built_in">NSMutableArray</span>&lt;<span class="keyword">id</span>&lt;RCTBridgeMethod&gt;&gt; *moduleMethods = [<span class="built_in">NSMutableArray</span> new];</span><br><span class="line">        <span class="keyword">unsigned</span> <span class="keyword">int</span> methodCount;</span><br><span class="line">        Class cls = _moduleClass;</span><br><span class="line">        <span class="keyword">while</span> (cls &amp;&amp; cls != [<span class="built_in">NSObject</span> <span class="keyword">class</span>] &amp;&amp; cls != [<span class="built_in">NSProxy</span> <span class="keyword">class</span>]) &#123;</span><br><span class="line">            Method *methods = class_copyMethodList(object_getClass(cls), &amp;methodCount);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">unsigned</span> <span class="keyword">int</span> i = <span class="number">0</span>; i &lt; methodCount; i++) &#123;</span><br><span class="line">                Method method = methods[i];</span><br><span class="line">                SEL selector = method_getName(method);</span><br><span class="line">                <span class="keyword">if</span> ([<span class="built_in">NSStringFromSelector</span>(selector) hasPrefix:<span class="string">@"__rct_export__"</span>]) &#123;</span><br><span class="line">                    IMP imp = method_getImplementation(method);</span><br><span class="line">                    <span class="built_in">NSArray</span> *entries = ((<span class="built_in">NSArray</span> *(*)(<span class="keyword">id</span>, SEL))imp)(_moduleClass, selector);</span><br><span class="line">                    <span class="keyword">id</span>&lt;RCTBridgeMethod&gt; moduleMethod =</span><br><span class="line">                    [[RCTModuleMethod alloc] initWithMethodSignature:entries[<span class="number">1</span>]</span><br><span class="line">                                                JSMethodName:entries[<span class="number">0</span>]</span><br><span class="line">                                                      isSync:((<span class="built_in">NSNumber</span> *)entries[<span class="number">2</span>]).boolValue</span><br><span class="line">                                                 moduleClass:_moduleClass];</span><br><span class="line"></span><br><span class="line">                    [moduleMethods addObject:moduleMethod];</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> _methods;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><code>__rct_export__</code>是不是很熟悉，<code>RCTModuleData.methods</code>会遍历所有以<code>__rct_export__</code>为前缀的方法并执行以导出曝露给 JS 的接口。</p>
+<h2 id="JSCNativeModules-createModule"><a href="#JSCNativeModules-createModule" class="headerlink" title="JSCNativeModules::createModule"></a>JSCNativeModules::createModule</h2><p>书接前文，JS to Native<br>NativeModules.moduleName(JS)-&gt;JSCExecutor::getNativeModule-&gt;JSCNativeModules::getModule-&gt;JSCNativeModules::createModule<br>沿调用链来到<code>JSCNativeModules::createModule</code>:<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">folly::Optional&lt;Object&gt; JSCNativeModules::createModule(<span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; name, JSContextRef context) &#123;</span><br><span class="line">  <span class="keyword">if</span> (!m_genNativeModuleJS) &#123;</span><br><span class="line">    <span class="keyword">auto</span> global = Object::getGlobalObject(context);</span><br><span class="line">    m_genNativeModuleJS = global.getProperty(<span class="string">"__fbGenNativeModule"</span>).asObject();</span><br><span class="line">    m_genNativeModuleJS-&gt;makeProtected();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">auto</span> result = m_moduleRegistry-&gt;getConfig(name);</span><br><span class="line">  Value moduleInfo = m_genNativeModuleJS-&gt;callAsFunction(&#123;</span><br><span class="line">    Value::fromDynamic(context, result-&gt;config),</span><br><span class="line">    Value::makeNumber(context, result-&gt;index)</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  folly::Optional&lt;Object&gt; <span class="keyword">module</span>(moduleInfo.asObject().getProperty(<span class="string">"module"</span>).asObject());</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">module</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p> 在<code>createModule</code>方法中，通过<code>ModuleRegistry::getConfig</code>(第<code>8</code>行)拿到了要调用的 native module 的信息(包括导出的常量、曝露的接口等)。<br>同时获取了 JS Context 中名为<code>__fbGenNativeModule</code>的属性(第<code>4</code>行)，从名称可知其作用是生成 JS 端的 Native Module 信息。<br><code>__fbGenNativeModule</code>定义在<code>NativeModules.js</code>中<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// export this method as a global so we can call it from native</span></span><br><span class="line">global.__fbGenNativeModule = genModule;</span><br></pre></td></tr></table></figure></p>
+<h2 id="NativeModules-genModule"><a href="#NativeModules-genModule" class="headerlink" title="NativeModules.genModule"></a>NativeModules.genModule</h2><p>NativeModules.moduleName(JS)-&gt;JSCExecutor::getNativeModule-&gt;JSCNativeModules::getModule-&gt;JSCNativeModules::createModule-&gt;NativeModules. genModule(JS)<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">genModule</span>(<span class="params">config: ?ModuleConfig, moduleID: number</span>): ?</span>&#123;name: string, <span class="built_in">module</span>?: <span class="built_in">Object</span>&#125; &#123;</span><br><span class="line">    <span class="keyword">const</span> [moduleName, constants, methods, promiseMethods, syncMethods] = config;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> <span class="built_in">module</span> = &#123;&#125;;</span><br><span class="line">    methods &amp;&amp; methods.forEach(<span class="function">(<span class="params">methodName, methodID</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">const</span> methodType = isPromise ? <span class="string">'promise'</span> : isSync ? <span class="string">'sync'</span> : <span class="string">'async'</span>;</span><br><span class="line">        <span class="built_in">module</span>[methodName] = genMethod(moduleID, methodID, methodType);</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="built_in">Object</span>.assign(<span class="built_in">module</span>, constants);</span><br><span class="line">    <span class="keyword">return</span> &#123; <span class="attr">name</span>: moduleName, <span class="built_in">module</span> &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><code>genModule</code>会遍历传入的<code>methods</code>数组，分别调用<code>genMethod</code>生成 JS 侧的方法：<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">genMethod</span>(<span class="params">moduleID: number, methodID: number, type: MethodType</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">let</span> fn = <span class="literal">null</span>;</span><br><span class="line">    fn = <span class="function"><span class="keyword">function</span>(<span class="params">...args: Array&lt;any&gt;</span>) </span>&#123;</span><br><span class="line">        args = args.slice(<span class="number">0</span>, args.length - callbackCount);</span><br><span class="line">        BatchedBridge.enqueueNativeCall(moduleID, methodID, args, onFail, onSuccess);</span><br><span class="line">    &#125;;</span><br><span class="line">    fn.type = type;</span><br><span class="line">    <span class="keyword">return</span> fn;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><code>genMethod</code>生成的函数非常简单，只是将对 native 的调用信息入队。<br>至此，由<code>NativeModules.moduleName</code>发起的调用链终于结束，最终返回结果：以 <code>methodName</code> 为 key，<code>genMethod</code> 生成的 function 为 value 的 JS object。即<code>NativeModules.moduleName</code>等价于<code>{methodName: fn}</code>。</p>
+<blockquote>
+<p>JS 中的 moduleID、methodID 对应 native moudle注册表中的数组下标。</p>
+</blockquote>
+<p>当然，事情并没有结束，继续扩展<code>NativeModules.moduleName.methodName(args)</code>。<br>通过上述分析，可知：<br><code>NativeModules.moduleName.methodName(args)</code>等价于：<br><code>BatchedBridge.enqueueNativeCall(moduleID, methodID, args, onFail, onSuccess)</code></p>
+<h2 id="MessageQueue-enqueueNativeCall"><a href="#MessageQueue-enqueueNativeCall" class="headerlink" title="MessageQueue.enqueueNativeCall"></a>MessageQueue.enqueueNativeCall</h2><p><code>NativeModules.moduleName.methodName</code>-&gt;<code>BatchedBridge.enqueueNativeCall</code><br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> MessageQueue = <span class="built_in">require</span>(<span class="string">'MessageQueue'</span>);</span><br><span class="line"><span class="keyword">const</span> BatchedBridge = <span class="keyword">new</span> MessageQueue();</span><br></pre></td></tr></table></figure></p>
+<p>可以看到<code>BatchedBridge</code>就是<code>MessageQueue</code><br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">  enqueueNativeCall(moduleID: number, <span class="attr">methodID</span>: number, <span class="attr">params</span>: <span class="built_in">Array</span>&lt;any&gt;, <span class="attr">onFail</span>: ?<span class="built_in">Function</span>, <span class="attr">onSucc</span>: ?<span class="built_in">Function</span>) &#123;</span><br><span class="line">    <span class="keyword">this</span>._queue[MODULE_IDS].push(moduleID);</span><br><span class="line">    <span class="keyword">this</span>._queue[METHOD_IDS].push(methodID);</span><br><span class="line">    <span class="keyword">this</span>._queue[PARAMS].push(params);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> now = <span class="keyword">new</span> <span class="built_in">Date</span>().getTime();</span><br><span class="line">    <span class="keyword">if</span> (global.nativeFlushQueueImmediate &amp;&amp;</span><br><span class="line">        (now - <span class="keyword">this</span>._lastFlush &gt;= MIN_TIME_BETWEEN_FLUSHES_MS ||</span><br><span class="line">         <span class="keyword">this</span>._inCall === <span class="number">0</span>)) &#123;</span><br><span class="line">        <span class="keyword">var</span> queue = <span class="keyword">this</span>._queue;</span><br><span class="line">        <span class="keyword">this</span>._queue = [[], [], [], <span class="keyword">this</span>._callID];</span><br><span class="line">        <span class="keyword">this</span>._lastFlush = now;</span><br><span class="line">        global.nativeFlushQueueImmediate(queue);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在<code>enqueueNativeCall</code>方法中将调用信息(moduleID、methodID、params等入队)，若离上一次 flush queue 的时间超过5ms(<code>MIN_TIME_BETWEEN_FLUSHES_MS</code>)则立即 flush queue(出于性能考虑)。<br>对<code>nativeFlushQueueImmediate</code>是否还有影像？(在<code>JSCExecutor</code>构造函数中讲过了^_^)<br><code>global.nativeFlushQueueImmediate(queue)</code>等价于<code>JSCExecutor::nativeFlushQueueImmediate(queue)</code></p>
+<h2 id="JsToNativeBridge-callNativeModules"><a href="#JsToNativeBridge-callNativeModules" class="headerlink" title="JsToNativeBridge::callNativeModules"></a>JsToNativeBridge::callNativeModules</h2><p><code>JSCExecutor::nativeFlushQueueImmediate</code>-&gt;<code>JSCExecutor::flushQueueImmediate</code>-&gt;<code>JsToNativeBridge::callNativeModules</code><br>沿着调用链，定位到<code>JsToNativeBridge::callNativeModules</code>。<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">callNativeModules</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    JSExecutor&amp; executor, folly::dynamic&amp;&amp; calls, <span class="keyword">bool</span> isEndOfBatch)</span> override </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; call : parseMethodCalls(<span class="built_in">std</span>::move(calls))) &#123;</span><br><span class="line">        m_registry-&gt;callNativeMethod(call.moduleId, call.methodId, <span class="built_in">std</span>::move(call.arguments), call.callId);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">`callNativeModules`会逐个解析从 JS 传过来的 call <span class="built_in">queue</span> 中的每个调用。</span><br><span class="line">```cpp</span><br><span class="line"><span class="keyword">void</span> ModuleRegistry::callNativeMethod(<span class="keyword">unsigned</span> <span class="keyword">int</span> moduleId, <span class="keyword">unsigned</span> <span class="keyword">int</span> methodId, folly::dynamic&amp;&amp; params, <span class="keyword">int</span> callId) &#123;</span><br><span class="line">    modules_[moduleId]-&gt;invoke(methodId, <span class="built_in">std</span>::move(params), callId);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>沿着调用链后面还有一些细节问题，由于篇幅关系，不再展开，主要如下：<br><img src="/img/RCTNativeModuleinvoke.jpg" alt=""><br><img src="/img/RCTModuleMethodinvokeWithBridge.jpg" alt=""><br>最终在<code>RCTModuleMethod.invokeWithBridge</code>中执行了调用<code>[_invocation invokeWithTarget:module];</code><br>至此，从 JS to Native 的调用结束！</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>JS to Native 的调用时序图：<br><img src="/img/JSToNativeCallTimingDiagram.png" alt=""><br>整个过程大概分为两个阶段：</p>
+<ul>
+<li>NativeModules.moduleName — 该过程主要是获取 native module 的信息(moduleID、methodID)，最终封装为 JS object ({methodName: fn})；</li>
+<li>NativeModules.moduleName.methodName(params) — 执行调用。</li>
+</ul>
+<p>今天就到这了，下篇我们将分析 Native to JS。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag"># iOS</a>
+          
+            <a href="/tags/框架/" rel="tag"># 框架</a>
+          
+            <a href="/tags/ReactNative/" rel="tag"># ReactNative</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/05/07/Multithreading-Traps/" rel="next" title="Multithreading Traps">
+                <i class="fa fa-chevron-left"></i> Multithreading Traps
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/10/12/ReactNativeCommunicationMechanism2/" rel="prev" title="ReactNative源码解析——通信机制详解(2/2)">
+                ReactNative源码解析——通信机制详解(2/2) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#准备工作"><span class="nav-number">2.</span> <span class="nav-text">准备工作</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#JavaScript—-gt-Native"><span class="nav-number">3.</span> <span class="nav-text">JavaScript—&gt;Native</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#RCT-EXPORT-MODULE"><span class="nav-number">3.1.</span> <span class="nav-text">RCT_EXPORT_MODULE</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RCT-EXPORT-METHOD"><span class="nav-number">3.2.</span> <span class="nav-text">RCT_EXPORT_METHOD</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注册NativeModule"><span class="nav-number">3.3.</span> <span class="nav-text">注册NativeModule</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Instance"><span class="nav-number">3.4.</span> <span class="nav-text">Instance</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NativeToJsBridge"><span class="nav-number">3.5.</span> <span class="nav-text">NativeToJsBridge</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JSCExecutor"><span class="nav-number">3.6.</span> <span class="nav-text">JSCExecutor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JsToNativeBridge"><span class="nav-number">3.7.</span> <span class="nav-text">JsToNativeBridge</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JS-NativeModules"><span class="nav-number">3.8.</span> <span class="nav-text">JS NativeModules</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ModuleRegistry-getConfig"><span class="nav-number">3.9.</span> <span class="nav-text">ModuleRegistry::getConfig</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JSCNativeModules-createModule"><span class="nav-number">3.10.</span> <span class="nav-text">JSCNativeModules::createModule</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NativeModules-genModule"><span class="nav-number">3.11.</span> <span class="nav-text">NativeModules.genModule</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MessageQueue-enqueueNativeCall"><span class="nav-number">3.12.</span> <span class="nav-text">MessageQueue.enqueueNativeCall</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JsToNativeBridge-callNativeModules"><span class="nav-number">3.13.</span> <span class="nav-text">JsToNativeBridge::callNativeModules</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小结"><span class="nav-number">3.14.</span> <span class="nav-text">小结</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

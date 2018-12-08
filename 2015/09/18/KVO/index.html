@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="iOS,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本文讨论了 KVO 若干有趣的特性，并将 KVO 与其他通信方式进行了比较，最后深入分析了 KVO 内部实现机制。">
+<meta name="keywords" content="iOS">
+<meta property="og:type" content="article">
+<meta property="og:title" content="KVO漫谈">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2015/09/18/KVO/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本文讨论了 KVO 若干有趣的特性，并将 KVO 与其他通信方式进行了比较，最后深入分析了 KVO 内部实现机制。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/MVC.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/printClassInfo.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/KVO1.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/KVOResult1.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/printNamesStr.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/printNamesStrResult.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/printIMP.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/NSSetLongLongValueAndNotify.png">
+<meta property="og:updated_time" content="2018-12-08T08:41:32.858Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="KVO漫谈">
+<meta name="twitter:description" content="本文讨论了 KVO 若干有趣的特性，并将 KVO 与其他通信方式进行了比较，最后深入分析了 KVO 内部实现机制。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/MVC.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2015/09/18/KVO/">
+
+
+
+
+
+  <title>KVO漫谈 | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2015/09/18/KVO/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">KVO漫谈</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-09-18T23:02:28+08:00">
+                2015-09-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2015/09/18/KVO/" class="leancloud_visitors" data-flag-title="KVO漫谈">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  2,018
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  7
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文讨论了 KVO 若干有趣的特性，并将 KVO 与其他通信方式进行了比较，最后深入分析了 KVO 内部实现机制。<br><a id="more"></a><br>©原创文章，转载请注明出处！</p>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
+<p>KVO(Key-Value Observing)对于 iOS 开发者来说应该并不陌生。通过 KVO 机制，当被观察对象的属性值发现变化时观察者能接到相应的通知。为了能接收到正确的 KVO 消息，需要满足以下三点：</p>
+<ul>
+<li>被观察对象的相应属性必须是 KVO 兼容；</li>
+<li>通过<code>addObserver:forKeyPath:options:context:</code>方法注册观察者；</li>
+<li>观察者必须实现<code>observeValueForKeyPath:ofObject:change:context:</code>方法。</li>
+</ul>
+<p>那么何为 KVO 兼容的属性？<br>同样需要满足三点：</p>
+<ul>
+<li>相应属性需要是 KVC 兼容；</li>
+<li>相应属性值改变时需要触发 KVO 消息；</li>
+<li>相关的dependent keys设置正确。</li>
+</ul>
+<p>其中，对于 KVC 兼容的属性，NSObject 已支持在属性值变化时自动发送 KVO 消息。当然也可以禁止 NSObject 的该功能，改为由手动实现，此时，只需重载<code>automaticallyNotifiesObserversForKey:</code>方法，对于需要禁止 KVO 的 key 返回 NO 即可。</p>
+<p>关于 KVO 有几个点值得一提：</p>
+<ul>
+<li><p>Dependent Keys：<br>在 KVO 所有特性中，最让我心动的莫过于依赖键(Dependent Keys)，简单地说就是某个属性值可以依赖于其他若干个属性，当任何被依赖的属性值改变时，依赖属性就会触发 KVO 消息。对于To-one Relationships，可以通过<code>keyPathsForValuesAffectingValueForKey:</code>或<code>keyPathsForValuesAffecting&lt;Key&gt;</code>方法注册依赖键。</p>
+</li>
+<li><p>NSKeyValueObservingOptionInitial：<br>我们知道 KVO 的触发时机是被观察的属性值发生变化时，但有时可能需要在初始化时就能通过 KVO 获取被观察属性的值，此时就可以在注册观察者时添加<code>NSKeyValueObservingOptionInitial</code>选项。通过该选项，在调用<code>addObserver:forKeyPath:options:context:</code>方法时会同步触发 KVO 消息。</p>
+</li>
+<li><p>NSKeyValueObservingOptionPrior：<br>正常情况下，是在被观察属性的值改变后通过<code>didChangeValueForKey:</code>方法触发 KVO 消息。若在注册观察者时添加<code>NSKeyValueObservingOptionPrior</code>选项，则在属性值改变前，即在<code>willChangeValueForKey:</code>方法中也会触发一次 KVO 消息。此时，被观察属性值的改变会触发两次 KVO 消息，可以通过<code>change</code>中的<code>NSKeyValueChangeNotificationIsPriorKey</code>进行区分。</p>
+</li>
+<li><p>KVO 消息的同步性：<br>首先，KVO 消息的处理与被观察属性值的改变发生在同一线程上，因此<code>observeValueForKeyPath:ofObject:change:context:</code>方法可能会在不同的线程上执行，需要考虑线程安全问题。其次KVO 消息与被观察属性值的改变是同步的，也就是在被观察属性值的<code>setter</code>方法返回前所有的 KVO 消息都已处理完成。</p>
+</li>
+</ul>
+<p>由于本文的定位不是 KVO 教程，关于<a href="https://developer.apple.com/library/ios/documentation/Cocoa/Conceptual/KeyValueObserving/KeyValueObserving.html" target="_blank" rel="noopener">KVO</a>、<a href="https://developer.apple.com/library/ios/documentation/Cocoa/Conceptual/KeyValueCoding/Articles/KeyValueCoding.html" target="_blank" rel="noopener">KVC</a>，Apple 官方有详细的描述，在此不再赘述。</p>
+<h1 id="KVO、Notification、delegate、block"><a href="#KVO、Notification、delegate、block" class="headerlink" title="KVO、Notification、delegate、block"></a>KVO、Notification、delegate、block</h1><hr>
+<p>KVO、NSNotfication、delegate、block这四种方式都可以用于对象间的通信。<br>KVO 与 NSNotification 有很多相似之处，都是一对多的、单向的通信方式，通过它们可以使得模块间较好的解耦。同时它们也有许多相似的缺点。<br>delegate、block 则是一对一的、『半双向』的通信方式。之所以说是『半双向』是因为它们可以有返回值。<br><img src="/img/MVC.jpg" alt=""><br>这是斯坦福大学 iOS 开发公开课里关于讲解 MVC 的一页 PPT，很好地总结了 M、V、C 间通信的规则与方式：</p>
+<ul>
+<li>Model 与 View 间不允许直接通信；</li>
+<li>Controller 作为控制中枢，一般持有 Model 与 View 的 object，能直接与它们通信；</li>
+<li>View 可以通过 delegate 与 Controller 通信以及通过将 Controller 设置为 target 响应来自 View 的事件；</li>
+<li>Model 可以通过 KVO 或 Notification向 Controller 发送消息。</li>
+</ul>
+<p>可以看到，为了充分解耦，Model 与 Controller 间的通信有严格的限制，必须是单向的。<br>由于 View 与 Controller 严格要求是一对一的，两者的关系也更加紧密，故其间的通信 delegate 更加适合。</p>
+<p>个人认为，从设计的角度出发，KVO 与 Notification 没有本质的区别。但前面提到 KVO 有个很棒的特性：Dependent Keys。有时，通过 KVO 的Dependent Keys特性能写出很漂亮的代码。</p>
+<p>比如：界面中某个元素 V 的显示依赖于 Model 中 A、B、C、D 四个属性值，当其中任意属性值发生改变时，界面元素 V 的状态都需要变化。<br>如果，此时选用 Notification 的方式由 Modle 通知 Controller 刷新 UI，需要在A、B、C、D 四个属性值发生变化的地方都抛出 Notification，同时需要将4个属性值通过消息传递给 Controller 以便计算 V 的新状态。<br>若采用 KVO 机制，可以在 Model 中合成一个新的属性M，并且使得 M 依赖于 A、B、C、D，再在 Controller 中观察属性 M 即可。</p>
+<h1 id="KVO陷阱"><a href="#KVO陷阱" class="headerlink" title="KVO陷阱"></a>KVO陷阱</h1><hr>
+<p>KVO 本身存在不少争议，也有人为其开出了长长的『罪行』清单。<br>个人认为 KVO 值得我们关注的缺点有：</p>
+<ul>
+<li><p>string 类型的 key：<br>在 KVO 中所有 key path 都是 string 类型，也就意味着无法通过编译器在编译期发现像拼写错误这类的 warning、error；</p>
+</li>
+<li><p>无法指定响应 KVO 的selector：<br>一个类只能集中在<code>observeValueForKeyPath:ofObject:change:context:</code>方法中处理 KVO 消息，而无法像 NSNotification 那样在注册观察者时指定 selector，这就导致如果某个类观察的属性较多时，在该方法中就会出现长长的<code>if...else...</code>；</p>
+</li>
+<li><p>KVO 消息是隐式的(implicit)：<br>一旦 KVO 相关的观察者注册完毕，其余的事情都由 runtime 完成，虽然符合数据单向流通的设计要求，但在实际开发过程中还是有些困扰，尤其是新人接手老项目时，可能无法意识到修改某个属性的值会产生一系列的影响，不便于问题的调试、跟踪。</p>
+</li>
+</ul>
+<p>当然，使用 KVO 还有一些要注意的地方，处理不好可能会 crash、产生意料之外的结果等，这些都属于编码规范一类的，在此不多作讨论。</p>
+<h1 id="KVO背后的故事"><a href="#KVO背后的故事" class="headerlink" title="KVO背后的故事"></a>KVO背后的故事</h1><hr>
+<p>我们知道被观察属性值发生变化时，观察者能自动收到 KVO 消息，这是如何实现的呢？<br>这一切都要归功于 Objective-C 语言的动态 runtime，<a href="https://www.mikeash.com/pyblog/friday-qa-2009-01-23.html" target="_blank" rel="noopener">mikeash</a>大神对此有过具体分析，在此我们再来梳理一下。<br><img src="/img/printClassInfo.png" alt=""><br><img src="/img/KVO1.png" alt=""><br><img src="/img/KVOResult1.png" alt=""><br>从上述结果我们能得出：</p>
+<ul>
+<li>在某个对象(<code>_observedObject</code>)上添加观察者时，runtime 会为其动态生成一个子类(<code>NSKVONotifying_KVOObserved</code>)，并将被观察对象(<code>_observedObject</code>)的<code>isa</code>指针切换到新生成的子类上；</li>
+<li>在被观察对象(<code>_observedObject</code>)上移除观察者时，其<code>isa</code>指针又会切换回来；</li>
+<li>Apple 君为了隐藏 KVO 的实现细节，在动态生成的子类中重写了<code>class</code>方法，使其返回原有类的信息(当然通过<code>object_getClass</code>获取的<code>isa</code>指针信息是无法隐藏的)。</li>
+</ul>
+<p>我们再来对比一下这两个类都包含了哪些方法(注：printNamesStr只会输出该类自身的方法，不会包含父类的方法)：<br><img src="/img/printNamesStr.png" alt=""><br><img src="/img/printNamesStrResult.png" alt=""></p>
+<p>可以看到在<code>NSKVONotifying_KVOObserved</code>类中重载了<code>setX:</code>、<code>class</code>、<code>dealloc</code>方法，添加了<code>_isKVOA</code>方法。<br>更进一步，我们发现被<code>NSKVONotifying_KVOObserved</code>重载的<code>setX:</code>实际指向全局的：<code>_NSSetLongLongValueAndNotify</code>方法。<br><img src="/img/printIMP.png" alt=""></p>
+<p>针对不同的类型，Apple 实现了以下方法：<br>_NSSetBoolValueAndNotify、_NSSetCharValueAndNotify、_NSSetDoubleValueAndNotify、_NSSetFloatValueAndNotify、_NSSetIntValueAndNotify、_NSSetLongLongValueAndNotify、_NSSetLongValueAndNotify、_NSSetObjectValueAndNotify、_NSSetPointValueAndNotify、_NSSetRangeValueAndNotify、_NSSetRectValueAndNotify、_NSSetShortValueAndNotify、_NSSetSizeValueAndNotify、_NSSetUnsignedCharValueAndNotify、_NSSetUnsignedIntValueAndNotify、_NSSetUnsignedLongLongValueAndNotify、_NSSetUnsignedLongValueAndNotify、_NSSetUnsignedShortValueAndNotify</p>
+<p>这些方法虽没有开源，但其内部实现通过调用栈能所有了解：<br><img src="/img/NSSetLongLongValueAndNotify.png" alt=""><br>在该方法中我们看到了熟悉的<code>willChangeValueForKey:</code>以及<code>didChangeValueForKey:</code>方法的调用。</p>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><hr>
+<p>KVO 通过 runtime 动态机制实现了自动发送 KVO 消息，但正如前文所说 KVO 也存在不少争议，在使用前需要仔细思考，其是否是最佳选项。</p>
+<p>参考资料：<br><a href="https://www.mikeash.com/pyblog/friday-qa-2009-01-23.html" target="_blank" rel="noopener">Friday Q&amp;A 2009-01-23</a><br><a href="https://www.mikeash.com/pyblog/key-value-observing-done-right.html" target="_blank" rel="noopener">Key-Value Observing Done Right</a><br><a href="http://nshipster.com/key-value-observing/" target="_blank" rel="noopener">Key-Value Observing</a><br><a href="https://developer.apple.com/library/ios/documentation/Cocoa/Conceptual/KeyValueObserving/KeyValueObserving.html" target="_blank" rel="noopener">Key-Value Observing Programming Guide</a><br><a href="https://developer.apple.com/library/ios/documentation/Cocoa/Conceptual/KeyValueCoding/Articles/KeyValueCoding.html" target="_blank" rel="noopener">Key-Value Coding Programming Guide</a><br><a href="https://www.objc.io/issues/7-foundation/key-value-coding-and-observing/" target="_blank" rel="noopener">Key-Value Coding and Observing</a><br><a href="http://khanlou.com/2013/12/kvo-considered-harmful/" target="_blank" rel="noopener">KVO Considered Harmful</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag"># iOS</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/09/03/MemoryManagement/" rel="next" title="Inside Memory Management for iOS">
+                <i class="fa fa-chevron-left"></i> Inside Memory Management for iOS
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/01/23/iOSAOP/" rel="prev" title="AOP漫谈">
+                AOP漫谈 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#KVO、Notification、delegate、block"><span class="nav-number">2.</span> <span class="nav-text">KVO、Notification、delegate、block</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#KVO陷阱"><span class="nav-number">3.</span> <span class="nav-text">KVO陷阱</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#KVO背后的故事"><span class="nav-number">4.</span> <span class="nav-text">KVO背后的故事</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#小结"><span class="nav-number">5.</span> <span class="nav-text">小结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

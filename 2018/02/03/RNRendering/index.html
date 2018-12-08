@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="iOS,框架,ReactNative,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本文通过解读 ReactNative 源码，简要分析了 ReactNative 通过 JS 创建、控制 Native 界面的过程。同时，为了完整性，我们也简单介绍了 JSX、 React Element 以及 React Component 等基本概念。">
+<meta name="keywords" content="iOS,框架,ReactNative">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ReactNative源码解析——渲染机制详解">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2018/02/03/RNRendering/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本文通过解读 ReactNative 源码，简要分析了 ReactNative 通过 JS 创建、控制 Native 界面的过程。同时，为了完整性，我们也简单介绍了 JSX、 React Element 以及 React Component 等基本概念。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RCTUIManager.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RCTUIManager_setBridge.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RCT*View.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RCTRootView_initializer.jpeg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RCTRootView_bundleFinishedLoading.jpeg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RCTRootView_runApplication.jpeg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ReactNative_render_createElement.jpeg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/runapplication.jpeg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RCTUIManager_createView.jpeg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RCTShadowViewSubClass.jpeg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/AppComponent.jpeg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/UIManagerCreate.jpeg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/updatePayload.jpeg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/createView_props.jpeg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RCT_EXPORT_SHADOW_PROPERTY.jpeg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RNRender.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/setChildren.jpeg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RCTShadowViewinsertReactSubview.jpeg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/UIViewinsertReactSubview.jpeg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/didUpdateReactSubviews.jpeg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/UIViewdidUpdateReactSubviews.jpeg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/flushUIBlocks.jpeg">
+<meta property="og:updated_time" content="2018-12-08T08:41:32.862Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ReactNative源码解析——渲染机制详解">
+<meta name="twitter:description" content="本文通过解读 ReactNative 源码，简要分析了 ReactNative 通过 JS 创建、控制 Native 界面的过程。同时，为了完整性，我们也简单介绍了 JSX、 React Element 以及 React Component 等基本概念。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/RCTUIManager.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2018/02/03/RNRendering/">
+
+
+
+
+
+  <title>ReactNative源码解析——渲染机制详解 | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2018/02/03/RNRendering/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">ReactNative源码解析——渲染机制详解</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-02-03T11:09:19+08:00">
+                2018-02-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/02/03/RNRendering/" class="leancloud_visitors" data-flag-title="ReactNative源码解析——渲染机制详解">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  3,572
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  15
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文通过解读 ReactNative 源码，简要分析了 ReactNative 通过 JS 创建、控制 Native 界面的过程。同时，为了完整性，我们也简单介绍了 JSX、 React Element 以及 React Component 等基本概念。<br><a id="more"></a><br>©原创文章，转载请注明出处！</p>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
+<p>目前移动端开发模式主要有：Native、Web、Hybrid 三种。其中，由 Web、Hybrid 开发的页面与 Native 有本质的区别，其最终呈现给用户的是 html 页面。<br>React Native 作为近几年新兴的开发模式，由于具有跨平台、动态更新等特性，备受关注。</p>
+<blockquote>
+<p>Build native mobile apps using JavaScript and React</p>
+</blockquote>
+<p>React Native 官方给出的定义，高度概括了其特征：</p>
+<ul>
+<li>RN 开发的 App 是以 React 为框架，通过 JS 实现业务逻辑；</li>
+<li>最终开发出来的页面是纯 Native 的(即呈现给用户的是货真价实的 Native 页面)。</li>
+</ul>
+<p>RN 如何通过 JS 构造 Natvie 页面，正是本文分析的主题。</p>
+<h1 id="JSX-amp-React-Element-amp-React-Component"><a href="#JSX-amp-React-Element-amp-React-Component" class="headerlink" title="JSX &amp; React Element &amp; React Component"></a>JSX &amp; React Element &amp; React Component</h1><hr>
+<p>在开始前，有必要先简要介绍一下 JSX 、React Element 以及 React Component，三者都是来自 React 框架。</p>
+<h2 id="JSX"><a href="#JSX" class="headerlink" title="JSX"></a>JSX</h2><p>JSX 可以简单理解为 JavaScript + XML 的语法糖，如：<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="class"><span class="keyword">class</span> <span class="title">Sample</span> <span class="keyword">extends</span> <span class="title">Component</span> </span>&#123;</span><br><span class="line">  render() &#123;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      &lt;View style=&#123;styles.container&#125;&gt;</span><br><span class="line">        &lt;Text style=&#123;styles.welcome&#125;&gt;</span><br><span class="line">          Welcome to React Native!</span><br><span class="line">        &lt;<span class="regexp">/Text&gt;</span></span><br><span class="line"><span class="regexp">      &lt;/</span>View&gt;</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>由于 JSX 仅是一种语法糖，将 JSX 打包生成 bundle 时，通过 Babel JSX 会被转换成标准的 JavaScript 语法。上述 JSX 代码转换后如下：<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="class"><span class="keyword">class</span> <span class="title">Sample</span> <span class="keyword">extends</span> <span class="title">Component</span> </span>&#123;</span><br><span class="line">  render() &#123;</span><br><span class="line">    <span class="keyword">return</span> React.createElement(</span><br><span class="line">      View,</span><br><span class="line">      &#123; <span class="attr">style</span>: styles.container &#125;,</span><br><span class="line">      React.createElement(</span><br><span class="line">        Text,</span><br><span class="line">        &#123; <span class="attr">style</span>: styles.welcome &#125;,</span><br><span class="line">        <span class="string">'Welcome to React Native!'</span></span><br><span class="line">      )</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p> 通过 <a href="https://babeljs.io/repl/#?presets=react&amp;code_lz=GYVwdgxgLglg9mABACwKYBt1wBQEpEDeAUIogE6pQhlIA8AJjAG4B8AEhlogO5xnr0AhLQD0jVgG4iAXyJA" target="_blank" rel="noopener">『online Babel compiler』</a>可在线实时演示 JSX to JavaScript 的转换。</p>
+</blockquote>
+<p><strong>通过上述转换前后对比可知，JSX 中每个标签都会转换成 <code>React.createElement</code> 调用。</strong></p>
+<blockquote>
+<p>JSX 并不是必须的，可直接调用<code>React.createElement</code>。当然，更加推荐使用 JSX，因其可以更好、更清晰地表达视图层次结构。另外，JSX 是在打包过程中被转换成标准 JavaScript，因此不会有性能问题。</p>
+</blockquote>
+<h2 id="React-Element"><a href="#React-Element" class="headerlink" title="React Element"></a>React Element</h2><blockquote>
+<p>Elements are the smallest building blocks of React apps.</p>
+</blockquote>
+<p>Element(元素)，是 React 中最小的构建单元，如下：<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> element = &lt;h1&gt;Hello, world&lt;/h1&gt;;</span><br></pre></td></tr></table></figure></p>
+<h2 id="React-Component"><a href="#React-Component" class="headerlink" title="React Component"></a>React Component</h2><p>组件 (Component) 在 React 中是一个非常重要的概念，就像在 OOP 世界里一切皆对象，在 React 中一切皆 Component。</p>
+<blockquote>
+<p>Components let you split the UI into independent, reusable pieces, and think about each piece in isolation. ——<a href="https://reactjs.org/docs/react-component.html" target="_blank" rel="noopener">『React.Component』</a><br>React embraces the fact that rendering logic is inherently coupled with other UI logic: how events are handled, how the state changes over time, and how the data is prepared for display. Instead of artificially separating technologies by putting markup and logic in separate files, React separates concerns with loosely coupled units called “components” that contain both.——<a href="https://reactjs.org/docs/introducing-jsx.html#why-jsx" target="_blank" rel="noopener">『Why JSX?』</a></p>
+</blockquote>
+<p>从 React 官方的这两个描述可以总结一下 React Component 的特征：</p>
+<ul>
+<li>独立的、可复用的 UI 单元；</li>
+<li>除了 UI 渲染，根据<a href="https://en.wikipedia.org/wiki/Separation_of_concerns" target="_blank" rel="noopener">『Separation of Concerns (SoC)』</a>设计原则，Component 还需要处理其他业务逻辑，如：用户事件、状态变化、数据展示预处理等。</li>
+</ul>
+<blockquote>
+<p>与此相反，在 Native 开发中，为了提高可复用性，强调将 UI 渲染 (View) 与业务逻辑 (ViewModel) 分离，同时用户事件处理需要在 Controller 中完成。而 React Component 其实更强调的是<strong>独立</strong>与<strong>分离</strong>。</p>
+</blockquote>
+<p>我们在自定义 Component 时，一般继承自抽象基类<code>React.Component</code>，同时需要实现<code>render()</code>方法。通过<code>render()</code>方法可知，React Component 是由 React Element 构成的。</p>
+<blockquote>
+<p>关于 Component 定义、使用相关的细节问题，在此不再赘述，详情可参考<a href="https://reactjs.org/docs/react-component.html" target="_blank" rel="noopener">React.Component</a>、<a href="https://reactjs.org/docs/components-and-props.html" target="_blank" rel="noopener">Components and Props</a></p>
+</blockquote>
+<p>在 RN 中，根组件(root components)需要通过<code>AppRegistry#registerComponent</code>方法进行注册。所谓根组件，可以简单理解为 Native to RN 的入口，Native 在加载 RN bundle 之后可通过<code>AppRegistry#runApplication</code>方法运行指定的根组件，从而进入 RN 的世界。</p>
+<h1 id="Native-UI-Components"><a href="#Native-UI-Components" class="headerlink" title="Native UI Components"></a>Native UI Components</h1><hr>
+<p>我们知道，通过 RN 实现的功能最终呈现给用户的是纯 Native 页面，这些 Native 页面实质是通过预定义的 Native UI Component 组装而成的。<br>因此，更进一步，分析 RN 的渲染机制，就是分析<strong>如何通过 JS 组装、控制  Native UI Component 生成 Native 界面</strong>。<br>没错，继续之前，先简要说说 Native UI Components。</p>
+<h2 id="iOS-MapView-example"><a href="#iOS-MapView-example" class="headerlink" title="iOS MapView example"></a>iOS MapView example</h2><p>了解新事物，最简单的方式莫过于从例子入手(来自RN 官方：<a href="https://facebook.github.io/react-native/docs/native-components-ios.html" target="_blank" rel="noopener">Native UI Components</a>)：<br>该例子封装一个 iOS MapView 组件给 RN 使用。<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Code 1</span></span><br><span class="line"><span class="comment">// RNTMapManager.m</span></span><br><span class="line"><span class="meta">#import <span class="meta-string">&lt;MapKit/MapKit.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#import <span class="meta-string">&lt;React/RCTViewManager.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">RNTMapManager</span> : <span class="title">RCTViewManager</span></span></span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">RNTMapManager</span></span></span><br><span class="line"></span><br><span class="line">RCT_EXPORT_MODULE()</span><br><span class="line"></span><br><span class="line">- (<span class="built_in">UIView</span> *)view</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> [[<span class="built_in">MKMapView</span> alloc] init];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">RCT_EXPORT_VIEW_PROPERTY(zoomEnabled, <span class="built_in">BOOL</span>)</span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Code 2</span></span><br><span class="line"><span class="comment">// MapView.js</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> &#123; requireNativeComponent &#125; <span class="keyword">from</span> <span class="string">'react-native'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// requireNativeComponent automatically resolves 'RNTMap' to 'RNTMapManager'</span></span><br><span class="line"><span class="built_in">module</span>.exports = requireNativeComponent(<span class="string">'RNTMap'</span>, <span class="literal">null</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// MyApp.js</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> MapView <span class="keyword">from</span> <span class="string">'./MapView.js'</span>;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">render() &#123;</span><br><span class="line">  <span class="keyword">return</span> &lt;MapView zoomEnabled=&#123;false&#125; style=&#123;&#123;flex: 1&#125;&#125; /&gt;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上例所示：</p>
+<ul>
+<li><code>MapView</code>(Native UI Component) 需要通过<code>RNTMapManager</code>(<code>RCTViewManager</code>子类)进行管理；</li>
+<li><code>RNTMapManager</code>作为曝露给 RN 的 Native Module，需要添加<code>RCT_EXPORT_MODULE</code>宏；</li>
+<li><code>RNTMapManager</code>需要实现<code>- (UIView *)view</code>方法，用于导出其管理的<code>MapView</code>(UI Component)；</li>
+<li><code>RNTMapManager</code>可以通过<code>RCT_EXPORT_VIEW_PROPERTY</code>宏导出其管理的<code>MapView</code>的属性。</li>
+</ul>
+<p>RN 侧，通过<code>requireNativeComponent</code>方法引入 Native UI Component，实际引入的是 Native UI Component Manager。上例中即是<code>RNTMapManager</code>(Code 2 第<code>7</code>行)。</p>
+<blockquote>
+<p>Native UI Component Manager 在命名上必须以<code>Manager</code>为后缀，在 RN 中引用时省略此后缀(如 Code 2 中第7行所示)。<br>为了描述方便，后文将 Native UI Component Manager 简称为<code>RCTComponentManager</code>，是<code>RCTViewManager</code>的子类。<br>Code 2中第16行使用的<code>zoomEnabled</code>即是 Code 1中第19行导出的属性。</p>
+</blockquote>
+<h2 id="RCTUIManager"><a href="#RCTUIManager" class="headerlink" title="RCTUIManager"></a>RCTUIManager</h2><p>在前一小节示例中，引入了<code>RCTViewManager</code>，此时有必要介绍一下<code>RCTUIManager</code>。<br><img src="/img/RCTUIManager.png" alt=""><br>可以看到，<code>RCTViewManager</code>、<code>RCTUIManager</code>都实现了<code>RCTBridgeModule</code>协议，即都是曝露给 JS 的 Native Module。在<a href="https://zxfcumtcs.github.io/2017/10/08/ReactNativeCommunicationMechanism/">『ReactNative源码解析——通信机制详解(1/2)』</a>一文中，详细介绍了 <code>RCTBridge</code> 是如何管理  Native Module 的，在此不再赘述。<br>在 JS to Native 的渲染流程中，<code>RCTUIManager</code>起到重要作用：包括 Native View 的创建、布局、移除等操作都是通过<code>RCTUIManager</code>完成的。<br><img src="/img/RCTUIManager_setBridge.jpg" alt=""><br>通过上述<code>RCTUIManager#setBridge:</code>方法可知：所有的<code>RCTComponentManager</code>都会以<code>RCTComponentData</code>格式储存在<code>RCTUIManager-&gt;_componentDataByName</code>中。</p>
+<blockquote>
+<p><code>RCTUIManager</code>通过<code>RCTComponentData</code>操作<code>RCTComponentManager</code>，包括创建 component、为 component 设置属性等，具体内容后文会详细介绍。</p>
+</blockquote>
+<h2 id="RCT-View"><a href="#RCT-View" class="headerlink" title="RCT***View"></a>RCT***View</h2><p>在阅读 RN 源码过程中，会发现几个名称相似的 『view』：<code>RCTRootView</code>、<code>RCTRootContentView</code>、<code>RCTView</code>、<code>RCTShadowView</code>以及<code>RCTRootShadowView</code>，它们间的关系如下类图所示：<br><img src="/img/RCT*View.png" alt=""></p>
+<ul>
+<li><code>RCTView</code>——在 RN 中一个较基础的类，主要处理了 view 的 clipe、border等基础功能，UI 组件根据需要可继承自它(如：<code>RCTScrollView</code>)，也可不继承(如：<code>RCTText</code>)；</li>
+<li><p><code>RCTRootView</code>——RN 的入口，也是这几个『view』中唯一曝露给外界的接口。下述引用来自 RN 源码中对<code>RCTRootView</code>的注解。很明显，<code>RCTRootView</code>是『React-managed』view 的载体(root)；此外，在屏幕上可以同时有多个<code>RCTRootViews</code>。</p>
+<blockquote>
+<p>Native view used to host React-managed views within the app.<br>Can be used just like any ordinary UIView.<br>You can have multiple RCTRootViews on screen at once, all controlled by the same JavaScript application.</p>
+</blockquote>
+</li>
+<li><p><code>RCTRootContentView</code>——从其名称即可知其特点『root+content view』，其是所有 RN UI 元素的载体，其本身作为 subview 添加到<code>RCTRootView</code>上；</p>
+</li>
+<li><p><code>RCTShadowView</code>——在 RN 中，每个 UI 组件(view)实例都对应一个<code>RCTShadowView</code>(或其派生类)实例(类似于 <code>UIView</code> 与 <code>CALayer</code> 的关系)，从上面类图可知，虽然其命名以<code>View</code>结尾，但实质并非 View(继承自<code>NSObject</code>)。其主要功能是通过 <a href="https://github.com/facebook/yoga" target="_blank" rel="noopener">facebook-Yoga</a>在子线程(<code>shadow thread</code>)进行布局相关的计算。</p>
+<blockquote>
+<p>在实践中，我们发现同一功能，RN 实现的帧率往往比 Native 实现的更好(也就是更流畅)，与 RN 通过<code>RCTShadowView</code>在子线程进行布局计算密不可分。</p>
+</blockquote>
+</li>
+<li><p><code>RCTRootShadowView</code>——继承自<code>RCTShadowView</code>，与<code>RCTRootContentView</code>一一对应。</p>
+</li>
+</ul>
+<h1 id="渲染流程"><a href="#渲染流程" class="headerlink" title="渲染流程"></a>渲染流程</h1><hr>
+<h2 id="RCTRootView"><a href="#RCTRootView" class="headerlink" title="RCTRootView"></a>RCTRootView</h2><p><code>RCTRootView</code>是 RN 应用(或者说 RN 模块)的入口，分析就从<code>RCTRootView</code>开始。<br><img src="/img/RCTRootView_initializer.jpeg" alt=""><br>如上图所示，<code>RCTRootView</code>提供了两个 initializer 方法，分别接受 <code>RCTBridge</code>(Designated initializer)以及 JSBundleURL(Convenience initializer)。<br>在初始化过程中，<code>RCTBridge</code>(<code>RCTCxxBridge</code>)异步加 JS Bundle，加载完成后会以通知(RCTJavaScriptDidLoadNotification)的形式告知<code>RCTRootView</code>：<br><img src="/img/RCTRootView_bundleFinishedLoading.jpeg" alt=""><br>在<code>RCTRootView#bundleFinishedLoading:</code>方法中，创建了<code>RCTRootContentView</code>并作为 subview 添加到<code>RCTRootView</code>上，同时调用了<code>runApplication</code>方法：<br><img src="/img/RCTRootView_runApplication.jpeg" alt=""><br><code>RCTRootView#runApplication:</code> 方法以 <code>_moduleName</code>、<code>_contentView.reactTag</code> 以及 <code>_appProperties</code>为参数调用 JS 模块<code>AppRegistry</code>的<code>runApplication</code>方法。<br>对<code>AppRegistry</code>不陌生吧^_^，『前文讲过，RN root components 都需要通过<code>AppRegistry</code>模块的<code>registerComponent</code>方法进行注册』。</p>
+<h2 id="AppRegistry"><a href="#AppRegistry" class="headerlink" title="AppRegistry"></a>AppRegistry</h2><p>我们先从 component 注册说起：<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Code 3</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="class"><span class="keyword">class</span> <span class="title">App</span> <span class="keyword">extends</span> <span class="title">Component</span>&lt;<span class="title">Props</span>&gt; </span>&#123;</span><br><span class="line">  render() &#123;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      &lt;View style=&#123;styles.container&#125;&gt;</span><br><span class="line">        &lt;Text style=&#123;styles.welcome&#125;&gt;</span><br><span class="line">          Welcome to React Native!</span><br><span class="line">        &lt;<span class="regexp">/Text&gt;</span></span><br><span class="line"><span class="regexp">      &lt;/</span>View&gt;</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">AppRegistry.registerComponent(<span class="string">'RNDemo'</span>, () =&gt; App);</span><br></pre></td></tr></table></figure></p>
+<p>上述 Code 3定义了一个组件<code>App</code>，并通过<code>AppRegistry.registerComponent</code>方法进行了注册，使其成为根组件 (即可以在 Native 中直接调用)。<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Code 4 (代码有删减，下同)</span></span><br><span class="line">registerComponent(</span><br><span class="line">  appKey: string,</span><br><span class="line">  componentProvider: ComponentProvider,</span><br><span class="line">): string &#123;</span><br><span class="line">  runnables[appKey] = &#123;</span><br><span class="line">    componentProvider,</span><br><span class="line">    run: <span class="function">(<span class="params">appParameters</span>) =&gt;</span></span><br><span class="line">      renderApplication(</span><br><span class="line">        componentProviderInstrumentationHook(componentProvider),</span><br><span class="line">        appParameters.initialProps,</span><br><span class="line">        appParameters.rootTag,</span><br><span class="line">        wrapperComponentProvider &amp;&amp; wrapperComponentProvider(appParameters),</span><br><span class="line">      )</span><br><span class="line">  &#125;;</span><br><span class="line">  <span class="keyword">return</span> appKey;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p> 通过 Code 4可知，组件最终存放在了组件注册表<code>runnables</code>中，其中最关键的信息是以<code>run</code>为 key 存储的箭头方法(第<code>8~14</code>行)，即最终对<code>renderApplication</code>方法的调用。<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Code 5</span></span><br><span class="line">runApplication(appKey: string, <span class="attr">appParameters</span>: any): <span class="keyword">void</span> &#123;</span><br><span class="line">  runnables[appKey].run(appParameters);</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure></p>
+<p>在<code>RCTRootView#runApplication:</code> 方法中调用的<code>AppRegistry#runApplication</code>方法更加简单了，直接从组件注册表中取出相应的方法执行(最终调用<code>renderApplication</code>方法)。</p>
+<blockquote>
+<p>定义根组件时调用<code>AppRegistry.registerComponent</code>方法的 key 与在<code>RCTRootView#runApplication:</code>中调用<code>AppRegistry#runApplication</code>时的 key 需要一致(在例子中都是<code>RNDemo</code>)。</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Code 6</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">renderApplication</span>&lt;<span class="title">Props</span>: <span class="title">Object</span>&gt;(<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  RootComponent: ReactClass&lt;Props&gt;,</span></span></span><br><span class="line"><span class="function"><span class="params">  initialProps: Props,</span></span></span><br><span class="line"><span class="function"><span class="params">  rootTag: any,</span></span></span><br><span class="line"><span class="function"><span class="params">  WrapperComponent?: ?ReactClass&lt;*&gt;,</span></span></span><br><span class="line"><span class="function"><span class="params"></span>) </span>&#123;</span><br><span class="line">  ReactNative.render(</span><br><span class="line">    &lt;AppContainer rootTag=&#123;rootTag&#125; WrapperComponent=&#123;WrapperComponent&#125;&gt;</span><br><span class="line">      &lt;RootComponent &#123;...initialProps&#125; rootTag=&#123;rootTag&#125; /&gt;</span><br><span class="line">    &lt;<span class="regexp">/AppContainer&gt;,</span></span><br><span class="line"><span class="regexp">    rootTag,</span></span><br><span class="line"><span class="regexp">  );</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<p><code>renderApplication</code>最终调用了<code>ReactNative.render</code>，注意其参数：并不是直接使用我们传入的<code>RootComponent</code>，而是在其外面包了一层——<code>AppContainer</code>。</p>
+<blockquote>
+<p><code>AppContainer</code>是一个 React Component，像 debug 工具 Inspector、YellowBox 以及我们最不愿看到的出错时的红色界面都是在该组件中加载的。</p>
+</blockquote>
+<p>还记得，前文讲过，JSX 语法中的标签在打包生成 bundle 时会被转换成对<code>React.createElement</code>方法的调用吗？<br><img src="/img/ReactNative_render_createElement.jpeg" alt=""><br>通过上图的 debug 堆栈再次证明了这一点，<code>ReactNative#render</code>方法的第<code>35</code>行，原本是通过 JSX 语法形式对<code>RootComponent</code>的引用，但如右侧堆栈所示，实际是对<code>React.createElement</code>方法的调用。</p>
+<h2 id="createView"><a href="#createView" class="headerlink" title="createView"></a>createView</h2><p><img src="/img/runapplication.jpeg" alt=""><br>通过上图所示长长…的调用堆栈后，来到了<code>UIManager.createView</code>，其调用的就是 Native module：<code>RCTUIManager</code>的<code>createView:viewName:rootTag:props:</code>方法(Native view 当然要在 Native 环境下创建了^_^)：<br><img src="/img/RCTUIManager_createView.jpeg" alt=""></p>
+<blockquote>
+<p>对<code>RCTComponentData</code>不陌生吧，前文讲过在<code>RCTUIManager#setBridge:</code>方法可知：所有的<code>RCTComponentManager</code>都会以<code>RCTComponentData</code>格式储存在<code>RCTUIManager-&gt;_componentDataByName</code>中。</p>
+</blockquote>
+<p>如上代码所示，首先会创建与 view 对应的 shadowView(第<code>902</code>行)，并存入 shadowView 注册表<code>_shadowViewRegistry</code>中。</p>
+<blockquote>
+<p>shadowView 的主要功能是通过<a href="https://github.com/facebook/yoga" target="_blank" rel="noopener">facebook-Yoga</a>进行布局相关的计算，一般情况下直接使用<code>RCTShadowView</code>类即可，若有特殊需求可从<code>RCTShadowView</code>类派生子类。RN提供的众多 UI 组件中，从<code>RCTShadowView</code>类派生的有(感兴趣的可以去看看这些派生类具体实现了哪些功能)：<br><img src="/img/RCTShadowViewSubClass.jpeg" alt=""></p>
+</blockquote>
+<p>第<code>912~920</code>行，在主线程创建了目标 view，并添加到 view 注册表<code>_viewRegistry</code>中(注意此时并没有添加视图层级树中，即调用<code>addSubview:</code>)。</p>
+<h2 id="View-Property"><a href="#View-Property" class="headerlink" title="View Property"></a>View Property</h2><p>通过<code>RCT_EXPORT_VIEW_PROPERTY</code>宏，可以将 Native UI Component 的属性曝露给 RN，如在<code>RCTViewManager</code>中曝露的<code>backgroundColor</code>属性：<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">RCT_EXPORT_VIEW_PROPERTY(backgroundColor, <span class="built_in">UIColor</span>)</span><br></pre></td></tr></table></figure></p>
+<p><code>RCT_EXPORT_VIEW_PROPERTY</code>宏接受两个参数分别是要曝露的属性名以及属性类型，将其展开如下(是不是有种熟悉的味道，Native module 曝露给 RN 的方法也是通过类似的手法实现的)：<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">+ (<span class="built_in">NSArray</span>&lt;<span class="built_in">NSString</span> *&gt; *)propConfig_backgroundColor  &#123; </span><br><span class="line">	<span class="keyword">return</span> @[<span class="string">@"UIColor"</span>]; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>除了<code>RCT_EXPORT_VIEW_PROPERTY</code>，还有另外两个宏<code>RCT_REMAP_VIEW_PROPERTY</code>、<code>RCT_CUSTOM_VIEW_PROPERTY</code>，其核心思想是一样的，在此就不赘述了。</p>
+</blockquote>
+<p>之后在 JSX 的标签中就可以使用 view 曝露的属性：<br><img src="/img/AppComponent.jpeg" alt=""><br><img src="/img/UIManagerCreate.jpeg" alt=""><br><img src="/img/updatePayload.jpeg" alt=""><br><img src="/img/createView_props.jpeg" alt=""><br>如图所示，在 JSX 中给 view 设置的属性被转换为<code>UIManager.createView</code>的第四个参数，最终也就传到了 Native module：<code>RCTUIManager</code>的<code>createView:viewName:rootTag:props:</code>方法中。<br>在前一小节(createView)中展示了<code>RCTUIManager</code>的<code>createView:viewName:rootTag:props:</code>方法，其第<code>918</code>行调用了<code>RCTComponentData</code>的<code>setProps:forView:</code>方法，即为 view 的属性赋值。由于篇幅关系，具体赋值过程在此不细述，核心是通过<code>RCT_EXPORT_VIEW_PROPERTY</code>宏生成的<code>propConfig_*</code>方法获取属性的类型，再将 JS 传过来的值进行相应的类型转换后赋给目标 view。</p>
+<blockquote>
+<p>在<code>RCTUIManager#createView:viewName:rootTag:props:</code>的第<code>904</code>行，调用了<code>RCTComponentData#setProps:forShadowView:</code>方法，即为 shadowView 的属性赋值。我们知道，shadowView 的主要作用是布局计算，通过<code>RCT_EXPORT_SHADOW_PROPERTY</code>宏曝露相关属性：<br><img src="/img/RCT_EXPORT_SHADOW_PROPERTY.jpeg" alt=""><br>可以看到，其曝露的属性也都是与布局相关的。</p>
+</blockquote>
+<p>是时候出个序列图，回顾一下整体流程了：<br><img src="/img/RNRender.png" alt=""><br>前文已提到，<code>RCTUIManager#createView:viewName:rootTag:props:</code>只是创建了目标 view 并添加到<code>_viewRegistry</code>中(仅此而以)。<br>从上图可以看到，JS 中的<code>ReactNativeBaseComponent</code>模块在调用<code>RCTUIManager</code>的<code>createView:viewName:rootTag:props:</code>方法创建目标 view 之后，还会调用<code>RCTUIManager</code>的<code>setChildren:reactTags:</code>方法：<br><img src="/img/setChildren.jpeg" alt=""><br>如上图源码所示，<code>setChildren:reactTags:</code>分别针对<code>_shadowViewRegistry</code>以及<code>_viewRegistry</code>(在 UIBlock 中完成调用)调用了静态方法：<code>RCTSetChildren</code>。<br>其中，shadowview 最终会调用到<code>RCTShadowView#insertReactSubview:atIndex:</code>方法：<br><img src="/img/RCTShadowViewinsertReactSubview.jpeg" alt=""><br>在该方法中，做的最核心的事情莫过于在YGNode树中插入相应的子节点(第<code>421</code>行)。<br>对于 view，最终会调用到<code>UIView+Rect</code>的<code>insertReactSubview:atIndex:</code>方法：<br><img src="/img/UIViewinsertReactSubview.jpeg" alt=""><br>在该方法中，按照层级顺序(index)将subView 添加到AssociatedObject <code>reactSubviews</code>中，还是没有真正添加到视图层级树中！</p>
+<h2 id="Pending-UI-Block"><a href="#Pending-UI-Block" class="headerlink" title="Pending UI Block"></a>Pending UI Block</h2><p>阅读<code>RCTUIManager</code>的源码会发现，所有 JS to Native 的 UI 操作都不会立即执行，而是先添加到<code>UIManager-&gt;_pendingUIBlocks</code>中，<br>那么，<code>_pendingUIBlocks</code>中的 block 什么时候会执行呢？<br>在<a href="https://zxfcumtcs.github.io/2017/10/08/ReactNativeCommunicationMechanism/">『ReactNative源码解析——通信机制详解(1/2)』</a>一文中，我们介绍过为了提高效率，在 RN 中使用了批处理的方式：<br><img src="/img/didUpdateReactSubviews.jpeg" alt=""><br>如上图，JS 在完成一批操作后，会通知 Native，此时会调用<code>RCTUIManager#flushUIBlocks</code>方法。<br>同时，可以看到<code>RCTUIManager#flushUIBlocks</code>最终会调用<code>UIView+Rect</code>的<code>didUpdateReactSubviews</code>方法，如其源码所示，在该方法中完成了 view 添加到视图层级树的操作：<br><img src="/img/UIViewdidUpdateReactSubviews.jpeg" alt=""><br>如<code>flushUIBlocks</code>方法源码所示，最终会在主线程执行 UI block：<br><img src="/img/flushUIBlocks.jpeg" alt=""><br>至此，RN 中整个渲染流程基本完成。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag"># iOS</a>
+          
+            <a href="/tags/框架/" rel="tag"># 框架</a>
+          
+            <a href="/tags/ReactNative/" rel="tag"># ReactNative</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/11/22/RNCommunicationMechanism-AdditionalTerms/" rel="next" title="ReactNative源码解析——通信机制详解(补充条款)">
+                <i class="fa fa-chevron-left"></i> ReactNative源码解析——通信机制详解(补充条款)
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/05/11/RNBundle/" rel="prev" title="简述 ReactNative Bundle">
+                简述 ReactNative Bundle <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#JSX-amp-React-Element-amp-React-Component"><span class="nav-number">2.</span> <span class="nav-text">JSX &amp; React Element &amp; React Component</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#JSX"><span class="nav-number">2.1.</span> <span class="nav-text">JSX</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#React-Element"><span class="nav-number">2.2.</span> <span class="nav-text">React Element</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#React-Component"><span class="nav-number">2.3.</span> <span class="nav-text">React Component</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Native-UI-Components"><span class="nav-number">3.</span> <span class="nav-text">Native UI Components</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#iOS-MapView-example"><span class="nav-number">3.1.</span> <span class="nav-text">iOS MapView example</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RCTUIManager"><span class="nav-number">3.2.</span> <span class="nav-text">RCTUIManager</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RCT-View"><span class="nav-number">3.3.</span> <span class="nav-text">RCT***View</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#渲染流程"><span class="nav-number">4.</span> <span class="nav-text">渲染流程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#RCTRootView"><span class="nav-number">4.1.</span> <span class="nav-text">RCTRootView</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AppRegistry"><span class="nav-number">4.2.</span> <span class="nav-text">AppRegistry</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#createView"><span class="nav-number">4.3.</span> <span class="nav-text">createView</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#View-Property"><span class="nav-number">4.4.</span> <span class="nav-text">View Property</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Pending-UI-Block"><span class="nav-number">4.5.</span> <span class="nav-text">Pending UI Block</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

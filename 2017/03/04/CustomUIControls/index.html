@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="构架,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本文简单介绍了通过 View-ViewModel 模式构建 UI 组件，以便提高 UI 组件的可复用性。">
+<meta name="keywords" content="构架">
+<meta property="og:type" content="article">
+<meta property="og:title" content="自定义 UI 组件库">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2017/03/04/CustomUIControls/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本文简单介绍了通过 View-ViewModel 模式构建 UI 组件，以便提高 UI 组件的可复用性。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/FeedFLowLeftPictureRightText.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ViewViewModel.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/QRLeftPictureRightTextView.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/QRLeftPictureRightTextViewModel.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/QRLeftPictureRightText.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/QRLeftPictureRigthTextDoc.png">
+<meta property="og:updated_time" content="2018-12-08T08:41:32.857Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="自定义 UI 组件库">
+<meta name="twitter:description" content="本文简单介绍了通过 View-ViewModel 模式构建 UI 组件，以便提高 UI 组件的可复用性。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/FeedFLowLeftPictureRightText.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2017/03/04/CustomUIControls/">
+
+
+
+
+
+  <title>自定义 UI 组件库 | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2017/03/04/CustomUIControls/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">自定义 UI 组件库</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-03-04T22:34:44+08:00">
+                2017-03-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2017/03/04/CustomUIControls/" class="leancloud_visitors" data-flag-title="自定义 UI 组件库">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  1,211
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  4
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文简单介绍了通过 View-ViewModel 模式构建 UI 组件，以便提高 UI 组件的可复用性。<br><a id="more"></a><br>©原创文章，转载请注明出处！</p>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
+<p>『不要重复造轮子，要注意代码复用，提高开发效率』，这是在日常开发中经常挂在嘴边的话。对 copy code 的行为我们经常也报以鄙视的目光。<br>但是，copy 行为却又时常发生，经常是一言不合就 copy！</p>
+<p>在继续之前，我们有必要思考两个问题：</p>
+<ul>
+<li>什么样的代码被复用的概率最高；</li>
+<li>copy code 的行为为何如此普遍。</li>
+</ul>
+<h2 id="什么样的代码被复用的概率最高"><a href="#什么样的代码被复用的概率最高" class="headerlink" title="什么样的代码被复用的概率最高"></a>什么样的代码被复用的概率最高</h2><p>代码复用可分为二个层级：APP 间以及 APP 内部。<br>APP 间被复用的代码通常是些基础组件，如：网络、数据库、日志系统、磁盘存储系统等。<br>APP 内部复用概率最高的代码个人认为是 UI 组件（本文所说的 UI 组件为 APP 内部自定义的 UI）。</p>
+<h2 id="copy-code-的行为为何经常发生"><a href="#copy-code-的行为为何经常发生" class="headerlink" title="copy code 的行为为何经常发生"></a>copy code 的行为为何经常发生</h2><p>既然大家都会鄙视 copy 行为，为何又时常发生呢？<br>你可能会说 copy 的同学觉悟、追求不高。<br>但，从另一角度是否也说明代码的可复用性、可扩展性比较差。<br>现在一般都是敏捷开发、快速迭代，时间紧、任务重，在遇到相似、相近的代码时，大家通常都是拷一份过来，改吧改吧，而不是在原有基础上费时费力地扩展。这其中的弊端就不用多说了！</p>
+<p>UI 组件作为 APP 内部复用概率最高的代码，更是 copy 的重灾区。究其原因，在于在 UI 组件中包含了大量的业务逻辑，导致一个 UI 组件要复用到另外一个业务下非常困难。主要体现在：</p>
+<ul>
+<li>UI 组件与业务数据相绑定（与后台协议返回的数据结构相对应的 OC 对象，我们称之为 item）；</li>
+<li>UI 组件内部处理了业务逻辑。</li>
+</ul>
+<p>举个例子，在 QQ 阅读的信息流中有一种常见的 UI 样式：左图右文(QRFeedFlowBookView)<br><img src="/img/FeedFLowLeftPictureRightText.jpg" alt=""><br>在当初实现该 UI 样式时，数据是通过 QRFeedFlowBookItem(业务数据结构) 传递给 QRFeedFlowBookView，即在 QRFeedFlowBookView 内部处理了具体的业务数据。这导致，QRFeedFlowBookView 在业务数据不是或不能通过 QRFeedFlowBookItem 表示时，无法复用。<br>还有，像一些角标要不要展现，具体逻辑也是在 QRFeedFlowBookView 中处理的，此时如各个业务对此的逻辑不同，QRFeedFlowBookView 也无法复用。</p>
+<h1 id="以-View-ViewModel-形式构建-UI-组件"><a href="#以-View-ViewModel-形式构建-UI-组件" class="headerlink" title="以 View-ViewModel 形式构建 UI 组件"></a>以 View-ViewModel 形式构建 UI 组件</h1><hr>
+<p>从上面分析出的 UI 组件难于复用的原因，可以看出要解决这一问题，就是要避免上文提到的2点：</p>
+<ul>
+<li>UI 组件不能与具体业务数据相绑定；</li>
+<li>UI 组件内部不能处理业务逻辑（其本职工作仅是 UI 布局）。</li>
+</ul>
+<p>此时，MVVM 模式应该要进入我们的视线了，在该模式中 ViewModel 的存在是不是很好的解决了上面的问题。<br>我们知道在 MVVM 模式中，ViewModel 向上为 View 提供展示数据（该数据已经在 ViewModel 中处理好了，View 无需任何处理，只要展示即可），向下接收来自业务层的数据，处理相关的业务逻辑。</p>
+<p>可以看出，ViewModel 作为中间层很好地将业务与 UI 隔离开。<br>说到 MVVM，很多同学并不喜欢，觉得其中的 Data-Binding 很麻烦，但我们构建 UI 组件时用到的是 View-ViewModel 结构，并不要求一定是 MVVM，在 MVC 等模式下也可使用。</p>
+<p>同时，我们采用的是面向接口的模式，View 对外依赖的是接口（protocol），而不是某个具体的 ViewModel。每个 UI 组件其结构如下所示：<br><img src="/img/ViewViewModel.png" alt=""><br>如上图所示，若某个 UI 组件被多个业务所复用，可以根据需求定义多个 ViewModel 以处理不同的业务逻辑，每个 ViewModel 都实现 ViewModelProtocol 协议为 View 提供数据。</p>
+<p>另外，UI 组件也可以包含(复用)其他 UI 组件。</p>
+<p>如上文提到的左图右文 UI，我们抽取为一个组件 QRLeftPictureRightTextView：<br><img src="/img/QRLeftPictureRightTextView.png" alt=""><img src="/img/QRLeftPictureRightTextViewModel.png" alt=""><br>该控件在信息流以及老书城都有用到，为此我们也定义了两个 ViewModel，以处理各自的业务逻辑：<br><img src="/img/QRLeftPictureRightText.jpg" alt=""></p>
+<p>在日常开发中，经常有同学问『某某样子的 UI 我们现在有吗，是哪个类？』<br>为此，我们在构建 UI 组件库的同时也维护了一份文档，将所有组件都『登记造册』：<br><img src="/img/QRLeftPictureRigthTextDoc.png" alt=""></p>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><hr>
+<p>通过 ViewModel 这个中间层很好地隔离了 UI 与业务逻辑，使 UI 复用性更好，不仅提高了开发效率，也规范了代码结构。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/构架/" rel="tag"># 构架</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/11/05/iOSDataBinding/" rel="next" title="简化 iOS Data Binding">
+                <i class="fa fa-chevron-left"></i> 简化 iOS Data Binding
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/05/07/Multithreading-Traps/" rel="prev" title="Multithreading Traps">
+                Multithreading Traps <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#什么样的代码被复用的概率最高"><span class="nav-number">1.1.</span> <span class="nav-text">什么样的代码被复用的概率最高</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#copy-code-的行为为何经常发生"><span class="nav-number">1.2.</span> <span class="nav-text">copy code 的行为为何经常发生</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#以-View-ViewModel-形式构建-UI-组件"><span class="nav-number">2.</span> <span class="nav-text">以 View-ViewModel 形式构建 UI 组件</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#小结"><span class="nav-number">3.</span> <span class="nav-text">小结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

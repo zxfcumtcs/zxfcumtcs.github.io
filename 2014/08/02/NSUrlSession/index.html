@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="iOS,NetWorking,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本系列文章将探讨Apple在IOS7中引入的网络新框架——NSURLSession。">
+<meta name="keywords" content="iOS,NetWorking">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NSURLSession——网络框架新生代(1&#x2F;3)">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2014/08/02/NSUrlSession/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本系列文章将探讨Apple在IOS7中引入的网络新框架——NSURLSession。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/nsurlconnection.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/nsurlsession.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/nsurlsessionclassdigram.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/NSURLSessionConfiguration.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/NSURLSessionTaskMethod.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/AppCrashed.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/nsurlsessiontask.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/nsurlsessiondownloadpath.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/sessiontaskconfigure.png">
+<meta property="og:updated_time" content="2018-12-08T08:41:32.859Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="NSURLSession——网络框架新生代(1&#x2F;3)">
+<meta name="twitter:description" content="本系列文章将探讨Apple在IOS7中引入的网络新框架——NSURLSession。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/nsurlconnection.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2014/08/02/NSUrlSession/">
+
+
+
+
+
+  <title>NSURLSession——网络框架新生代(1/3) | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2014/08/02/NSUrlSession/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">NSURLSession——网络框架新生代(1/3)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2014-08-02T10:04:31+08:00">
+                2014-08-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2014/08/02/NSUrlSession/" class="leancloud_visitors" data-flag-title="NSURLSession——网络框架新生代(1/3)">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  1,325
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  5
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本系列文章将探讨Apple在IOS7中引入的网络新框架——NSURLSession。<br><a id="more"></a><br>©原创文章，转载请注明出处！</p>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><p><code>NSURLSession</code>作为网络框架新生代，由Apple在IOS7引入，其终极目标是取代之前一统网络江湖的<code>NSURLConnection</code>。</p>
+<p>ok，首先看看<code>NSURLSession</code>在IOS体系中的地位(图片来自WWDC2014)。</p>
+<p><img src="/img/nsurlconnection.png" alt="">  <img src="/img/nsurlsession.png" alt=""></p>
+<p>嗯，从上面两张图也能再次看到<code>NSURLConnection</code>最终会被取代的悲惨命运。<br>同时，我们还能看到，无论是<code>NSURLSession</code>还是<code>NSURLConnection</code>都是构建在BSD Networking基础之上。</p>
+<p>严格地说，<code>NSURLSession</code>不是孤身一人在战斗，而是一个家族，一个框架。<br><img src="/img/nsurlsessionclassdigram.png" alt=""></p>
+<p>上图中除了熟悉的老朋友<code>NSURLRequest</code>和<code>NSURLResponse</code>之外，其他都是Apple在IOS7引入的新面孔，下面我们一一简单介绍一下。</p>
+<h1 id="NSURLSession家族"><a href="#NSURLSession家族" class="headerlink" title="NSURLSession家族"></a>NSURLSession家族</h1><h2 id="NSURLSessionConfiguration——网络大管家"><a href="#NSURLSessionConfiguration——网络大管家" class="headerlink" title="NSURLSessionConfiguration——网络大管家"></a>NSURLSessionConfiguration——网络大管家</h2><p>顾名思义，<code>NSURLSessionConfiguration</code>就是用于配置<code>NSURLSession</code>在网络交互过程中的各种属性。</p>
+<p><img src="/img/NSURLSessionConfiguration.png" alt=""></p>
+<p>从其属性可以看出，其能配置的网络属性非常之丰富。我们常用的属性如：<code>allowsCellularAccess</code>—-是否允许访问蜂窝网、<code>HTTPMaximumConnectionsPerHost</code>—-最大连接数、<code>requestCachePolicy</code>—-cache策略等等。</p>
+<p>根据实际情况需要，Apple提供三种类型的<code>NSURLSessionConfiguration</code>：</p>
+<ul>
+<li><p>Default Configuration—-通过Default Configuration创建的<code>NSURLSession</code>其行为与<code>NSURLConnection</code>类似，使用全局的、disk-based的cache、cookie、credential等。</p>
+</li>
+<li><p>Ephemeral Configuration—-通过Ephemeral Configuration创建的<code>NSURLSession</code>仅将cache、cookie、credential等信息保存在内存中，当session失效时这些信息也一并释放。因此该类型的session可以用于一些隐私的网络操作。</p>
+</li>
+<li><p>Background Configuration—-顾名思义，通过Background Configuration创建的<code>NSURLSession</code>主要用于那些当App处于background、suspended以及out-of-process状态时还需要进行网络操作的任务。</p>
+</li>
+</ul>
+<p><code>NSURLSessionConfiguration</code>提供了三个类方法用于分别创建上述Configuration：</p>
+<p>   <code>+ (NSURLSessionConfiguration *)defaultSessionConfiguration;</code></p>
+<p>   <code>+ (NSURLSessionConfiguration *)ephemeralSessionConfiguration;</code></p>
+<p>   <code>+ (NSURLSessionConfiguration *)backgroundSessionConfiguration:(NSString *)identifier;</code></p>
+<p>其中<code>backgroundSessionConfiguration:</code>的<code>identifier</code>参数在整个app中必须是唯一的，如果出现重复其后果是严重的！<br>通过该<code>identifier</code>，我们可以创建新的background session，用于获取与其绑定的download or upload response。</p>
+<h2 id="NSURLSessionTask——网络办事员"><a href="#NSURLSessionTask——网络办事员" class="headerlink" title="NSURLSessionTask——网络办事员"></a>NSURLSessionTask——网络办事员</h2><p>在每个组织、单位都会有一些领导、当然更多的是办事员了。呵呵，没错，<code>NSURLSessionTask</code>家族就处于社会底层——苦逼的办事员！</p>
+<p><img src="/img/NSURLSessionTaskMethod.png" alt=""></p>
+<p>我们惊奇地发现，<code>NSURLSessionTask</code>家族竟然没有自己的初始化方法！</p>
+<p>是的，官方资料显示，<code>NSURLSessionTask</code>必须归属于<code>NSURLSession</code>，由后者提供相应的creation methods。从而<code>NSURLSessionTask</code>也就失去了人身自由，一辈子也无法跳槽！</p>
+<p><img src="/img/AppCrashed.jpg" alt=""></p>
+<p>根据任务的不同，又演化出三种类型的task，它们间的关系如下(<a href="http://www.raywenderlich.com/51127/nsurlsession-tutorial" target="_blank" rel="noopener">来源</a>)：</p>
+<p><img src="/img/nsurlsessiontask.png" alt=""></p>
+<ul>
+<li><p>NSURLSessionDataTask—-用于向服务器请求资源(如：json、xml格式的数据等)，服务器返回的资源以<code>NSData</code>的形式提供给业务层解析。其只能用于default和ephemeral sessions，而不支持background sessions。</p>
+<p>  <code>NSURLSession</code>类中用于创建<code>NSURLSessionDataTask</code>的方法有：</p>
+  <figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="built_in">NSURLSessionDataTask</span> *)dataTaskWithRequest:(<span class="built_in">NSURLRequest</span> *)request;</span><br><span class="line">- (<span class="built_in">NSURLSessionDataTask</span> *)dataTaskWithRequest:(<span class="built_in">NSURLRequest</span> *)request completionHandler:(<span class="keyword">void</span> (^)(<span class="built_in">NSData</span> *data, <span class="built_in">NSURLResponse</span> *response, <span class="built_in">NSError</span> *error))completionHandler;</span><br><span class="line">- (<span class="built_in">NSURLSessionDataTask</span> *)dataTaskWithURL:(<span class="built_in">NSURL</span> *)url;</span><br><span class="line">- (<span class="built_in">NSURLSessionDataTask</span> *)dataTaskWithURL:(<span class="built_in">NSURL</span> *)url completionHandler:(<span class="keyword">void</span> (^)(<span class="built_in">NSData</span> *data, <span class="built_in">NSURLResponse</span> *response, <span class="built_in">NSError</span> *error))completionHandler;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>NSURLSessionUploadTask—-用于通过HTTP协议向服务器上传数据或文件，其继承于<code>NSURLSessionDataTask</code>，刚开始对这点感到很奇怪，感觉<code>NSURLSessionDataTask</code>和<code>NSURLSessionUploadTask</code>有点风马牛不相及，其原因在于upload过程中服务器可能会向client反馈一些信息。但<code>NSURLSessionUploadTask</code>是支持background sessions的。</p>
+<p>  <code>NSURLSession</code>类中用于创建<code>NSURLSessionUploadTask</code>的方法有：</p>
+  <figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="built_in">NSURLSessionUploadTask</span> *)uploadTaskWithRequest:(<span class="built_in">NSURLRequest</span> *)request fromData:(<span class="built_in">NSData</span> *)bodyData;</span><br><span class="line">- (<span class="built_in">NSURLSessionUploadTask</span> *)uploadTaskWithRequest:(<span class="built_in">NSURLRequest</span> *)request fromData:(<span class="built_in">NSData</span> *)bodyData completionHandler:(<span class="keyword">void</span> (^)(<span class="built_in">NSData</span> *data, <span class="built_in">NSURLResponse</span> *response, <span class="built_in">NSError</span> *error))completionHandler;</span><br><span class="line">- (<span class="built_in">NSURLSessionUploadTask</span> *)uploadTaskWithRequest:(<span class="built_in">NSURLRequest</span> *)request fromFile:(<span class="built_in">NSURL</span> *)fileURL;</span><br><span class="line">- (<span class="built_in">NSURLSessionUploadTask</span> *)uploadTaskWithRequest:(<span class="built_in">NSURLRequest</span> *)request fromFile:(<span class="built_in">NSURL</span> *)fileURL completionHandler:(<span class="keyword">void</span> (^)(<span class="built_in">NSData</span> *data, <span class="built_in">NSURLResponse</span> *response, <span class="built_in">NSError</span> *error))completionHandler;</span><br><span class="line">- (<span class="built_in">NSURLSessionUploadTask</span> *)uploadTaskWithStreamedRequest:(<span class="built_in">NSURLRequest</span> *)request;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<ul>
+<li><p>NSURLSessionDownloadTask—-用于download文件，在download过程中会将服务器返回的数据写入临时文件。注意：在download完成时需要我们手动将文件移走，临时文件在task完成后会被删除。download tasks可以pause、resume。</p>
+<p>  我们可以看一下这些临时文件是保存在哪里的：<br>  <img src="/img/nsurlsessiondownloadpath.png" alt=""></p>
+<p>  <code>NSURLSession</code>类中用于创建<code>NSURLSessionDownloadTask</code>的方法有：</p>
+  <figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="built_in">NSURLSessionDownloadTask</span> *)downloadTaskWithRequest:(<span class="built_in">NSURLRequest</span> *)request;</span><br><span class="line">- (<span class="built_in">NSURLSessionDownloadTask</span> *)downloadTaskWithRequest:(<span class="built_in">NSURLRequest</span> *)request completionHandler:(<span class="keyword">void</span> (^)(<span class="built_in">NSURL</span> *location, <span class="built_in">NSURLResponse</span> *response, <span class="built_in">NSError</span> *error))completionHandler;</span><br><span class="line">- (<span class="built_in">NSURLSessionDownloadTask</span> *)downloadTaskWithResumeData:(<span class="built_in">NSData</span> *)resumeData;</span><br><span class="line">- (<span class="built_in">NSURLSessionDownloadTask</span> *)downloadTaskWithResumeData:(<span class="built_in">NSData</span> *)resumeData completionHandler:(<span class="keyword">void</span> (^)(<span class="built_in">NSURL</span> *location, <span class="built_in">NSURLResponse</span> *response, <span class="built_in">NSError</span> *error))completionHandler;</span><br><span class="line">- (<span class="built_in">NSURLSessionDownloadTask</span> *)downloadTaskWithURL:(<span class="built_in">NSURL</span> *)url;</span><br><span class="line">- (<span class="built_in">NSURLSessionDownloadTask</span> *)downloadTaskWithURL:(<span class="built_in">NSURL</span> *)url completionHandler:(<span class="keyword">void</span> (^)(<span class="built_in">NSURL</span> *location, <span class="built_in">NSURLResponse</span> *response, <span class="built_in">NSError</span> *error))completionHandler;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="NSURLSession——最高领导"><a href="#NSURLSession——最高领导" class="headerlink" title="NSURLSession——最高领导"></a>NSURLSession——最高领导</h2><p>ok，领导终于露面了！</p>
+<p>简单地讲，<code>NSURLSession</code>通过<code>NSURLSessionConfiguration</code>管理网络配置，通过<code>NSURLSessionTask</code>执行具体的网络任务。</p>
+<p>在一个session中可以有多个task，而configuration是针对于session的，该session中的所有task共享configuration。</p>
+<p><img src="/img/sessiontaskconfigure.png" alt=""></p>
+<p>上图显示(来自WWDC2014)，在一个session中有三个task，它们都服从session中configuration的管理。</p>
+<p>处于session中的task，其行为由三个因素决定：</p>
+<ul>
+<li><p>session的类型，更准确地说是session所使用的configuration的类型(default、ephemeral以及background)；</p>
+</li>
+<li><p>task本身的类型(datatask、uploadtask以及downloadtask)；</p>
+</li>
+<li><p>task创建时app所处的状态(是否处于foreground)。</p>
+</li>
+</ul>
+<p>那么，如何创建session呢？</p>
+<p><code>NSURLSession</code>提供了三个类方法：</p>
+<figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 使用default configuration并且该session中的task必须提供completionHandler</span></span><br><span class="line">+ (<span class="built_in">NSURLSession</span> *)sharedSession;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 该session中的task必须提供completionHandler</span></span><br><span class="line">+ (<span class="built_in">NSURLSession</span> *)sessionWithConfiguration:(<span class="built_in">NSURLSessionConfiguration</span> *)configuration;</span><br><span class="line"></span><br><span class="line">+ (<span class="built_in">NSURLSession</span> *)sessionWithConfiguration:(<span class="built_in">NSURLSessionConfiguration</span> *)configuration delegate:(<span class="keyword">id</span>&lt;<span class="built_in">NSURLSessionDelegate</span>&gt;)delegate delegateQueue:(<span class="built_in">NSOperationQueue</span> *)queue;</span><br></pre></td></tr></table></figure>
+<p>在使用<code>NSURLSession</code>过程中有两个需要注意的问题：</p>
+<ul>
+<li><p>在创建<code>NSURLSession</code>时会copy其使用的configuration，因此在此之后修改configuration，对该session无效；</p>
+</li>
+<li><p><code>NSURLSession</code>对delegate是strong reference，直到我们显式地调用 <code>invalidateAndCancel</code> 或 <code>resetWithCompletionHandler:</code>方法。因此，在使用过程中要注意retain cycle。</p>
+</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag"># iOS</a>
+          
+            <a href="/tags/NetWorking/" rel="tag"># NetWorking</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2014/07/19/performSelector/" rel="next" title="performSelector系列方法">
+                <i class="fa fa-chevron-left"></i> performSelector系列方法
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2014/08/02/nsurlsession2/" rel="prev" title="NSURLSession——网络框架新生代(2/3)">
+                NSURLSession——网络框架新生代(2/3) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NSURLSession家族"><span class="nav-number">2.</span> <span class="nav-text">NSURLSession家族</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#NSURLSessionConfiguration——网络大管家"><span class="nav-number">2.1.</span> <span class="nav-text">NSURLSessionConfiguration——网络大管家</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NSURLSessionTask——网络办事员"><span class="nav-number">2.2.</span> <span class="nav-text">NSURLSessionTask——网络办事员</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NSURLSession——最高领导"><span class="nav-number">2.3.</span> <span class="nav-text">NSURLSession——最高领导</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

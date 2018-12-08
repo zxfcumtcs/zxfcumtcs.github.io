@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="iOS,构架,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本文从细节入手，尝试分析了几种常见的移动框架：MVC、MVCS、MVP、MVVM。对于在实际开发中如何选择框架给出了一些参考意见。">
+<meta name="keywords" content="iOS,构架">
+<meta property="og:type" content="article">
+<meta property="og:title" content="不谈框架，谈细节">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2016/07/20/MobileArchitecture/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本文从细节入手，尝试分析了几种常见的移动框架：MVC、MVCS、MVP、MVVM。对于在实际开发中如何选择框架给出了一些参考意见。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/OSI.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/HTTPHTTPS.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/MVC-Apple.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/DomainPresentation.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/QRBookShelfModel.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/MVC.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/MVCS.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/MVP.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/MVCMVVM.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/MVMCV.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/MVVMRules.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ViewViewModel.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/MVVMDataBinding.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/DetailPage.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/DetailPageChangeBookInfo.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/BookDetailHeaderView.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/FeedFlow.jpg">
+<meta property="og:updated_time" content="2018-12-08T08:41:32.858Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="不谈框架，谈细节">
+<meta name="twitter:description" content="本文从细节入手，尝试分析了几种常见的移动框架：MVC、MVCS、MVP、MVVM。对于在实际开发中如何选择框架给出了一些参考意见。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/OSI.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2016/07/20/MobileArchitecture/">
+
+
+
+
+
+  <title>不谈框架，谈细节 | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2016/07/20/MobileArchitecture/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">不谈框架，谈细节</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-20T22:03:26+08:00">
+                2016-07-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2016/07/20/MobileArchitecture/" class="leancloud_visitors" data-flag-title="不谈框架，谈细节">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  3,435
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  13
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文从细节入手，尝试分析了几种常见的移动框架：MVC、MVCS、MVP、MVVM。对于在实际开发中如何选择框架给出了一些参考意见。<br><a id="more"></a><br>©原创文章，转载请注明出处！</p>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
+<p>移动开发框架，无论是 iOS、Andriod 还是 Web 都属于 GUI (Graphical User Interfaces) 框架范畴。2006年，Martin Fowler 的 <a href="http://martinfowler.com/eaaDev/uiArchs.html" target="_blank" rel="noopener">GUI Architectures</a> 一文可谓是经典之作。文中，Martin Fowler 提到 MVC 模式如何组织代码、划分模块职责，还提到 <a href="http://martinfowler.com/eaaDev/DataBinding.html" target="_blank" rel="noopener">Data Binding</a>、<a href="http://martinfowler.com/eaaDev/FlowSynchronization.html" target="_blank" rel="noopener">Flow Synchronization</a> 以及 <a href="http://www.martinfowler.com/eaaDev/MediatedSynchronization.html" target="_blank" rel="noopener">Observer Synchronization</a> 等核心概念。<br>纵观十年来 GUI 框架演变，无论是 MVCS、MVP 还是 MVVM，其实讨论的核心问题还是如何分层、如何划分模块职责、做好代码隔离。</p>
+<p>谈到 iOS 上常见框架，相信只要有半年以上开发经验的同学都能侃侃而谈。但在实际交流过程中发现不少同学对关键细节问题却认知模糊，甚至是错误的。因此，本文尝试从细节入手对几种常见框架进行简单描述(对框架的认识智者见智、仁者见仁，我所描述的也不一定是正确的)。</p>
+<h1 id="为什么要分层"><a href="#为什么要分层" class="headerlink" title="为什么要分层"></a>为什么要分层</h1><hr>
+<p>上文提到各种框架虽各种不同，但它们其实都是在讨论一个问题：『如何分层』。<br>那么在继续之前，我们有必要思考一下：<strong><em>为什么要分层？</em></strong></p>
+<p>计算机界有一句大道至简的名言：</p>
+<blockquote>
+<p>All problems in computer science can be solved by another level of indirection.</p>
+</blockquote>
+<p>之所以要分层，最终目的是降低系统整体复杂度。<br>通过分层我们至少能获得以下能力：</p>
+<ul>
+<li>提供良好的抽象，隐藏实现细节，降低耦合度；</li>
+<li>隔离变化；</li>
+<li>提高模块可复用性；</li>
+<li>增强系统可扩展性。</li>
+</ul>
+<p>说到分层，可能最先想到的例子是 OSI 七层或 TCP/IP 五层网络模型：<img src="/img/OSI.jpg" alt=""><br>在分层网络模型中，不同协议工作在不同网络层，互不干扰，又协调有致，如：IP 协议工作在网络层，主要职责是网络寻址；TCP 协议工作在传输层，主要负责建立可靠的网络连接、负责拥塞控制等。正是因为良好的分层，IP 协议无需关心 TCP 协议的工作，反之亦然。同时 IP 协议也可以在 TCP、UDP 协议间复用。</p>
+<p>如今对网络安全越来越重视，HTTPS 协议也慢慢普及，通过分层，只需在原有 HTTP 协议基础上添加一个 TLS/SSL 的安全传输层即可，由它来负责加解密，而原有的 HTTP、TCP 协议无需修改：<img src="/img/HTTPHTTPS.png" alt=""></p>
+<h1 id="Model-View-Controller"><a href="#Model-View-Controller" class="headerlink" title="Model-View-Controller"></a>Model-View-Controller</h1><hr>
+<p>MVC(Model-View-Controller)作为最经典的框架，广为人熟知，也是 Apple 官方推荐的移动框架。<img src="/img/MVC-Apple.jpg" alt=""><br>MVC模式的核心思想是数据层(Domain)与表现层(Presentation)的隔离。</p>
+<blockquote>
+<p><a href="http://www.martinfowler.com/eaaDev/uiArchs.html" target="_blank" rel="noopener">Separated Presentation:</a><br>Ensure that any code that manipulates presentation only manipulates presentation, pushing all domain and data source logic into clearly separated areas of the program.</p>
+</blockquote>
+<p><img src="/img/DomainPresentation.png" alt=""><br>那么，在数据与展现被隔离之后，它们之间如何同步数据、状态？<br>这就涉及 MVC 模式另一个重要思想：观察者同步(Observer Synchronization)。</p>
+<blockquote>
+<p><a href="http://www.martinfowler.com/eaaDev/MediatedSynchronization.html" target="_blank" rel="noopener">Observer Synchronization:</a><br>Synchronize multiple screens by having them all be observers to a shared area of domain data.</p>
+</blockquote>
+<p>常用方法：在Presentation Object(Controller)中注册通知、设置delegate、传递block等。当数据需要更新时，Domain Object(Model)通过上述方式将数据自底向上的同步给Presentation Object。</p>
+<p>下面简单介绍一下 Model、View、Controller：</p>
+<h2 id="Model"><a href="#Model" class="headerlink" title="Model"></a>Model</h2><hr>
+<p>Apple: Model Objects Encapsulate Data and Basic Behaviors.<br>Stanford: Model = What your application is (but not how it is displayed).<br>简单讲：Model = Data + Manipulate Data</p>
+<p>(ps:本文中的Stanford表示斯坦福的 iOS 公开课)<br><img src="/img/QRBookShelfModel.png" alt=""><br>如：我们书架的 Model：<code>QRBookShelfModel</code>，包含了数据：<code>NSArray&lt;QRBookShelfItem *&gt; *books</code>以及对数据的操作：<code>addBook:</code>、<code>deleteBook:</code>等。</p>
+<h2 id="Controller"><a href="#Controller" class="headerlink" title="Controller"></a>Controller</h2><hr>
+<p>Apple: Controller Objects Tie the Model to the View.<br>Stanford: Controller = How your Model is presented to the user(UI logic).</p>
+<p>Controller 是 Model 与 View 间的连接器，其核心职责有：</p>
+<ul>
+<li>处理用户事件；</li>
+<li>处理展示逻辑；</li>
+<li>连接 Model 与 View。</li>
+</ul>
+<p>这里有个问题：到底什么是展示逻辑？<br>简单讲：将业务数据转换成UI数据，如：</p>
+<ul>
+<li>下载进度，从 Model 层返回的是 double 型，将其转换成可展示的 string 类型(0.811—&gt;81.1%)；</li>
+<li>性别，从 Model 返回的是0、1这样的 int 型，将其转换成：1-&gt;男，0—&gt;女；</li>
+<li>日期，将时间戳格式化：123456789923—&gt;2016-07-01 10:09.</li>
+</ul>
+<h2 id="View"><a href="#View" class="headerlink" title="View"></a>View</h2><hr>
+<p>Apple: View Objects Present Information to the User<br>Stanford: View=Your Controller’s minions</p>
+<p>总之，View 只做一件事：layout。</p>
+<h2 id="MVC-规则"><a href="#MVC-规则" class="headerlink" title="MVC 规则"></a>MVC 规则</h2><hr>
+<p>为了实现 MVC 的核心思想：业务 (model) 与展示 (View) 的隔离，必须严格遵守一些规则：</p>
+<ul>
+<li>Controller 依赖(持有) Model、View(可直接与它们通信)；</li>
+<li>Model 与 View 互不可见(不可通信)；</li>
+<li>View 只负责layout，且不能保存业务数据 (需要数据时通过 datasource 方式向 Controller 要)；</li>
+<li>View 可通过 target、delegate 与 Controller 同步状态；</li>
+<li>Model 不能主动与 Controller 通信，通过 Notification、KVO、delegate、block 等机制通知 Controller 数据变化。</li>
+</ul>
+<p>看到这里，大家有没有一种熟悉的味道？<br>没错，UITableView 与外界 (Contoller) 的交互与此处的描述高度一致。<br><img src="/img/MVC.jpg" alt=""></p>
+<p>(关于 MVC 规则的描述，大家也可以参考 Stanford iOS 公开课中的相关内容)</p>
+<h2 id="有问题吗？"><a href="#有问题吗？" class="headerlink" title="有问题吗？"></a>有问题吗？</h2><hr>
+<p>此时，大家或许心中有些疑问：<br>1、在 MVC 模式中，网络请求、数据存储谁来完成？<br>2、Model、View、Controller 谁的可复用性最强？<br>3、展示逻辑为什么由 Controller 完成而不是 View？</p>
+<ul>
+<li><p>在 MVC 模式中，网络请求、数据存储谁来完成？<br>  Controller、Model 都可以，一般由 Model 完成。此时的 Model 已不再是简单的 Model Object，而是 Model layer，在我们项目中通常将其称为 Manager。</p>
+</li>
+<li><p>Model、View、Controller 谁的可复用性最强？<br>  View&gt;Model&gt;Controller</p>
+</li>
+<li><p>展示逻辑为什么由 Controller 完成而不是 View？<br>  View可复用性高，不应关心具体展示逻辑，只专注于 layout</p>
+</li>
+</ul>
+<h2 id="Massive-View-Controller"><a href="#Massive-View-Controller" class="headerlink" title="Massive View Controller"></a>Massive View Controller</h2><hr>
+<p>MVC 模式被批评最多的就是 Controller 过于臃肿，那么 Controller 都做了什么？</p>
+<ul>
+<li>处理复杂的展示逻辑；</li>
+<li>处理用户事件；</li>
+<li>初始化 View、管理部分 View 的生命周期并提供数据；</li>
+<li>处理业务数据变化，转换为 UI 结果；</li>
+<li>获取、存储数据(可选)。</li>
+</ul>
+<p>尤其是如今很多产品经理『擅长』做加法，页面、交互越来越复杂，这对于 Controller 来说无疑是雪上加霜。</p>
+<h1 id="Model-View-Controller-Store"><a href="#Model-View-Controller-Store" class="headerlink" title="Model-View-Controller-Store"></a>Model-View-Controller-Store</h1><hr>
+<p>前面提到，在 MVC 模式中，并没有讨论获取数据属于哪个模块的职责 (一般由 model 负责)。MVCS 模式就是在 MVC 基础上将数据单独提取为一层(Store)。<br><img src="/img/MVCS.png" alt=""></p>
+<h1 id="Model-View-Presenter"><a href="#Model-View-Presenter" class="headerlink" title="Model-View-Presenter"></a>Model-View-Presenter</h1><hr>
+<p>在 MVC 模式中，展示逻辑被划分为 Controller 的职责范围。如今，展示逻辑越来越复杂，Controller 随之也变得越来越臃肿。同时，Controller 也被认为是 View 的一部分，这样 Model 与 View 间并没有完全隔离、解耦。<br>MVP (Model-View-Presenter) 就是在这样的背景下产生的，其将展示逻辑提取为一个单独的层(Presenter)，简化了 Controller，也彻底隔离了 Model 与 View。<br><img src="/img/MVP.png" alt=""></p>
+<p>新产生的 Presenter 层有以下特点：</p>
+<ul>
+<li>UI 无关 (在 Presenter 中不能包含 UIKit 相关头文件)；</li>
+<li>处理展示逻辑；</li>
+<li>Model 与 View 间的桥接者。</li>
+</ul>
+<h1 id="Model-View-View-Model"><a href="#Model-View-View-Model" class="headerlink" title="Model View View-Model"></a>Model View View-Model</h1><hr>
+<p>最近两三年对 MVVM(Model View View-Model) 的讨论比较多，其提出的愿景也是为了简化 Controller、彻底将 View 与 Model 解耦、并提供 Data Binding。<br><img src="/img/MVCMVVM.jpg" alt=""><br>在 MVVM 中 Controller 被认为是 View，更准确的说是：<br><img src="/img/MVMCV.jpg" alt=""></p>
+<h2 id="Rules"><a href="#Rules" class="headerlink" title="Rules"></a>Rules</h2><hr>
+<p>在 MVVM 模式中，各模块间的依赖关系、数据流向、数据传递的格式都有严格的规定：<br><img src="/img/MVVMRules.jpg" alt=""><br>如上图所示，View、View Model 以及 Model 需要遵守以下规则：</p>
+<ul>
+<li><p>View(UIViewController/UIView):<br>  1.可以依赖(持有) View、View Model，即可直接调用其方法；<br>  2.不能依赖(持有) Model、Model Object(Item)；<br>  3.UI 绑定到View Model上(如：titleLabel.text-&gt;viewModel.title)<br>  4.通过 RACCommands/RACActions 或直接调用 View Model 的方法将用户事件传递给 View Model。</p>
+</li>
+<li><p>View Model:<br>  1.可以依赖(持有) View Model、Model 以及 Model Object；<br>  2.不能依赖(持有) View、Raw Model Object；<br>  3.其公开属性只能是基础数据类型(NSInteger、NSString等)或其他 View Model；<br>  4.将 Model Object 转换成可直接在 View 上显示的属性或Sub View Model(展示逻辑)；<br>  5.接受来自 View 或 Sub View Model 的输入(用户事件)。</p>
+</li>
+<li><p>Model (Layer)：<br>  1.可以依赖(持有) 其他 Model、Model Object、Data Source、Raw Model Object；<br>  2.不能依赖(持有) View Model、View；<br>  3.将 Raw Model Object 转换为 Model Object；<br>  4.为 View Model 提供数据(异步)。</p>
+</li>
+</ul>
+<p>其中，View 与 View Model 类似 UIView 与 CALayer 的关系，一一对应(包括层次结构)：<br><img src="/img/ViewViewModel.jpg" alt=""></p>
+<h2 id="Data-Binding"><a href="#Data-Binding" class="headerlink" title="Data Binding"></a>Data Binding</h2><hr>
+<p><img src="/img/MVVMDataBinding.jpg" alt=""><br>从上图可知，在 MVVM 中数据流方向与依赖关系正好相反，数据流的流动就是建立在 Observer Synchronization 思想基础之上。</p>
+<p>从 Data Source 到 Model、Model 到 View Model 可采用一般的同步方法，如：Delegate、Notification 以及 block 等。而从 ViewModel 到 View 的 Data Binding 是 MVVM 模式与其他 MV* 模式最大的区别。</p>
+<p>遗憾的是 iOS 并没有原生的 Data Binding 方式，目前大概只能通过两种方式实现 Data Binding：KVO 或 ReactiveCocoa。KVO/RAC是一种更加激进的 Observer Synchronization：</p>
+<ul>
+<li>优势：绑定关系确定后，同步更加方便；</li>
+<li>劣势：数据流不直观，调试较困难；</li>
+</ul>
+<h2 id="MVVM-VS-MVP"><a href="#MVVM-VS-MVP" class="headerlink" title="MVVM VS. MVP"></a>MVVM VS. MVP</h2><hr>
+<p>MVVM 与 MVP 有很多相似的点：</p>
+<ul>
+<li>将展示逻辑从 Controller 中提取出来(分别放到 View Model 和 Presenter 中)；</li>
+<li>分别在 View Model、Presenter 中响应用户事件；</li>
+<li>分别通过 View Model、Presenter 连接 View 与 Model；</li>
+<li>解耦 View 与 Model。</li>
+</ul>
+<p>两者最大的区别在于：MVVM 有 Data Binding 而 MVP 没有。</p>
+<h1 id="华山论剑——MV-VS-MVVM"><a href="#华山论剑——MV-VS-MVVM" class="headerlink" title="华山论剑——MV* VS. MVVM"></a>华山论剑——MV* VS. MVVM</h1><hr>
+<p>根据是否有 Data Binding，可将常见 GUI 框架分为两大阵营：</p>
+<ul>
+<li>有 Data Binding：MVVM；</li>
+<li>没有 Data Binding：MVC、MVP、MVCS 等。</li>
+</ul>
+<p>MVVM 的 Data Binding 在一定程度上增加了编码的复杂度、数据流也变得不够直观、调试难度也有所增加。但对于数据可变的场景，一旦通过 Data Binding 将 View 与 View Model 绑定起来，在数据变化时，会自动映射到 UI 上，十分方便。</p>
+<p>根据展示逻辑是否独立于 Controller，可分为：</p>
+<ul>
+<li>独立：MVVM、MVP</li>
+<li>不独立：MVC、MVCS</li>
+</ul>
+<p>MVVM、MVP 分别将展示逻辑从 Controller 中提取出来，使 Controller 得到一定程度的简化，在展示逻辑复杂的情况下，效果更加明显。</p>
+<h2 id="没有好坏，只有适合"><a href="#没有好坏，只有适合" class="headerlink" title="没有好坏，只有适合"></a>没有好坏，只有适合</h2><hr>
+<p>通过上述分析，我们可以看到，常见几种框架：MVC、MVCS、MVP、MVVM 并没有绝对的好坏之分，只是各有不同的适用场景。<br>我们在选择时可以根据以下两点作为参考依据：</p>
+<ul>
+<li>数据是否可变(UI是动态还是静态)<br>  静态：MV*<br>  动态：MVVM</li>
+<li>展示逻辑是否复杂<br>  复杂：MVVM、MVP</li>
+</ul>
+<h2 id="万变不离其宗——MVC是根"><a href="#万变不离其宗——MVC是根" class="headerlink" title="万变不离其宗——MVC是根"></a>万变不离其宗——MVC是根</h2><hr>
+<p>MVCS、MVP、MVVM 等各种新生框架，虽各有不同，但都是源自于 MVC，它们的核心思想一直没变，也不能变：</p>
+<ul>
+<li>Separated Presentation;</li>
+<li>Observer Synchronization.</li>
+</ul>
+<h1 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h1><hr>
+<p>理论的东西讲了不少，下面结合实际的项目，看看应该如何选择框架。</p>
+<h2 id="书籍详情页"><a href="#书籍详情页" class="headerlink" title="书籍详情页"></a>书籍详情页</h2><hr>
+<p>书籍详情页在整个 QQ 阅读 app 中，无论是展示还是业务逻辑都是最复杂的一个模块。<br><img src="/img/DetailPage.jpg" alt=""></p>
+<ul>
+<li>在书籍下载过程中下载按钮需要显示下载状态(进度)——动态 UI；</li>
+<li>评分、作者分类、包月相关提示、打赏、粉丝榜等展示逻辑十分复杂。</li>
+</ul>
+<p>因此，该模块采用 MVVM 框架比较合适。遗憾的是，当时设计该模块时没有充分意识到其复杂程序，而是选择了传统的 MVC 框架。结果造成详情页 Controller 十分复杂，下面这段就是 Controller 中根据下载状态修改 toolbar 上3个按钮状态的代码(ps：看不清没关系，只要能看出其很复杂即可^_^)：<br><img src="/img/DetailPageChangeBookInfo.jpg" alt=""><br>同时，大量的展示逻辑也耦合在了各个 View 中：<br><img src="/img/BookDetailHeaderView.jpg" alt=""><br>如果，采用 MVVM 框架，各种展示逻辑可以放到相应的 View Model 中，让 View 只专注于 layout。同时在 View Model 中处理下载相关逻辑，使下载逻辑与 View 解耦。</p>
+<h2 id="信息流"><a href="#信息流" class="headerlink" title="信息流"></a>信息流</h2><hr>
+<p>信息流作为 QQ 阅读一大亮点，能为用户个性化推荐书籍，是整个 app 中最重要的一个页面：<br><img src="/img/FeedFlow.jpg" alt=""><br>信息流是最重要的页面，但不是最复杂的页面：</p>
+<ul>
+<li>信息流的数据是静态的，在显示过程中不会改变——静态UI；</li>
+<li>展示逻辑相对简单。</li>
+</ul>
+<p>因此，信息流模块没必要使用复杂的 MVVM 框架。<br><strong><em>很多场景属于此类情形：通过 UITableView 列举多行静态数据，若数据有更新时直接 reload tableview。</em></strong></p>
+<h1 id="无剑胜有剑-皆可为剑"><a href="#无剑胜有剑-皆可为剑" class="headerlink" title="无剑胜有剑 皆可为剑"></a>无剑胜有剑 皆可为剑</h1><hr>
+<p>各种分层框架都是前辈充满智慧的宝贵经验，值得尊敬、借鉴、学习，但也不必拘泥于形式，重点是理解其背后的思想。设计模式有六大原则：</p>
+<ul>
+<li>单一职责原则</li>
+<li>里氏代换原则</li>
+<li>依赖倒转原则</li>
+<li>接口隔离原则</li>
+<li>迪米特法则</li>
+<li>开放-封闭原则</li>
+</ul>
+<p>其中除了里氏代换原则，其他五大原则都是分层框架的指导思想。只要我们深刻理解并能严格遵守这些原则，无论我们选择哪种框架、或在其基础上进行衍化，都能设计出高质量的代码。</p>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><hr>
+<p>代码设计、框架选择及理解仁者见仁、智者见智，但经典的设计理念是公认的、也是经过时间检验的。</p>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p><a href="http://martinfowler.com/eaaDev/uiArchs.html" target="_blank" rel="noopener">GUI Architectures</a><br><a href="https://developer.apple.com/library/ios/documentation/General/Conceptual/DevPedia-CocoaCore/MVC.html" target="_blank" rel="noopener">Model-View-Controller</a><br><a href="https://www.objc.io/issues/13-architecture/mvvm/" target="_blank" rel="noopener">Introduction to MVVM</a><br><a href="https://www.objc.io/issues/1-view-controllers/lighter-view-controllers/" target="_blank" rel="noopener">Lighter View Controllers</a><br><a href="http://www.sprynthesis.com/2014/12/06/reactivecocoa-mvvm-introduction/" target="_blank" rel="noopener">ReactiveCocoa and MVVM, an Introduction</a><br><a href="http://twocentstudios.com/2014/06/08/on-mvvm-and-architecture-questions/" target="_blank" rel="noopener">On MVVM, and Architecture Questions</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag"># iOS</a>
+          
+            <a href="/tags/构架/" rel="tag"># 构架</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/06/09/NSURLSession_Supplements/" rel="next" title="NSURLSession 拾遗">
+                <i class="fa fa-chevron-left"></i> NSURLSession 拾遗
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/08/28/Https/" rel="prev" title="HTTPS 问答">
+                HTTPS 问答 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#为什么要分层"><span class="nav-number">2.</span> <span class="nav-text">为什么要分层</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Model-View-Controller"><span class="nav-number">3.</span> <span class="nav-text">Model-View-Controller</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Model"><span class="nav-number">3.1.</span> <span class="nav-text">Model</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Controller"><span class="nav-number">3.2.</span> <span class="nav-text">Controller</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#View"><span class="nav-number">3.3.</span> <span class="nav-text">View</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MVC-规则"><span class="nav-number">3.4.</span> <span class="nav-text">MVC 规则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#有问题吗？"><span class="nav-number">3.5.</span> <span class="nav-text">有问题吗？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Massive-View-Controller"><span class="nav-number">3.6.</span> <span class="nav-text">Massive View Controller</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Model-View-Controller-Store"><span class="nav-number">4.</span> <span class="nav-text">Model-View-Controller-Store</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Model-View-Presenter"><span class="nav-number">5.</span> <span class="nav-text">Model-View-Presenter</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Model-View-View-Model"><span class="nav-number">6.</span> <span class="nav-text">Model View View-Model</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Rules"><span class="nav-number">6.1.</span> <span class="nav-text">Rules</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Data-Binding"><span class="nav-number">6.2.</span> <span class="nav-text">Data Binding</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MVVM-VS-MVP"><span class="nav-number">6.3.</span> <span class="nav-text">MVVM VS. MVP</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#华山论剑——MV-VS-MVVM"><span class="nav-number">7.</span> <span class="nav-text">华山论剑——MV* VS. MVVM</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#没有好坏，只有适合"><span class="nav-number">7.1.</span> <span class="nav-text">没有好坏，只有适合</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#万变不离其宗——MVC是根"><span class="nav-number">7.2.</span> <span class="nav-text">万变不离其宗——MVC是根</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#实例"><span class="nav-number">8.</span> <span class="nav-text">实例</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#书籍详情页"><span class="nav-number">8.1.</span> <span class="nav-text">书籍详情页</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#信息流"><span class="nav-number">8.2.</span> <span class="nav-text">信息流</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#无剑胜有剑-皆可为剑"><span class="nav-number">9.</span> <span class="nav-text">无剑胜有剑 皆可为剑</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#小结"><span class="nav-number">10.</span> <span class="nav-text">小结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考资料"><span class="nav-number">11.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

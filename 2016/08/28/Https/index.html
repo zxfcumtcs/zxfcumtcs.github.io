@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="NetWorking,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本文从问题入手，简单分析了 HTTPS 中 TLS 握手过程以及简单介绍了数字签名、数字证书、对称加密、非对称加密等知识。">
+<meta name="keywords" content="NetWorking">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTTPS 问答">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2016/08/28/Https/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本文从问题入手，简单分析了 HTTPS 中 TLS 握手过程以及简单介绍了数字签名、数字证书、对称加密、非对称加密等知识。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/HTTPHTTPS.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/Diffie-Hellman_Key_Exchange.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/DigitalSignature.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/MiddlemanAttack.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/digitalcertificatestructure.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/CA.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/CertificateChain.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/VerifyingACertificateChain.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/googleCertificateChain.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/TLSprotocolstack.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RecordProtocoloperation.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RSAHandshake.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/Diffie-HellmanHandshake.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ClientHello.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ServerHello.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ServerCertificate.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ServerKeyChange.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ServerHelloDone.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ClientKeyExchange.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ClientChangeCipherSpec.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/TLSHandshakeFinished.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/CRLOCSP.jpg">
+<meta property="og:updated_time" content="2018-12-08T08:41:32.857Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="HTTPS 问答">
+<meta name="twitter:description" content="本文从问题入手，简单分析了 HTTPS 中 TLS 握手过程以及简单介绍了数字签名、数字证书、对称加密、非对称加密等知识。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/HTTPHTTPS.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2016/08/28/Https/">
+
+
+
+
+
+  <title>HTTPS 问答 | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2016/08/28/Https/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">HTTPS 问答</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-08-28T17:19:48+08:00">
+                2016-08-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2016/08/28/Https/" class="leancloud_visitors" data-flag-title="HTTPS 问答">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  3,547
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  13
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文从问题入手，简单分析了 HTTPS 中 TLS 握手过程以及简单介绍了数字签名、数字证书、对称加密、非对称加密等知识。<br><a id="more"></a><br>©原创文章，转载请注明出处！</p>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
+<p>为了加强网络安全，2015年，Apple 在 iOS9、OS X v10.11 上提出 ATS (App Transport Security) 的概念，旨在通过 HTTPS 建立安全连接。当时，ATS 还是个可选项，但 Apple 在 WWDC 2016 上表示，从2017年1月1日起所有 app 都必须使用 ATS (不清楚不使用的后果是什么，可能是拒绝提交 app store)。</p>
+<blockquote>
+<p>Apple 对 ATS 有如下要求：</p>
+<ol>
+<li>The server must support at least Transport Layer Security (TLS) protocol version 1.2.</li>
+<li>Connection ciphers are limited to those that provide forward secrecy.</li>
+<li>Certificates must be signed using a SHA256 or better signature hash algorithm, with either a 2048 bit or greater RSA key or a 256 bit or greater Elliptic-Curve (ECC) key.</li>
+</ol>
+</blockquote>
+<p>由于系统网络 API，如：<code>NSURLConnection</code>、<code>NSURLSession</code> 已经支持 HTTPS，因此，客户端从 HTTP 切换到 HTTPS 几乎没有什么工作量 (前提是后台使用了可靠的证书)。</p>
+<p>但作为开发人员，对于 HTTPS 的基本概念、流程还是需要了解，以便在出现问题时能快速定位问题、解决问题 (所谓知彼知己)。<br>下面我们将通过问答的形式讨论分析 HTTPS 的基本原理。</p>
+<h1 id="HTTPS-的使命是什么？"><a href="#HTTPS-的使命是什么？" class="headerlink" title="HTTPS 的使命是什么？"></a>HTTPS 的使命是什么？</h1><hr>
+<p><strong>『建立安全的网络连接』</strong><br>没错，但反过来要问了， HTTP 为什么不安全？<br>『HTTP (Hypertext Transfer Protocol，超文本传输协议)』 通过明文传输通信内容，导致信息很容易被窃听、篡改，同时无法验证通信双方的身份。</p>
+<p>因此，HTTPS 要解决这些问题：</p>
+<ul>
+<li>信息加密——防止信息被窃听；</li>
+<li>信息完整性校验——防止信息被篡改；</li>
+<li>身份认证——防止信息劫持。</li>
+</ul>
+<h1 id="HTTPS-与-HTTP-什么关系？"><a href="#HTTPS-与-HTTP-什么关系？" class="headerlink" title="HTTPS 与 HTTP 什么关系？"></a>HTTPS 与 HTTP 什么关系？</h1><hr>
+<p>我们知道，网络协议都是处在 OSI 七层网络模型之中，得益于良好的分层模型，HTTPS 就是在 HTTP 协议栈的基础之上添加了一个安全层 TLS/SSL (Transport Layer Security/Secure Sockets Layer)。<img src="/img/HTTPHTTPS.png" alt="">在 HTTPS 协议栈中，HTTP、TCP 协议无须任何改动，加解密、认证等工作由 TLS 层完成。</p>
+<h1 id="HTTPS-工作原理是什么？"><a href="#HTTPS-工作原理是什么？" class="headerlink" title="HTTPS 工作原理是什么？"></a>HTTPS 工作原理是什么？</h1><hr>
+<p>这是一个很大的问题，细分的话就是 HTTPS 如何完成它的3个使命：加密、完整性校验以及身份认证。<br>这一切都要从 TLS/SSL 协议说起，但在开始之前有必要先了解一些相关的基础知识：</p>
+<h2 id="对称加密与非对称加密"><a href="#对称加密与非对称加密" class="headerlink" title="对称加密与非对称加密"></a>对称加密与非对称加密</h2><ul>
+<li>对称加密 (Symmetric cryptography)，发送方与接收方使用相同的密钥加密与解密，这也是其最大的弱点，意味着双方在能加密通信前需要传送密钥；</li>
+<li>非对称加密 (也称为公钥加密，Asymmetric cryptography/Public-key cryptography)，旨在解决对称加密必须传送密钥的缺陷。1976年， Whitfield Diffie 与 Martin Hellman 提出在不交换密钥的情况下完成加解密的构想，即 Diffie–Hellman key exchange。1977年，数学家 Rivest、Shamir 以及 Adleman 受 Diffie–Hellman key exchange 的启发，设计出一种非对称加密算法，称之为 RSA 算法，其思想是通信中的一方生成一对密钥：公钥、私钥，公钥分开发布，任何人都可以获取，私钥则是密保的。公钥加密的信息只有私钥能解密，私钥加密的信息也只有其对应的公钥可以解密。</li>
+</ul>
+<p>其中，<a href="https://commons.wikimedia.org/wiki/File:Diffie-Hellman_Key_Exchange_" target="_blank" rel="noopener">Diffie-Hellman Key Exchange在原理大致如下</a>：<img src="/img/Diffie-Hellman_Key_Exchange.png" alt="">更多信息可以参考<a href="https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange" target="_blank" rel="noopener">Diffie–Hellman key exchange</a>。</p>
+<h2 id="数字签名-Digital-Signature"><a href="#数字签名-Digital-Signature" class="headerlink" title="数字签名 (Digital Signature)"></a>数字签名 (Digital Signature)</h2><p>顾名思义，签名主要就是防伪，数字签名主要用于认证消息的发送者 (发送者无法抵赖)、消息完整性校验。</p>
+<blockquote>
+<p>A digital signature is a mathematical scheme for demonstrating the authenticity of a digital message or documents. A valid digital signature gives a recipient reason to believe that the message was created by a known sender, that the sender cannot deny having sent the message (authentication and non-repudiation), and that the message was not altered in transit (integrity).</p>
+</blockquote>
+<p><img src="/img/DigitalSignature.png" alt=""><br>从<a href="https://upload.wikimedia.org/wikipedia/commons/2/2b/Digital_Signature_diagram.svg" target="_blank" rel="noopener">上图</a>可以看出，数字签名就是将要发送的数据通过 hash 函数计算消息摘要，再通过发送者私钥对摘要加密，最后附加在数据后面一起发送。<br>接收者，在收到消息后通过发送者公钥解密其中的签名，并同样通过 hash 函数计算消息摘要，若两者一致说明消息没有被篡改(完整性)，同时也能证明消息的确来自发送者。其中的关键有两点：</p>
+<ul>
+<li>计算消息摘要的 hash 函数：对输入敏感且不可逆；</li>
+<li>非对称加密：一个公钥解一个私钥，通过发送者发布的公钥能解开的加密信息一定是通过发送者配对的私钥加密的。</li>
+</ul>
+<h2 id="数字证书-Digital-Certificate"><a href="#数字证书-Digital-Certificate" class="headerlink" title="数字证书 (Digital Certificate)"></a>数字证书 (Digital Certificate)</h2><p>仅仅通过非对称加密能实现身份认证吗？<br>我们知道，在非对称加密中，接收方仅仅掌握了所谓来自发送方的公钥，而公钥是不包含任何身份信息的。<br><img src="/img/MiddlemanAttack.jpg" alt=""><br>如上图所示中间人攻击，攻击者可以劫持发送者公钥，将自己的公钥发送给接收者，此时其完全可以冒充发送者与接收者通信，而接收者毫无察觉。<br>此时，数字证书应运而生：<img src="/img/digitalcertificatestructure.jpg" alt=""><br>上图是 X.509 定义的 v3 版数字证书结构，证书本身包含的重要信息有：证书持有者以及公钥、证书签发者、过期时间等。当然，最后还要附上签发者的数字签名，其中，数字签名用于判断证书的真伪。<br>从上面我们知道，数字签名需要使用签发者公钥解密，那么如何获得证书签发者的公钥以便验证证书的真伪？如何判断获得的签发者公钥没被篡改？<br>额，似乎要进入死循环了…</p>
+<p>此时，CA (Certificate Authority，证书授权中心) 应运而生，其作为第三方权威可信机构，承担 PKI 中公钥合法性校验的职责，并签发认证证书以及对证书的维护管理等。</p>
+<blockquote>
+<p>A public key infrastructure (PKI) is a set of roles, policies, and procedures needed to create, manage, distribute, use, store, and revoke digital certificates[1] and manage public-key encryption.</p>
+</blockquote>
+<p><img src="/img/CA.jpg" alt=""><br>上图为证书从 CA 到服务器，再到客户端的大致流程：</p>
+<ul>
+<li>服务器向 CA 提出证书申请 (需要提供公钥、域名、申请人信息等)；</li>
+<li>CA 对提出的申请进行核审；</li>
+<li>核审通过后向申请者签发证书 (证书除了包含申请人公钥、域名等信息，还有证书过期时间，最重要的是 CA 的签名)；</li>
+<li>客户端连接服务器时，服务器下发证书；</li>
+<li>客户端验证证书，若验证通过则进行后续连接操作 (如：协商通信密钥等)。</li>
+</ul>
+<p>再回到前面的问题『如何获得证书签发者的公钥以便验证证书的真伪？如何判断获得的签发者公钥没被篡改？』<br>由于 CA 是公认的权威机构，系统或浏览器会内置其自签名的证书 (根证书)。</p>
+<h2 id="证书链-Certificate-chains"><a href="#证书链-Certificate-chains" class="headerlink" title="证书链 (Certificate chains)"></a>证书链 (Certificate chains)</h2><p>由于证书的需求量巨大，为了减少一级 CA 的工作量，出现了二级、三级、… CA 机构，其签发出来的证书也就构成了一个证书链。<br><img src="/img/CertificateChain.jpg" alt=""><br>如<a href="https://docs.oracle.com/cd/E19693-01/819-0997/gdzen/index.html" target="_blank" rel="noopener">上图</a>所示，所有 CA 机构组成一个树状结构。<br><img src="/img/VerifyingACertificateChain.jpg" alt=""><br>证书的校验逆证书链而上，直到找到系统信任的证书。<br><img src="/img/googleCertificateChain.jpg" alt=""><br>上图是 google.com.hk 的证书链，可以看到 *google.com.hk 的证书是由二级 CA: Google Internet Authority G2签发，而该二级 CA 的证书则由根 CA: GeoTrust Global CA 签发，从而构成一个可信任的证书链。</p>
+<p>好了，下面该回到正题了。</p>
+<h2 id="TLS-SSL-协议"><a href="#TLS-SSL-协议" class="headerlink" title="TLS/SSL 协议"></a>TLS/SSL 协议</h2><hr>
+<p>我们已经知道，在 HTTPS 协议栈中，TLS/SSL 处于 HTTP 与 TCP 之间。进一步细分的话，TLS 分为2层5条协议：<img src="/img/TLSprotocolstack.jpg" alt=""></p>
+<p>其中，TLS Record Protocol 用于处理传输的数据，其主要职责是将上层协议下发的数据分块 (一块最大2^14 = 16384 bytes)、压缩、添加 MAC、加密等 (对于从底层协议上行的数据，其操作正好相反：解密、校验、解压、重组)。<br><img src="/img/RecordProtocoloperation.jpg" alt=""></p>
+<h3 id="TLS-SSL-Handshake"><a href="#TLS-SSL-Handshake" class="headerlink" title="TLS/SSL Handshake"></a>TLS/SSL Handshake</h3><hr>
+<p>TCP 为了建立可靠连接需要三次握手，TLS 为了实现加密、校验、身份认证同样需要握手 (握手，简单讲就是通信双方协商在后续通信过程中需要使用的信息)。</p>
+<p>整个握手过程双方大概要确认以下几点：</p>
+<ul>
+<li>双方通信使用的 TLS 版本；</li>
+<li>交换双方用于生成对称加密密钥的参数；</li>
+<li>确认双方使用的加密算法、压缩算法；</li>
+<li>完成身份认证。</li>
+</ul>
+<p>我们知道，身份认证时的数字签名采用的是非对称加密。出于效率考虑，在 TLS 链接建立后，双方通信时采用的是对称加密。因此，TLS 握手需要确定对称加密密钥 (Master Secret)。目前有两种方法计算 Master Secret：RSA 以及 Diffie-Hellman，因此，TLS Handshake 分为 RSA Handshake、Diffie-Hellman 握手。</p>
+<h3 id="RSA-Handshake"><a href="#RSA-Handshake" class="headerlink" title="RSA Handshake"></a>RSA Handshake</h3><p><img src="/img/RSAHandshake.jpg" alt=""><br>上图是 RSA Handshake 的基本流程：</p>
+<ul>
+<li>Client Hello：客户端首先发起 TLS 握手，告诉服务端其支持的最高 TLS 版本、加密套件列表 (cipher suites)、压缩方法并产生随机数 Random_C；</li>
+<li>Server Hello：服务端根据客户端支持的最大 TLS 版本决定此次通信使用的 TLS 版本、从客户端加密套件列表中选择一种加密套件以及压缩方法、生成随机数 Random_S 并将 Session Id 一起传给客户端；</li>
+<li>Server Certificate：服务端将证书传给客户端以便认证其身份；</li>
+<li>Server Hello Done：告知客户端服务端已完成握手相关的所有数据的传送；</li>
+<li>客户端校验 Server Certificate；</li>
+<li>Client Key Exchange：客户端生成随机密钥 PreMaster Secret，并用服务端公钥加密后发送给服务端；</li>
+<li>Client change_cipher_spec：通知服务端后续消息将加密；</li>
+<li>Client Finished：第一条加密的消息，表示握手完成；</li>
+<li>服务端接收到加密的 PreMaster Secret后，用私钥解密，此时双方都掌握了计算 Master Secret 的所有信息 (Random_C、Random_S、PreMaster Secret)，双方分别计算 Master Secret；</li>
+<li>Server change_cipher_spec：通知客户端后续通信会加密；</li>
+<li>Server Finished：握手完成。</li>
+</ul>
+<h3 id="Diffie-Hellman-Handshake"><a href="#Diffie-Hellman-Handshake" class="headerlink" title="Diffie-Hellman Handshake"></a>Diffie-Hellman Handshake</h3><p>新技术的出现往往是原有技术存在不足或缺陷，那么 RSA Handshake 存在什么问题？<br>在 RSA 中，身份认证以及对 PreMaster Secret 加密使用的是同一对 public-private key，如果攻击者截获了服务器的私钥并窃听了整个握手过程，那么其可以顺利的破解整个通信消息。更严重的是，整个通信过程对称加密密钥是固定不变的，所以即使当前攻击者没有掌握服务端私钥，其可以将整个通信过程记录下来，等其获取到服务端私钥后，再进行破解。</p>
+<p>而在 Diffie-Hellman Handshake 过程中，双方不需要在握手过程中传递类似 PreMaster Secret 的信息，更可喜的是，通过 Diffie-Hellman key exchange 可以生成新的对称密钥，废弃老的密钥，也就是在通信过程中对称密钥不固定，可以随时更换。</p>
+<p>在握手流程上与 RSA Handshake 相比，Diffie-Hellman Handshake 双方都要交换 Diffie–Hellman 参数：<br><img src="/img/Diffie-HellmanHandshake.jpg" alt=""></p>
+<p>下面我们使用 Safari 访问 『<a href="https://www.google.com.hk』，并通过" target="_blank" rel="noopener">https://www.google.com.hk』，并通过</a> Wireshark 抓包来了解一下其中 TSL 握手的过程：<br>1、Client Hello<img src="/img/ClientHello.jpg" alt=""><br>可以看到在 Client Hello 中包含了：TLS Version (客户端支持的最高版本 TLS 1.2)、Random、Cipher Suites (37套)、 Compression Methods (null，表示不压缩)。</p>
+<p>2、Server Hello<img src="/img/ServerHello.jpg" alt=""><br>可以看到在 Server Hello 中包含了：TLS Version (确定双方通信使用 TLS 1.2)、Random、Session ID、Cipher Suite 选择了 TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA、不加密 (Compression Method 为 null)。<br>其中，TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA 的含义如下：</p>
+<ul>
+<li>TLS 自然表示是 TLS 协议；</li>
+<li>ECDHE 表示使用 Elliptic Curve Diffie-Hellman Ephemeral 方式生成对称加密密钥 (Master Secret)；</li>
+<li>RSA 表示数字签名使用非对称加密 RSA；</li>
+<li>AES_128_CBC 表示对称加密使用 128 bit 的 AES 方式；</li>
+<li>SHA 表示使用安全哈希算法 (Secure Hash Algorithm) 计算摘要。</li>
+</ul>
+<p>3、Server Certificate<img src="/img/ServerCertificate.jpg" alt=""><br>4、Server Key Exchange<img src="/img/ServerKeyChange.jpg" alt=""><br>5、Server Hello Done<img src="/img/ServerHelloDone.jpg" alt=""><br>Server Hello Done 表示服务端已发送完所有握手相关的数据。<br>6、Client Key Exchange<img src="/img/ClientKeyExchange.jpg" alt=""><br>7、Client Change_Cipher_Spec<img src="/img/ClientChangeCipherSpec.jpg" alt=""><br>Change_Cipher_Spec 表示通知对方后续通信将加密 (此时 Master Secret 已计算出来)<br>8、Client Finished (Encrypted Handshke Message)<img src="/img/TLSHandshakeFinished.jpg" alt=""><br>紧接着 Change_Cipher_Spec，会发送一条 Finished 消息，用于验证之前的 key exchange 以及身份认证是否成功。Finished 消息是 TLS 链接建立后的第一条使用握手过程协商的加密算法、密钥加密的消息。Finished 消息的内容是整个握手过程中接收到的数据，对方在接收到 Finished 消息后需要对其解密并验证消息内容是否正确。<br>9、Server Change_Cipher_Spec<br>10、Server Finished<br>服务端同样需要发送 Change_Cipher_Spec、Finished 消息。<br>至此，若所有步骤都正确无误，则 TLS 握手过程顺利完成！后续所有消息都将通过对称加密的方式发送。</p>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><hr>
+<p>再来看 HTTPS 的三个主要任务：</p>
+<ul>
+<li>加密：通过握手过程协商的加密算法、密钥对消息加密；</li>
+<li>完整性校验：通过 MAC 实现；</li>
+<li>身份认证：通过数字证书完成。</li>
+</ul>
+<p>以上就是 HTTPS 相关的一些知识。</p>
+<h1 id="未尽事宜"><a href="#未尽事宜" class="headerlink" title="未尽事宜"></a>未尽事宜</h1><ul>
+<li>证书管理：证书可能会被 CA 吊销、失效等，终端可以通过 CRL (Certificate Revocation List) 或 OCSP (Online Certificate Status Protocol) 等机制查询证书的状态；<br>在证书中会包含 CRL、OCSP 相关的信息：<img src="/img/CRLOCSP.jpg" alt=""></li>
+<li>session 复用：从上述介绍我们可以知道，建立 TLS 链接是十分耗时的，可以通过 session id 以及 session ticket 机制实现链接复用。</li>
+</ul>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p><a href="https://hpbn.co/transport-layer-security-tls/" target="_blank" rel="noopener">Transport Layer Security (TLS)</a><br><a href="https://tools.ietf.org/html/rfc5246" target="_blank" rel="noopener">The Transport Layer Security (TLS) Protocol Version 1.2</a><br><a href="https://tools.ietf.org/html/rfc5280" target="_blank" rel="noopener">Internet X.509 Public Key Infrastructure Certificate and Certificate Revocation List (CRL) Profile</a><br><a href="http://www.uniroma2.it/didattica/iss/deposito/4_tls.pdf" target="_blank" rel="noopener">Transport Layer Security (secure Socket Layer)</a><br><a href="https://blog.cloudflare.com/keyless-ssl-the-nitty-gritty-technical-details/" target="_blank" rel="noopener">Keyless SSL: The Nitty Gritty Technical Details</a><br><a href="https://docs.oracle.com/cd/E19693-01/819-0997/gdzen/index.html" target="_blank" rel="noopener">Certificates and Certificate Authorities (CA)</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/NetWorking/" rel="tag"># NetWorking</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/07/20/MobileArchitecture/" rel="next" title="不谈框架，谈细节">
+                <i class="fa fa-chevron-left"></i> 不谈框架，谈细节
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/11/05/iOSDataBinding/" rel="prev" title="简化 iOS Data Binding">
+                简化 iOS Data Binding <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#HTTPS-的使命是什么？"><span class="nav-number">2.</span> <span class="nav-text">HTTPS 的使命是什么？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#HTTPS-与-HTTP-什么关系？"><span class="nav-number">3.</span> <span class="nav-text">HTTPS 与 HTTP 什么关系？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#HTTPS-工作原理是什么？"><span class="nav-number">4.</span> <span class="nav-text">HTTPS 工作原理是什么？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#对称加密与非对称加密"><span class="nav-number">4.1.</span> <span class="nav-text">对称加密与非对称加密</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数字签名-Digital-Signature"><span class="nav-number">4.2.</span> <span class="nav-text">数字签名 (Digital Signature)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数字证书-Digital-Certificate"><span class="nav-number">4.3.</span> <span class="nav-text">数字证书 (Digital Certificate)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#证书链-Certificate-chains"><span class="nav-number">4.4.</span> <span class="nav-text">证书链 (Certificate chains)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TLS-SSL-协议"><span class="nav-number">4.5.</span> <span class="nav-text">TLS/SSL 协议</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#TLS-SSL-Handshake"><span class="nav-number">4.5.1.</span> <span class="nav-text">TLS/SSL Handshake</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RSA-Handshake"><span class="nav-number">4.5.2.</span> <span class="nav-text">RSA Handshake</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Diffie-Hellman-Handshake"><span class="nav-number">4.5.3.</span> <span class="nav-text">Diffie-Hellman Handshake</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#小结"><span class="nav-number">5.</span> <span class="nav-text">小结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#未尽事宜"><span class="nav-number">6.</span> <span class="nav-text">未尽事宜</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考资料"><span class="nav-number">7.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
