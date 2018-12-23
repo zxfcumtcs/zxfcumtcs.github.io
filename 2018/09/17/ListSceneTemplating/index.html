@@ -78,7 +78,7 @@
 <link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
 
 
-  <meta name="keywords" content="iOS,框架,">
+  <meta name="keywords" content="iOS,架构,">
 
 
 
@@ -97,7 +97,7 @@
 
 
 <meta name="description" content="由于列表类应用场景具有固定的流程和模式，本文首先简要介绍了 QQ 阅读中列表类应用场景的架构，然后提出对这一场景进行模板化，以便提高开发效率、减少沟通理解成本。同时，提出一套基于 『Chain of Responsibility』 的事件处理方案，也在一定程度上提高了开发效率，减少了琐碎代码量。">
-<meta name="keywords" content="iOS,框架">
+<meta name="keywords" content="iOS,架构">
 <meta property="og:type" content="article">
 <meta property="og:title" content="列表类应用场景模板化">
 <meta property="og:url" content="http://zxfcumtcs.github.io/2018/09/17/ListSceneTemplating/index.html">
@@ -113,7 +113,7 @@
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/transformsh.jpeg">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/ViewHierarchy.png">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/celldelegate.jpeg">
-<meta property="og:updated_time" content="2018-12-08T08:41:32.858Z">
+<meta property="og:updated_time" content="2018-12-15T10:16:34.640Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="列表类应用场景模板化">
 <meta name="twitter:description" content="由于列表类应用场景具有固定的流程和模式，本文首先简要介绍了 QQ 阅读中列表类应用场景的架构，然后提出对这一场景进行模板化，以便提高开发效率、减少沟通理解成本。同时，提出一套基于 『Chain of Responsibility』 的事件处理方案，也在一定程度上提高了开发效率，减少了琐碎代码量。">
@@ -404,7 +404,7 @@
 <li>统一代码结构，减少项目组内理解沟通成本。</li>
 </ul>
 <h1 id="QQ-阅读列表类应用场景架构简述"><a href="#QQ-阅读列表类应用场景架构简述" class="headerlink" title="QQ 阅读列表类应用场景架构简述"></a>QQ 阅读列表类应用场景架构简述</h1><hr>
-<p>列表类应用场景其流程无外乎：从网络或本地磁盘获取数据，再将数据以列表(tableIview)的形式展示出来，其中最主要的交互就是点击进入次级页面。<br>每个项目团队可能都有一套用于列表类场景的架构，在 QQ 阅读不断迭代的过程中我们也演化出了一套相关的架构。本文会以这套架构为例讲述模板化的思路。</p>
+<p>列表类应用场景其流程无外乎：从网络或本地磁盘获取数据，再将数据以列表(tableview)的形式展示出来，其中最主要的交互就是点击进入次级页面。<br>每个项目团队可能都有一套用于列表类场景的架构，在 QQ 阅读不断迭代的过程中我们也演化出了一套相关的架构。本文会以这套架构为例讲述模板化的思路。</p>
 <blockquote>
 <p>使用什么样的架构不是重点，重点是将使用的架构模板化的思路。</p>
 </blockquote>
@@ -486,7 +486,7 @@
           
             <a href="/tags/iOS/" rel="tag"># iOS</a>
           
-            <a href="/tags/框架/" rel="tag"># 框架</a>
+            <a href="/tags/架构/" rel="tag"># 架构</a>
           
         </div>
       
@@ -588,7 +588,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-count">41</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -601,7 +601,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-count">12</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>

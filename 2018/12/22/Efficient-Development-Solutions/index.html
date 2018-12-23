@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="iOS,架构,UI 组件,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本文作为 QQ 阅读 7.0 改版总结，从架构、页面元素模块化、UI 组件化、基于 iOS 系统响应链的事件处理、业务模板化等方面阐述了一套高效的列表类应用开发解决方案。">
+<meta name="keywords" content="iOS,架构,UI 组件">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS 高效开发解决方案">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2018/12/22/Efficient-Development-Solutions/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本文作为 QQ 阅读 7.0 改版总结，从架构、页面元素模块化、UI 组件化、基于 iOS 系统响应链的事件处理、业务模板化等方面阐述了一套高效的列表类应用开发解决方案。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ListSceneClassDiagram.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ListSceneTimingDiagram.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/bookcitymodules.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/BookList.jpeg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/fourbookUIComponent.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/banner1.jpeg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/banner2.jpeg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/fourbook.jpeg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/threebook.jpeg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/singlebook.jpeg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ViewViewModel.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/QRLeftPictureRightTextView.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/QRLeftPictureRightTextViewModel.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/QRLeftPictureRightText.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ViewHierarchy.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/celldelegate.jpeg">
+<meta property="og:updated_time" content="2018-12-23T16:21:35.228Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="iOS 高效开发解决方案">
+<meta name="twitter:description" content="本文作为 QQ 阅读 7.0 改版总结，从架构、页面元素模块化、UI 组件化、基于 iOS 系统响应链的事件处理、业务模板化等方面阐述了一套高效的列表类应用开发解决方案。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/ListSceneClassDiagram.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2018/12/22/Efficient-Development-Solutions/">
+
+
+
+
+
+  <title>iOS 高效开发解决方案 | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2018/12/22/Efficient-Development-Solutions/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">iOS 高效开发解决方案</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-22T17:36:54+08:00">
+                2018-12-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2018/12/22/Efficient-Development-Solutions/" class="leancloud_visitors" data-flag-title="iOS 高效开发解决方案">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  3,736
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  14
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文作为 QQ 阅读 7.0 改版总结，从架构、页面元素模块化、UI 组件化、基于 iOS 系统响应链的事件处理、业务模板化等方面阐述了一套高效的列表类应用开发解决方案。<br><a id="more"></a><br>©原创文章，转载请注明出处！</p>
+<h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><hr>
+<p>QQ 阅读迎来了7.0版本，作为惯例大版本需要大动作——『UI大改版』。<br>本文主要是对这次改版的一个总结并提炼出一套通用的『列表类业务』开发解决方案。<br>本文将从以下几个方面展开讨论：</p>
+<ul>
+<li>架构</li>
+<li>页面元素模块化</li>
+<li>UI 组件化</li>
+<li>基于响应链的事件处理</li>
+<li>业务模板化</li>
+</ul>
+<blockquote>
+<p>本文部分内容来自<a href="https://zxfcumtcs.github.io/2018/09/17/ListSceneTemplating/">列表类应用场景模板化</a>和<a href="https://zxfcumtcs.github.io/2017/03/04/CustomUIControls/">自定义 UI 组件库</a></p>
+</blockquote>
+<h1 id="架构"><a href="#架构" class="headerlink" title="架构"></a>架构</h1><hr>
+<p>列表类业务应该说是大多数 App 的主要业务场景，如朋友圈、新闻类 App 首页、各类个性化推荐页、微博首页以及我们的书城等等。</p>
+<p>列表类业务其流程主要是：</p>
+<ul>
+<li>从网络或本地磁盘获取数据；</li>
+<li>再将数据以列表(<code>UITableView</code>、<code>UICollectionView</code>)形式展示出来；</li>
+<li>最主要的交互就是点击进入次级页面。</li>
+</ul>
+<p>对于列表类业务每个项目团队可能都有一套架构，在 QQ 阅读不断迭代的过程中也演化出一套架构。<br><img src="/img/ListSceneClassDiagram.png" alt=""><br><img src="/img/ListSceneTimingDiagram.png" alt=""><br>上面分别是我们这套架构的关键类图和时序图。整体上是由经典 MVC 模式演化而来：</p>
+<ul>
+<li>Manager(Interface)：对应 MVC 中的 Model 『层』，主要负责数据的获取、管理等业务逻辑；</li>
+<li>Controller：各个模块的协调枢纽，页面的承载主体；</li>
+<li>Cell\View：对应 MVC 中的 View，仅仅负责 UI 布局、展示逻辑；</li>
+<li>ViewModel(Interface)：View 与具体业务的中间抽象层，使两者解耦，达到 View 只负责 UI 布局的目的，最终实现 View 的高可复用性；</li>
+<li>Module(Interface)： 称其为『业务模块』，一个页面由多个不同或相同类型的模块组成。</li>
+</ul>
+<h1 id="页面元素模块化"><a href="#页面元素模块化" class="headerlink" title="页面元素模块化"></a>页面元素模块化</h1><hr>
+<p>MVC 模式饱受诟病的一点就是：Controller 经常会变得过于臃肿(Massive View Controller)。<br>为了解决这一问题，业界提出了多种解决方案，大部分都是通过添加中间层，将 Controller 的功能分解到中间层上，如 MVP (Model View Presenter) 模式。</p>
+<p>为了解决 Controller 臃肿问题，在我们的架构中将页面元素抽象成一个个的 Module。<br><img src="/img/bookcitymodules.png" alt=""><br>如上图，红色虚线分隔的就是不同的 Module。从此，页面的生成过程就是拼接组装 Module 的过程。</p>
+<p>在 TableView 中一个 Module 对应一个 section。<br>Module 的职责主要有：</p>
+<ul>
+<li>解析、存储业务数据(如今日必读 Module 需要负责解析、存储今日必读这块业务数据)；</li>
+<li>为 TableView 提供数据(即实现<code>UITableViewDataSource</code>协议)；</li>
+<li>处理用户事件；</li>
+<li>埋点；</li>
+<li>…</li>
+</ul>
+<p>——即负责『模块』的所有逻辑(与 React Component 类似)。</p>
+<h2 id="Manager-与-Module"><a href="#Manager-与-Module" class="headerlink" title="Manager 与 Module"></a>Manager 与 Module</h2><p>通过上述分析可知，Module 解析、存储业务数据，Manager 存储、管理 Module。</p>
+<p>这种做法也存在弊端，由于将解析业务数据、控制 UI 展示的逻辑(创建 cell 等)都放在了 Module 中。使得 Module 违反了『单一职责原则』。</p>
+<blockquote>
+<p>『单一职责原则』(SRP)作为面向对象设计的五大原则『SOLID』之一，很容易理解，也很难把握！『就好像生活中的各种”适量”，适量放点盐、适量加点水…』<br> Bob大叔在《敏捷软件开发》中，将类的单一职责原则描述为『应该仅有一个引起它变化的原因』。</p>
+</blockquote>
+<p>在 Module 中，业务数据解析、UI 展示就是两个可变的因素——『同样的 UI 用于展示不同的网络协议返回的数据、同一协议返回的数据展示为不用的 UI』。<br>在 QQ 阅读中，书籍列表页就属于『同样的 UI 展示不同协议返回的数据』：<br><img src="/img/BookList.jpeg" alt=""><br>针对这种情况，无非就是将其中一个变化因子抽取出来，如将业务数据解析抽取为一个单独的类。<br>由于 Module 中这两个变化因子变动的概率并不大，为了降低复杂度，只有在真正需要时才将这两者分离开。</p>
+<blockquote>
+<p>『敏捷开发』的原则之一就是尽量保持代码简单、并在必要时进行重构，防止代码变坏。</p>
+</blockquote>
+<h2 id="效果"><a href="#效果" class="headerlink" title="效果"></a>效果</h2><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="built_in">CGFloat</span>)tableView:(<span class="built_in">UITableView</span> *)tableView heightForRowAtIndexPath:(<span class="built_in">NSIndexPath</span> *)indexPath</span><br><span class="line">&#123;</span><br><span class="line">    QRBaseModule *module = [<span class="keyword">self</span>.manager moduleAtIndex:indexPath.section];</span><br><span class="line">    <span class="keyword">return</span> [module heightForRow:indexPath.row];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="built_in">NSInteger</span>)tableView:(<span class="built_in">UITableView</span> *)tableView numberOfRowsInSection:(<span class="built_in">NSInteger</span>)section</span><br><span class="line">&#123;</span><br><span class="line">    QRBaseModule *module = [<span class="keyword">self</span>.manager moduleAtIndex:section];</span><br><span class="line">    <span class="keyword">return</span> [module numberOfRows];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="built_in">UITableViewCell</span> *)tableView:(<span class="built_in">UITableView</span> *)tableView cellForRowAtIndexPath:(<span class="built_in">NSIndexPath</span> *)indexPath</span><br><span class="line">&#123;</span><br><span class="line">    QRBaseModule *module = [<span class="keyword">self</span>.manager moduleAtIndex:indexPath.section];</span><br><span class="line">    <span class="keyword">return</span> [module cellForRow:indexPath.row tableView:tableView];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (<span class="built_in">NSInteger</span>)numberOfSectionsInTableView:(<span class="built_in">UITableView</span> *)tableView</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> [<span class="keyword">self</span>.manager moduleCount];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上述代码，模块化后<code>UITableViewDelegate</code>、<code>UITableViewDataSource</code>的大部分方法都转发给相应的 Module 去处理，大大简化了 Controller 的复杂度。</p>
+<p>另外，在页面上增删任何元素都只需在 Manager 中增删相应的 Module 即可，Controller 无需任何改动——在 Controller 层面遵守了开放-封闭原则『OCP』。</p>
+<blockquote>
+<p>模块化不仅简化了 Controller，同时也提高了代码的复用性。Module 可以在不同页面间复用。如果这些逻辑全部放在 Controller 里，基本没有复用性可言。</p>
+</blockquote>
+<p>模块化有没有缺点？<br>答案是肯定的😒<br>模块化会增加类的数量、方法的数量(每个 Module 都要实现<code>UITableViewDelegate</code>、<code>UITableViewDataSource</code>的部分方法)。</p>
+<p>当然啦，个人认为利大于弊😊</p>
+<h1 id="UI-组件化"><a href="#UI-组件化" class="headerlink" title="UI 组件化"></a>UI 组件化</h1><hr>
+<p>QQ 阅读7.0改版，UI 修改的工作量占大头，涉及200多个页面的修改。<br>此时，充分体现出 UI 复用的重要性。</p>
+<p>虽然，我们很早就提出通过 View-ViewModel 的方式实现 UI 组件化，提高复用性。<br>遗憾的是，由于历史原因，在我们的工程中依然存在大量重复的实现，即『同一 UI 样式，N 份实现』。这对于 UI 大改版是灾难性了！——「不仅工作量成倍增加，还有漏改的可能性」</p>
+<p>为了避免灾难再次上演(8.0、9.0…)，此次改版过程中，我们严格要求所有 UI 都必须以 View-ViewModel 模式做成 UI 组件。</p>
+<h2 id="UI-组件"><a href="#UI-组件" class="headerlink" title="UI 组件"></a>UI 组件</h2><p>在继续之前，我们简单描述一下什么是 UI 组件：</p>
+<ul>
+<li>可复用的 UI 单元；</li>
+<li>UI 组件可包含子 UI 组件；</li>
+</ul>
+<p>同时，我们将 UI 组件分为外部 UI 组件、内部 UI 组件：</p>
+<ul>
+<li><p>外部 UI 组件——与视觉对接，默认含有上下左右边距，为了提高其复用性，需实现<code>QRExternalUIComponent</code>协议，使得业务方可灵活控制其边距；</p>
+<figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@protocol</span> <span class="title">QRExternalUIComponent</span> &lt;<span class="title">NSObject</span>&gt;</span></span><br><span class="line"></span><br><span class="line">- (<span class="keyword">void</span>)setEdgeInsets:(<span class="built_in">UIEdgeInsets</span>)edgeInsets;</span><br><span class="line"></span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>内部 UI 组件——肯定是子 UI 组件，用于构造更大的 UI 组件，为了提高其复用性，同时控制复杂度，切边实现。</p>
+</li>
+</ul>
+<p><img src="/img/fourbookUIComponent.png" alt=""><br>如上图，整体是一个四书的对外 UI 组件，含有视觉要求的上下左右边距，业务方可直接使用。<br>其中，红色虚线框住的则是一个内部组件，切边实现——没有上下左右边距，四书组件就是由4个这样的内部组件拼接而成。</p>
+<h2 id="复用粒度"><a href="#复用粒度" class="headerlink" title="复用粒度"></a>复用粒度</h2><p><strong><em>复用没把握好火候就变成耦合了。</em></strong><br><strong>例1.</strong><br><img src="/img/banner1.jpeg" alt=""><br><img src="/img/banner2.jpeg" alt=""><br>我们书城顶部 banner 有如上图的推书样式、通栏广告图样式、还有柱状图动画样式。<br>在实现的时候，通通将这些样式塞到一个类里面，通过<code>if...else...</code>区分，这就是严重的耦合，给后面的维护造成很大的困难。<br><strong>例2.</strong><br><img src="/img/fourbook.jpeg" alt=""><br><img src="/img/threebook.jpeg" alt=""><br>三书与四书 UI 也是通过<code>if...else...</code>区分，内部还要处理六书、八书的情况，还要兼容 iPad，内部实现异常复杂，导致大家都不敢去碰这块代码。</p>
+<p>为此，我们制定了如下规则：</p>
+<ul>
+<li>UI 布局相同才复用内部实现，所谓布局相同是指 UI 组件在结构上是相同的，如左边都是一个书封，右边都是两行文字，但书封大小、文字字号不同，则认为布局相同；</li>
+<li><p>UI 布局相同，内部细节不同的，通过 <strong><em>Template Method 模式</em></strong>实现代码复用，但对外提供的 UI 组件是独立的(简化业务层的使用)；</p>
+<blockquote>
+<p>Template Method: Define the skeleton of an algorithm in an operation, deferring some steps to subclasses. Template Method lets subclasses redefine certain steps of an algorithm without changing the algorithm’s structure.<br>此例中 UI 布局就是 Template Method 中的算法结构，而布局的细节则可以通过子类去控制。</p>
+</blockquote>
+</li>
+<li><p>横向展示数量可扩展、纵向固定不变，如三书、六书是同一个 UI 组件，四书、八书是同一个，因为它们可以通过传入的数量控制展示。</p>
+</li>
+</ul>
+<h2 id="隔离变化"><a href="#隔离变化" class="headerlink" title="隔离变化"></a>隔离变化</h2><p>我们经常吐槽 QQ 阅读 UI 的多样性在业界能排 Top1。<br><img src="/img/singlebook.jpeg" alt=""><br>如上图单书组件，其中红框框住的部分就有15、16种变<strong><em>幻</em></strong>。<br>为此，我们将这部分抽取出来，作为单书组件的一个子组件由使用方负责构造该子组件并传给单书组件去展示。</p>
+<p>好了，下面进入本节的正题，如何构造出复用性高的 UI 组件。</p>
+<h2 id="以-View-ViewModel-形式构建-UI-组件"><a href="#以-View-ViewModel-形式构建-UI-组件" class="headerlink" title="以 View-ViewModel 形式构建 UI 组件"></a>以 View-ViewModel 形式构建 UI 组件</h2><p>高可复用的 UI 组件，至少要满足以下两点：</p>
+<ul>
+<li>UI 组件不能与具体业务数据相绑定；</li>
+<li>UI 组件内部不能处理业务逻辑——其本职工作仅是 UI 布局。</li>
+</ul>
+<p>总之，UI 组件要与业务解耦。<br>此时，MVVM 模式进入我们的视线，在该模式中 ViewModel 的存在是不是很好的解决了上面的问题。<br>在 MVVM 模式中，ViewModel 向上为 View 提供展示数据（该数据已经在 ViewModel 中处理好了，View 无需任何处理，只要展示即可），向下接收来自业务层的数据，处理相关的业务展示逻辑。</p>
+<p>可以看出，ViewModel 作为中间层很好地将业务与 UI 隔离开。<br>说到 MVVM，很多同学并不喜欢，觉得其中的 Data-Binding 很麻烦，但我们构建 UI 组件时用到的是 View-ViewModel 结构，并不要求一定是 MVVM，在 MVC 等模式下也可使用。</p>
+<p>同时，我们采用的是面向接口的模式，View 对外依赖的是接口（protocol），而不是某个具体的 ViewModel。每个 UI 组件其结构如下：<br><img src="/img/ViewViewModel.png" alt=""><br>如上图所示，若某个 UI 组件被多个业务所复用，可以根据需求定义多个 ViewModel 以处理不同的业务逻辑，每个 ViewModel 都实现<code>ViewModelProtocol</code>协议为 View 提供数据。</p>
+<p>如上文提到的单书 UI，我们抽取为一个组件<code>QRLeftPictureRightTextView</code>：<br><img src="/img/QRLeftPictureRightTextView.png" alt=""><img src="/img/QRLeftPictureRightTextViewModel.png" alt=""><br>该组件在信息流以及书城都有用到，为此定义了两个 ViewModel，以处理各自的业务逻辑：<br><img src="/img/QRLeftPictureRightText.jpg" alt=""></p>
+<p>至此，UI 组件化部分的内容基本结束。<br>在 QQ 阅读7.0版本中，实现了『同一 UI 样式，只有一份实现』，个人看来是一件很有意义的事情：</p>
+<ul>
+<li>提高开发效率，不必重复造轮子，工程代码得到很好的规范；</li>
+<li>减轻了设计师的工作，对于复用的组件，设计师只需在设计稿中标出组件编号即可；</li>
+<li>降低了开发与设计师的沟通成本；</li>
+<li>为下次大改版奠定了很好的基础。</li>
+</ul>
+<blockquote>
+<p>Module 与 UI 组件在两个不同的层面实现复用。</p>
+</blockquote>
+<h1 id="基于响应链的事件处理"><a href="#基于响应链的事件处理" class="headerlink" title="基于响应链的事件处理"></a>基于响应链的事件处理</h1><hr>
+<p>现有的事件处理方案有两大痛点，于是提出了基于响应链『Chain of Responsibility』的事件处理方案。</p>
+<ul>
+<li><p>痛点1<br><img src="/img/ViewHierarchy.png" alt=""><br>大多数场景下 View 的层级结构如上图所示。我们知道，View 一般不处理用户事件，需要逐级向上传递给 Controller，因此需要沿着上图的层级结构逐级传递处理事件的 delegate。这种单调、重复、琐碎的代码非常令人不悦：</p>
+<figure class="highlight m"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cell.delegate <span class="built_in">=</span> controller;</span><br><span class="line">view.delegate <span class="built_in">=</span> cell;</span><br><span class="line">…</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>痛点2<br>随着版本的迭代，不同类型的 cell/view 极有可能出现不同的事件处理接口，如下图所示：<br><img src="/img/celldelegate.jpeg" alt=""><br>这严重违反了面向对象设计的开闭原则『OCP』——每增加一种 cell 类型此处都需要修改。</p>
+</li>
+</ul>
+<p>尤其是第一点一直困扰着我。直到前不久在《Design Patterns》一书中看到在介绍『Chain of Responsibility』模式时的一句话：『Using existing links works well when the links support the chain you need. It saves you from defining links explicitly, and it saves space』。<br><code>UIResponder</code> 中的 <code>nextResponder</code>不正是这个『existing links』吗！<br>最上层 View 的事件通过<code>nextResponder</code>链就可以顺利传到 ViewController 中，从而也就省去了 delegate 的逐级传递了，痛点1、2随之化解。<br>为此，我们为 <code>UIResponder</code>添加了传递、处理事件的分类：<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@protocol</span> <span class="title">ZSCEvent</span> &lt;<span class="title">NSObject</span>&gt;</span></span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">strong</span>) __kindof <span class="built_in">UIResponder</span> *sender;</span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">strong</span>) <span class="built_in">NSIndexPath</span> *indexPath;</span><br><span class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">strong</span>) <span class="built_in">NSMutableDictionary</span> *userInfo;</span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">UIResponder</span> (<span class="title">ZSCEvent</span>)</span></span><br><span class="line">- (<span class="keyword">void</span>)respondEvent:(<span class="built_in">NSObject</span>&lt;ZSCEvent&gt; *)event;</span><br><span class="line"><span class="keyword">@end</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">UIResponder</span> (<span class="title">ZSCEvent</span>)</span></span><br><span class="line">- (<span class="keyword">void</span>)respondEvent:(<span class="built_in">NSObject</span>&lt;ZSCEvent&gt; *)event</span><br><span class="line">&#123;</span><br><span class="line">    [<span class="keyword">self</span>.nextResponder respondEvent:event];</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure></p>
+<p><code>UIResponder</code>的实现只是简单地将事件传递给<code>nextResponder</code>。<br>由于 View 不包含业务数据，所以事件传递的过程中需要不断添加一些信息。</p>
+<blockquote>
+<p>因此，我们将<code>ZSCEvent#userInfo</code>定义为 mutable。正常情况下外露接口一般都是 immutable。</p>
+</blockquote>
+<figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">UITableViewCell</span> (<span class="title">ZSCEvent</span>)</span></span><br><span class="line">- (<span class="keyword">void</span>)respondEvent:(<span class="built_in">NSObject</span>&lt;ZSCEvent&gt; *)event</span><br><span class="line">&#123;</span><br><span class="line">    event.sender = <span class="keyword">self</span>;</span><br><span class="line">    [<span class="keyword">self</span>.nextResponder respondEvent:event];</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure>
+<p>如，在<code>UITableViewCell</code>的<code>respondEvent:</code>中需要将<code>sender</code>设置为<code>self</code>，以便在<code>UIViewController</code>中可以通过<code>cell</code>找到对应的 Module。<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="keyword">void</span>)respondEvent:(<span class="built_in">NSObject</span>&lt;ZSCEvent&gt; *)event</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">NSAssert</span>([event.sender isKindOfClass:<span class="built_in">UITableViewCell</span>.class], <span class="string">@"event sender must be UITableViewCell"</span>);</span><br><span class="line">    <span class="keyword">if</span> (![event.sender isKindOfClass:<span class="built_in">UITableViewCell</span>.class]) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="built_in">NSIndexPath</span> *indexPath = [_tableView indexPathForCell:event.sender];</span><br><span class="line">    <span class="keyword">id</span>&lt;ZSModule&gt; module = [<span class="keyword">self</span>.manager moduleAtIndex:indexPath.section];</span><br><span class="line">    </span><br><span class="line">    event.sender = <span class="keyword">self</span>;</span><br><span class="line">    event.indexPath = indexPath;</span><br><span class="line">    [event.userInfo setObject:_tableView</span><br><span class="line">                       forKey:ZSCEventUserInfoKeys.tableView];</span><br><span class="line">    </span><br><span class="line">    [module handleEvent:event];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在 View 中的事件处理代码可以这样：<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">- (<span class="keyword">void</span>)_clickedButton:(<span class="keyword">id</span>)sender</span><br><span class="line">&#123;</span><br><span class="line">    ZSCEvent *event = [[ZSCEvent alloc] init];</span><br><span class="line">    event.sender = <span class="keyword">self</span>;</span><br><span class="line">    [event.userInfo setObject:@(<span class="literal">YES</span>) forKey:<span class="string">@"clickedButton"</span>];</span><br><span class="line">    </span><br><span class="line">    [<span class="keyword">self</span> respondEvent:event];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>如果一个 cell 中有多个事件需要处理，就需要在<code>userInfo</code>中加以区分，如上面代码第<code>5</code>行。</p>
+</blockquote>
+<p>总之，通过<code>UIResponder</code>的<code>nextResponder</code>响应链，不必再在 view 的层级间传递 delegate，减少了琐碎的代码，提高了开发效率。同时也统一规范了事件处理方案。</p>
+<h1 id="业务模板化"><a href="#业务模板化" class="headerlink" title="业务模板化"></a>业务模板化</h1><hr>
+<p><a href="https://zxfcumtcs.github.io/2018/09/17/ListSceneTemplating/">列表类应用场景模板化</a>一文对此有详细的描述，在此就不赘述了。<br>其效果还是不错的。<br>很多二级页，由于 Module 是完全复用的，通过模板化脚本<strong><em>半小时</em></strong>就能做好一个二级页✌️。</p>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><hr>
+<p>简单、高效一直是软件开发、工程管理追求的目标，本文从实际项目经验出发，从架构、解耦、复用等角度总结出一套开发解决方案。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag"># iOS</a>
+          
+            <a href="/tags/架构/" rel="tag"># 架构</a>
+          
+            <a href="/tags/UI-组件/" rel="tag"># UI 组件</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/10/04/solid/" rel="next" title="以 SOLID 为友">
+                <i class="fa fa-chevron-left"></i> 以 SOLID 为友
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">41</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#架构"><span class="nav-number">2.</span> <span class="nav-text">架构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#页面元素模块化"><span class="nav-number">3.</span> <span class="nav-text">页面元素模块化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Manager-与-Module"><span class="nav-number">3.1.</span> <span class="nav-text">Manager 与 Module</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#效果"><span class="nav-number">3.2.</span> <span class="nav-text">效果</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#UI-组件化"><span class="nav-number">4.</span> <span class="nav-text">UI 组件化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#UI-组件"><span class="nav-number">4.1.</span> <span class="nav-text">UI 组件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#复用粒度"><span class="nav-number">4.2.</span> <span class="nav-text">复用粒度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#隔离变化"><span class="nav-number">4.3.</span> <span class="nav-text">隔离变化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#以-View-ViewModel-形式构建-UI-组件"><span class="nav-number">4.4.</span> <span class="nav-text">以 View-ViewModel 形式构建 UI 组件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#基于响应链的事件处理"><span class="nav-number">5.</span> <span class="nav-text">基于响应链的事件处理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#业务模板化"><span class="nav-number">6.</span> <span class="nav-text">业务模板化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#小结"><span class="nav-number">7.</span> <span class="nav-text">小结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
