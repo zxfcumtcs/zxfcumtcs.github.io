@@ -2,6 +2,20 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://zxfcumtcs.github.io/2016/07/20/MobileArchitecture/</loc>
+    
+    <lastmod>2018-12-31T07:26:00.795Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://zxfcumtcs.github.io/2018/10/04/solid/</loc>
+    
+    <lastmod>2018-12-31T07:17:39.281Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://zxfcumtcs.github.io/2018/12/22/Efficient-Development-Solutions/</loc>
     
     <lastmod>2018-12-23T16:21:35.228Z</lastmod>
@@ -37,13 +51,6 @@
   </url>
   
   <url>
-    <loc>http://zxfcumtcs.github.io/2018/10/04/solid/</loc>
-    
-    <lastmod>2018-12-08T08:41:32.866Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://zxfcumtcs.github.io/2014/11/30/runloop2/</loc>
     
     <lastmod>2018-12-08T08:41:32.866Z</lastmod>
@@ -54,20 +61,6 @@
     <loc>http://zxfcumtcs.github.io/2014/11/15/runloop/</loc>
     
     <lastmod>2018-12-08T08:41:32.866Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://zxfcumtcs.github.io/2014/08/02/nsurlsession2/</loc>
-    
-    <lastmod>2018-12-08T08:41:32.865Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://zxfcumtcs.github.io/2014/07/19/performSelector/</loc>
-    
-    <lastmod>2018-12-08T08:41:32.865Z</lastmod>
     
   </url>
   
@@ -86,7 +79,21 @@
   </url>
   
   <url>
-    <loc>http://zxfcumtcs.github.io/2014/10/26/iosapplifecycle/</loc>
+    <loc>http://zxfcumtcs.github.io/2014/07/19/performSelector/</loc>
+    
+    <lastmod>2018-12-08T08:41:32.865Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://zxfcumtcs.github.io/2014/08/02/nsurlsession2/</loc>
+    
+    <lastmod>2018-12-08T08:41:32.865Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://zxfcumtcs.github.io/2014/08/17/multitasking/</loc>
     
     <lastmod>2018-12-08T08:41:32.864Z</lastmod>
     
@@ -107,7 +114,7 @@
   </url>
   
   <url>
-    <loc>http://zxfcumtcs.github.io/2014/08/17/multitasking/</loc>
+    <loc>http://zxfcumtcs.github.io/2014/10/26/iosapplifecycle/</loc>
     
     <lastmod>2018-12-08T08:41:32.864Z</lastmod>
     
@@ -121,7 +128,14 @@
   </url>
   
   <url>
-    <loc>http://zxfcumtcs.github.io/2014/07/15/block2/</loc>
+    <loc>http://zxfcumtcs.github.io/2014/07/15/block3/</loc>
+    
+    <lastmod>2018-12-08T08:41:32.863Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://zxfcumtcs.github.io/2014/07/17/block4/</loc>
     
     <lastmod>2018-12-08T08:41:32.863Z</lastmod>
     
@@ -142,28 +156,21 @@
   </url>
   
   <url>
-    <loc>http://zxfcumtcs.github.io/2014/07/17/block4/</loc>
+    <loc>http://zxfcumtcs.github.io/2014/07/15/block2/</loc>
     
     <lastmod>2018-12-08T08:41:32.863Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://zxfcumtcs.github.io/2014/07/15/block3/</loc>
-    
-    <lastmod>2018-12-08T08:41:32.863Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://zxfcumtcs.github.io/2015/05/07/UITableView-Performance/</loc>
+    <loc>http://zxfcumtcs.github.io/2017/10/12/ReactNativeCommunicationMechanism2/</loc>
     
     <lastmod>2018-12-08T08:41:32.862Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://zxfcumtcs.github.io/2017/10/12/ReactNativeCommunicationMechanism2/</loc>
+    <loc>http://zxfcumtcs.github.io/2015/05/07/UITableView-Performance/</loc>
     
     <lastmod>2018-12-08T08:41:32.862Z</lastmod>
     
@@ -184,13 +191,6 @@
   </url>
   
   <url>
-    <loc>http://zxfcumtcs.github.io/2017/11/22/RNCommunicationMechanism-AdditionalTerms/</loc>
-    
-    <lastmod>2018-12-08T08:41:32.860Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://zxfcumtcs.github.io/2018/05/11/RNBundle/</loc>
     
     <lastmod>2018-12-08T08:41:32.860Z</lastmod>
@@ -198,9 +198,9 @@
   </url>
   
   <url>
-    <loc>http://zxfcumtcs.github.io/2014/07/08/Objective-c-Object-Model/</loc>
+    <loc>http://zxfcumtcs.github.io/2017/11/22/RNCommunicationMechanism-AdditionalTerms/</loc>
     
-    <lastmod>2018-12-08T08:41:32.859Z</lastmod>
+    <lastmod>2018-12-08T08:41:32.860Z</lastmod>
     
   </url>
   
@@ -247,6 +247,13 @@
   </url>
   
   <url>
+    <loc>http://zxfcumtcs.github.io/2014/07/08/Objective-c-Object-Model/</loc>
+    
+    <lastmod>2018-12-08T08:41:32.859Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://zxfcumtcs.github.io/2017/05/07/Multithreading-Traps/</loc>
     
     <lastmod>2018-12-08T08:41:32.858Z</lastmod>
@@ -262,13 +269,6 @@
   
   <url>
     <loc>http://zxfcumtcs.github.io/2015/09/03/MemoryManagement/</loc>
-    
-    <lastmod>2018-12-08T08:41:32.858Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://zxfcumtcs.github.io/2016/07/20/MobileArchitecture/</loc>
     
     <lastmod>2018-12-08T08:41:32.858Z</lastmod>
     

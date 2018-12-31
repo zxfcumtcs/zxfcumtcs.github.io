@@ -78,7 +78,7 @@
 <link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
 
 
-  <meta name="keywords" content="构架,iOS,">
+  <meta name="keywords" content="构架,iOS,GUI,">
 
 
 
@@ -96,13 +96,13 @@
 
 
 
-<meta name="description" content="本文从细节入手，尝试分析了几种常见的移动框架：MVC、MVCS、MVP、MVVM。对于在实际开发中如何选择框架给出了一些参考意见。">
-<meta name="keywords" content="构架,iOS">
+<meta name="description" content="本文从细节入手，尝试分析了几种常见的 GUI 架构：MVC、MVCS、MVP、MVVM。对于在实际开发中如何选择给出了一些参考意见。">
+<meta name="keywords" content="构架,iOS,GUI">
 <meta property="og:type" content="article">
-<meta property="og:title" content="不谈框架，谈细节">
+<meta property="og:title" content="GUI 架构简述">
 <meta property="og:url" content="http://zxfcumtcs.github.io/2016/07/20/MobileArchitecture/index.html">
 <meta property="og:site_name" content="雪峰的blog">
-<meta property="og:description" content="本文从细节入手，尝试分析了几种常见的移动框架：MVC、MVCS、MVP、MVVM。对于在实际开发中如何选择框架给出了一些参考意见。">
+<meta property="og:description" content="本文从细节入手，尝试分析了几种常见的 GUI 架构：MVC、MVCS、MVP、MVVM。对于在实际开发中如何选择给出了一些参考意见。">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/OSI.jpg">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/HTTPHTTPS.png">
@@ -121,10 +121,10 @@
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/DetailPageChangeBookInfo.jpg">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/BookDetailHeaderView.jpg">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/FeedFlow.jpg">
-<meta property="og:updated_time" content="2018-12-08T08:41:32.858Z">
+<meta property="og:updated_time" content="2018-12-31T07:26:00.795Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="不谈框架，谈细节">
-<meta name="twitter:description" content="本文从细节入手，尝试分析了几种常见的移动框架：MVC、MVCS、MVP、MVVM。对于在实际开发中如何选择框架给出了一些参考意见。">
+<meta name="twitter:title" content="GUI 架构简述">
+<meta name="twitter:description" content="本文从细节入手，尝试分析了几种常见的 GUI 架构：MVC、MVCS、MVP、MVVM。对于在实际开发中如何选择给出了一些参考意见。">
 <meta name="twitter:image" content="http://zxfcumtcs.github.io/img/OSI.jpg">
 
 
@@ -160,7 +160,7 @@
 
 
 
-  <title>不谈框架，谈细节 | 雪峰的blog</title>
+  <title>GUI 架构简述 | 雪峰的blog</title>
   
 
 
@@ -310,7 +310,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">不谈框架，谈细节</h1>
+          <h1 class="post-title" itemprop="name headline">GUI 架构简述</h1>
         
 
         <div class="post-meta">
@@ -340,7 +340,7 @@
 
           
           
-             <span id="/2016/07/20/MobileArchitecture/" class="leancloud_visitors" data-flag-title="不谈框架，谈细节">
+             <span id="/2016/07/20/MobileArchitecture/" class="leancloud_visitors" data-flag-title="GUI 架构简述">
                
              </span>
           
@@ -361,7 +361,7 @@
                   <span class="post-meta-item-text">字数统计</span>
                 
                 <span title="字数统计">
-                  3,435
+                  3,432
                 </span>
               
 
@@ -398,12 +398,12 @@
       
 
       
-        <p>本文从细节入手，尝试分析了几种常见的移动框架：MVC、MVCS、MVP、MVVM。对于在实际开发中如何选择框架给出了一些参考意见。<br><a id="more"></a><br>©原创文章，转载请注明出处！</p>
+        <p>本文从细节入手，尝试分析了几种常见的 GUI 架构：MVC、MVCS、MVP、MVVM。对于在实际开发中如何选择给出了一些参考意见。<br><a id="more"></a><br>©原创文章，转载请注明出处！</p>
 <h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
-<p>移动开发框架，无论是 iOS、Andriod 还是 Web 都属于 GUI (Graphical User Interfaces) 框架范畴。2006年，Martin Fowler 的 <a href="http://martinfowler.com/eaaDev/uiArchs.html" target="_blank" rel="noopener">GUI Architectures</a> 一文可谓是经典之作。文中，Martin Fowler 提到 MVC 模式如何组织代码、划分模块职责，还提到 <a href="http://martinfowler.com/eaaDev/DataBinding.html" target="_blank" rel="noopener">Data Binding</a>、<a href="http://martinfowler.com/eaaDev/FlowSynchronization.html" target="_blank" rel="noopener">Flow Synchronization</a> 以及 <a href="http://www.martinfowler.com/eaaDev/MediatedSynchronization.html" target="_blank" rel="noopener">Observer Synchronization</a> 等核心概念。<br>纵观十年来 GUI 框架演变，无论是 MVCS、MVP 还是 MVVM，其实讨论的核心问题还是如何分层、如何划分模块职责、做好代码隔离。</p>
-<p>谈到 iOS 上常见框架，相信只要有半年以上开发经验的同学都能侃侃而谈。但在实际交流过程中发现不少同学对关键细节问题却认知模糊，甚至是错误的。因此，本文尝试从细节入手对几种常见框架进行简单描述(对框架的认识智者见智、仁者见仁，我所描述的也不一定是正确的)。</p>
+<p>移动开发架构，无论是 iOS、Andriod 还是 Web 都属于 GUI (Graphical User Interfaces) 架构范畴。2006年，Martin Fowler 的 <a href="http://martinfowler.com/eaaDev/uiArchs.html" target="_blank" rel="noopener">GUI Architectures</a> 一文可谓是经典之作。文中 Martin Fowler 提到 MVC 模式如何组织代码、划分模块职责，还提到 <a href="http://martinfowler.com/eaaDev/DataBinding.html" target="_blank" rel="noopener">Data Binding</a>、<a href="http://martinfowler.com/eaaDev/FlowSynchronization.html" target="_blank" rel="noopener">Flow Synchronization</a> 以及 <a href="http://www.martinfowler.com/eaaDev/MediatedSynchronization.html" target="_blank" rel="noopener">Observer Synchronization</a> 等核心概念。<br>纵观十年来 GUI 架构演变，无论是 MVCS、MVP 还是 MVVM，其实讨论的核心问题还是如何分层、如何划分模块职责、做好代码隔离。</p>
+<p>谈到 iOS 上常见架构，相信只要有半年以上开发经验的同学都能侃侃而谈。但在实际交流过程中发现不少同学对关键细节问题却认知模糊，甚至是错误的。因此，本文尝试从细节入手对几种常见架构进行简单描述(对架构的认识智者见智、仁者见仁，我所描述的也不一定是正确的)。</p>
 <h1 id="为什么要分层"><a href="#为什么要分层" class="headerlink" title="为什么要分层"></a>为什么要分层</h1><hr>
-<p>上文提到各种框架虽各种不同，但它们其实都是在讨论一个问题：『如何分层』。<br>那么在继续之前，我们有必要思考一下：<strong><em>为什么要分层？</em></strong></p>
+<p>上文提到各种架构虽各种不同，但它们其实都是在讨论一个问题：『如何分层』。<br>那么在继续之前，我们有必要思考一下：<strong><em>为什么要分层？</em></strong></p>
 <p>计算机界有一句大道至简的名言：</p>
 <blockquote>
 <p>All problems in computer science can be solved by another level of indirection.</p>
@@ -418,7 +418,7 @@
 <p>说到分层，可能最先想到的例子是 OSI 七层或 TCP/IP 五层网络模型：<img src="/img/OSI.jpg" alt=""><br>在分层网络模型中，不同协议工作在不同网络层，互不干扰，又协调有致，如：IP 协议工作在网络层，主要职责是网络寻址；TCP 协议工作在传输层，主要负责建立可靠的网络连接、负责拥塞控制等。正是因为良好的分层，IP 协议无需关心 TCP 协议的工作，反之亦然。同时 IP 协议也可以在 TCP、UDP 协议间复用。</p>
 <p>如今对网络安全越来越重视，HTTPS 协议也慢慢普及，通过分层，只需在原有 HTTP 协议基础上添加一个 TLS/SSL 的安全传输层即可，由它来负责加解密，而原有的 HTTP、TCP 协议无需修改：<img src="/img/HTTPHTTPS.png" alt=""></p>
 <h1 id="Model-View-Controller"><a href="#Model-View-Controller" class="headerlink" title="Model-View-Controller"></a>Model-View-Controller</h1><hr>
-<p>MVC(Model-View-Controller)作为最经典的框架，广为人熟知，也是 Apple 官方推荐的移动框架。<img src="/img/MVC-Apple.jpg" alt=""><br>MVC模式的核心思想是数据层(Domain)与表现层(Presentation)的隔离。</p>
+<p>MVC(Model-View-Controller)作为最经典的架构，广为人熟知，也是 Apple 官方推荐的移动架构。<img src="/img/MVC-Apple.jpg" alt=""><br>MVC模式的核心思想是数据层(Domain)与表现层(Presentation)的隔离。</p>
 <blockquote>
 <p><a href="http://www.martinfowler.com/eaaDev/uiArchs.html" target="_blank" rel="noopener">Separated Presentation:</a><br>Ensure that any code that manipulates presentation only manipulates presentation, pushing all domain and data source logic into clearly separated areas of the program.</p>
 </blockquote>
@@ -520,7 +520,7 @@
 </ul>
 <p>两者最大的区别在于：MVVM 有 Data Binding 而 MVP 没有。</p>
 <h1 id="华山论剑——MV-VS-MVVM"><a href="#华山论剑——MV-VS-MVVM" class="headerlink" title="华山论剑——MV* VS. MVVM"></a>华山论剑——MV* VS. MVVM</h1><hr>
-<p>根据是否有 Data Binding，可将常见 GUI 框架分为两大阵营：</p>
+<p>根据是否有 Data Binding，可将常见 GUI 构架分为两大阵营：</p>
 <ul>
 <li>有 Data Binding：MVVM；</li>
 <li>没有 Data Binding：MVC、MVP、MVCS 等。</li>
@@ -533,35 +533,35 @@
 </ul>
 <p>MVVM、MVP 分别将展示逻辑从 Controller 中提取出来，使 Controller 得到一定程度的简化，在展示逻辑复杂的情况下，效果更加明显。</p>
 <h2 id="没有好坏，只有适合"><a href="#没有好坏，只有适合" class="headerlink" title="没有好坏，只有适合"></a>没有好坏，只有适合</h2><hr>
-<p>通过上述分析，我们可以看到，常见几种框架：MVC、MVCS、MVP、MVVM 并没有绝对的好坏之分，只是各有不同的适用场景。<br>我们在选择时可以根据以下两点作为参考依据：</p>
+<p>通过上述分析，我们可以看到，常见几种架构：MVC、MVCS、MVP、MVVM 并没有绝对的好坏之分，只是各有不同的适用场景。<br>我们在选择时可以根据以下两点作为参考依据：</p>
 <ul>
 <li>数据是否可变(UI是动态还是静态)<br>  静态：MV*<br>  动态：MVVM</li>
 <li>展示逻辑是否复杂<br>  复杂：MVVM、MVP</li>
 </ul>
 <h2 id="万变不离其宗——MVC是根"><a href="#万变不离其宗——MVC是根" class="headerlink" title="万变不离其宗——MVC是根"></a>万变不离其宗——MVC是根</h2><hr>
-<p>MVCS、MVP、MVVM 等各种新生框架，虽各有不同，但都是源自于 MVC，它们的核心思想一直没变，也不能变：</p>
+<p>MVCS、MVP、MVVM 等各种新生架构，虽各有不同，但都是源自于 MVC，它们的核心思想一直没变，也不能变：</p>
 <ul>
 <li>Separated Presentation;</li>
 <li>Observer Synchronization.</li>
 </ul>
 <h1 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h1><hr>
-<p>理论的东西讲了不少，下面结合实际的项目，看看应该如何选择框架。</p>
+<p>理论的东西讲了不少，下面结合实际的项目，看看应该如何选择架构。</p>
 <h2 id="书籍详情页"><a href="#书籍详情页" class="headerlink" title="书籍详情页"></a>书籍详情页</h2><hr>
 <p>书籍详情页在整个 QQ 阅读 app 中，无论是展示还是业务逻辑都是最复杂的一个模块。<br><img src="/img/DetailPage.jpg" alt=""></p>
 <ul>
 <li>在书籍下载过程中下载按钮需要显示下载状态(进度)——动态 UI；</li>
 <li>评分、作者分类、包月相关提示、打赏、粉丝榜等展示逻辑十分复杂。</li>
 </ul>
-<p>因此，该模块采用 MVVM 框架比较合适。遗憾的是，当时设计该模块时没有充分意识到其复杂程序，而是选择了传统的 MVC 框架。结果造成详情页 Controller 十分复杂，下面这段就是 Controller 中根据下载状态修改 toolbar 上3个按钮状态的代码(ps：看不清没关系，只要能看出其很复杂即可^_^)：<br><img src="/img/DetailPageChangeBookInfo.jpg" alt=""><br>同时，大量的展示逻辑也耦合在了各个 View 中：<br><img src="/img/BookDetailHeaderView.jpg" alt=""><br>如果，采用 MVVM 框架，各种展示逻辑可以放到相应的 View Model 中，让 View 只专注于 layout。同时在 View Model 中处理下载相关逻辑，使下载逻辑与 View 解耦。</p>
+<p>因此，该模块采用 MVVM 架构比较合适。遗憾的是，当时设计该模块时没有充分意识到其复杂程序，而是选择了传统的 MVC 架构。结果造成详情页 Controller 十分复杂，下面这段就是 Controller 中根据下载状态修改 toolbar 上3个按钮状态的代码(ps：看不清没关系，只要能看出其很复杂即可^_^)：<br><img src="/img/DetailPageChangeBookInfo.jpg" alt=""><br>同时，大量的展示逻辑也耦合在了各个 View 中：<br><img src="/img/BookDetailHeaderView.jpg" alt=""><br>如果，采用 MVVM 架构，各种展示逻辑可以放到相应的 View Model 中，让 View 只专注于 layout。同时在 View Model 中处理下载相关逻辑，使下载逻辑与 View 解耦。</p>
 <h2 id="信息流"><a href="#信息流" class="headerlink" title="信息流"></a>信息流</h2><hr>
 <p>信息流作为 QQ 阅读一大亮点，能为用户个性化推荐书籍，是整个 app 中最重要的一个页面：<br><img src="/img/FeedFlow.jpg" alt=""><br>信息流是最重要的页面，但不是最复杂的页面：</p>
 <ul>
 <li>信息流的数据是静态的，在显示过程中不会改变——静态UI；</li>
 <li>展示逻辑相对简单。</li>
 </ul>
-<p>因此，信息流模块没必要使用复杂的 MVVM 框架。<br><strong><em>很多场景属于此类情形：通过 UITableView 列举多行静态数据，若数据有更新时直接 reload tableview。</em></strong></p>
+<p>因此，信息流模块没必要使用复杂的 MVVM 架构。<br><strong><em>很多场景属于此类情形：通过 UITableView 列举多行静态数据，若数据有更新时直接 reload tableview。</em></strong></p>
 <h1 id="无剑胜有剑-皆可为剑"><a href="#无剑胜有剑-皆可为剑" class="headerlink" title="无剑胜有剑 皆可为剑"></a>无剑胜有剑 皆可为剑</h1><hr>
-<p>各种分层框架都是前辈充满智慧的宝贵经验，值得尊敬、借鉴、学习，但也不必拘泥于形式，重点是理解其背后的思想。设计模式有六大原则：</p>
+<p>各种分层架构都是前辈充满智慧的宝贵经验，值得尊敬、借鉴、学习，但也不必拘泥于形式，重点是理解其背后的思想。设计模式有六大原则：</p>
 <ul>
 <li>单一职责原则</li>
 <li>里氏代换原则</li>
@@ -570,9 +570,9 @@
 <li>迪米特法则</li>
 <li>开放-封闭原则</li>
 </ul>
-<p>其中除了里氏代换原则，其他五大原则都是分层框架的指导思想。只要我们深刻理解并能严格遵守这些原则，无论我们选择哪种框架、或在其基础上进行衍化，都能设计出高质量的代码。</p>
+<p>其中除了里氏代换原则，其他五大原则都是分层架构的指导思想。只要我们深刻理解并能严格遵守这些原则，无论我们选择哪种架构、或在其基础上进行衍化，都能设计出高质量的代码。</p>
 <h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><hr>
-<p>代码设计、框架选择及理解仁者见仁、智者见智，但经典的设计理念是公认的、也是经过时间检验的。</p>
+<p>代码设计、架构选择及理解仁者见仁、智者见智，但经典的设计理念是公认的、也是经过时间检验的。</p>
 <h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p><a href="http://martinfowler.com/eaaDev/uiArchs.html" target="_blank" rel="noopener">GUI Architectures</a><br><a href="https://developer.apple.com/library/ios/documentation/General/Conceptual/DevPedia-CocoaCore/MVC.html" target="_blank" rel="noopener">Model-View-Controller</a><br><a href="https://www.objc.io/issues/13-architecture/mvvm/" target="_blank" rel="noopener">Introduction to MVVM</a><br><a href="https://www.objc.io/issues/1-view-controllers/lighter-view-controllers/" target="_blank" rel="noopener">Lighter View Controllers</a><br><a href="http://www.sprynthesis.com/2014/12/06/reactivecocoa-mvvm-introduction/" target="_blank" rel="noopener">ReactiveCocoa and MVVM, an Introduction</a><br><a href="http://twocentstudios.com/2014/06/08/on-mvvm-and-architecture-questions/" target="_blank" rel="noopener">On MVVM, and Architecture Questions</a></p>
 
       
@@ -594,6 +594,8 @@
             <a href="/tags/构架/" rel="tag"># 构架</a>
           
             <a href="/tags/iOS/" rel="tag"># iOS</a>
+          
+            <a href="/tags/GUI/" rel="tag"># GUI</a>
           
         </div>
       
@@ -708,7 +710,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">14</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>

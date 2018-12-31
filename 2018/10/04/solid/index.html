@@ -78,7 +78,7 @@
 <link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
 
 
-  <meta name="keywords" content="OOD,设计模式,敏捷开发,">
+  <meta name="keywords" content="OOD,设计模式,敏捷开发,SOLID,">
 
 
 
@@ -97,9 +97,9 @@
 
 
 <meta name="description" content="本文详细分析了面向对象设计五大原则 S(单一职责原则『SRP』)、O(开放-封闭原则 『OCP』)、L(Liskov 替换原则『LSP』)、I(接口隔离原则『ISP』)、D(依赖倒置原则『DIP』)，并假以实例辅之。">
-<meta name="keywords" content="OOD,设计模式,敏捷开发">
+<meta name="keywords" content="OOD,设计模式,敏捷开发,SOLID">
 <meta property="og:type" content="article">
-<meta property="og:title" content="以 SOLID 为友">
+<meta property="og:title" content="面向对象设计原则『SOLID』在开发中的应用">
 <meta property="og:url" content="http://zxfcumtcs.github.io/2018/10/04/solid/index.html">
 <meta property="og:site_name" content="雪峰的blog">
 <meta property="og:description" content="本文详细分析了面向对象设计五大原则 S(单一职责原则『SRP』)、O(开放-封闭原则 『OCP』)、L(Liskov 替换原则『LSP』)、I(接口隔离原则『ISP』)、D(依赖倒置原则『DIP』)，并假以实例辅之。">
@@ -109,9 +109,9 @@
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/OldLoginClassDiagram.png">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/NewLoginClassDiagram.png">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/ListSceneClassDiagram.png">
-<meta property="og:updated_time" content="2018-12-08T08:41:32.866Z">
+<meta property="og:updated_time" content="2018-12-31T07:17:39.281Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="以 SOLID 为友">
+<meta name="twitter:title" content="面向对象设计原则『SOLID』在开发中的应用">
 <meta name="twitter:description" content="本文详细分析了面向对象设计五大原则 S(单一职责原则『SRP』)、O(开放-封闭原则 『OCP』)、L(Liskov 替换原则『LSP』)、I(接口隔离原则『ISP』)、D(依赖倒置原则『DIP』)，并假以实例辅之。">
 <meta name="twitter:image" content="http://zxfcumtcs.github.io/img/TemplateMethod.png">
 
@@ -148,7 +148,7 @@
 
 
 
-  <title>以 SOLID 为友 | 雪峰的blog</title>
+  <title>面向对象设计原则『SOLID』在开发中的应用 | 雪峰的blog</title>
   
 
 
@@ -298,7 +298,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">以 SOLID 为友</h1>
+          <h1 class="post-title" itemprop="name headline">面向对象设计原则『SOLID』在开发中的应用</h1>
         
 
         <div class="post-meta">
@@ -328,7 +328,7 @@
 
           
           
-             <span id="/2018/10/04/solid/" class="leancloud_visitors" data-flag-title="以 SOLID 为友">
+             <span id="/2018/10/04/solid/" class="leancloud_visitors" data-flag-title="面向对象设计原则『SOLID』在开发中的应用">
                
              </span>
           
@@ -349,7 +349,7 @@
                   <span class="post-meta-item-text">字数统计</span>
                 
                 <span title="字数统计">
-                  5,744
+                  5,708
                 </span>
               
 
@@ -490,7 +490,7 @@
 <li>ISP：将复杂接口拆分开来，避免强迫高层模块依赖于其不需要的接口，减少不必要的耦合；</li>
 <li>DIP：避免由低层模块制定接口时无意曝露低层细节，通过抽象解耦高层与低层模块。</li>
 </ul>
-<p>正如本文标题，『以 SOLID 为友』，笔者认为真正的朋友无须天天挂在嘴边、嘘寒问暖，而是在有困难时能雪中送炭。<br>SOLID 之于开发亦是如此，无须天天挂在嘴边，而是在遇到问题时，能通过它们解决问题。</p>
+<p>对于 SOLID 以及其他的各种设计原则、模式，无须天天挂在嘴边，而是在遇到问题时，能通过它们解决问题。</p>
 <p>参考资料：<br><a href="https://book.douban.com/subject/1140457/" target="_blank" rel="noopener">《敏捷软件开发——原则、模式与实践》</a><br><a href="https://book.douban.com/subject/1436745/" target="_blank" rel="noopener">《Design Patterns: Elements of Reusable Object-Oriented Software》</a><br><a href="https://book.douban.com/subject/1229923/" target="_blank" rel="noopener">《重构——改善既有代码的设计》</a></p>
 
       
@@ -514,6 +514,8 @@
             <a href="/tags/设计模式/" rel="tag"># 设计模式</a>
           
             <a href="/tags/敏捷开发/" rel="tag"># 敏捷开发</a>
+          
+            <a href="/tags/SOLID/" rel="tag"># SOLID</a>
           
         </div>
       
@@ -628,7 +630,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">14</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
