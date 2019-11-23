@@ -4,7 +4,9 @@ date: 2016-11-05 18:55:46
 tags:
 - iOS
 - Objective-C
-- 构架
+- 架构
+- Data Binding
+- KVO
 ---
 ZSKVOController 是一个基于 KVO 的 Data Binding 框架，本文简要介绍其实现原理。
 <!--more-->

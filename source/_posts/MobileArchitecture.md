@@ -1,24 +1,25 @@
 ---
-title: 不谈框架，谈细节
+title: GUI 架构简述
 date: 2016-07-20 22:03:26
 tags:
-- 构架
+- 架构
+- GUI
 - iOS
 ---
-本文从细节入手，尝试分析了几种常见的移动框架：MVC、MVCS、MVP、MVVM。对于在实际开发中如何选择框架给出了一些参考意见。
+本文从细节入手，尝试分析了几种常见的 GUI 架构：MVC、MVCS、MVP、MVVM。对于在实际开发中如何选择给出了一些参考意见。
 <!--more-->
 ©原创文章，转载请注明出处！
 
 # Overview
 ____________________________
-移动开发框架，无论是 iOS、Andriod 还是 Web 都属于 GUI (Graphical User Interfaces) 框架范畴。2006年，Martin Fowler 的 [GUI Architectures](http://martinfowler.com/eaaDev/uiArchs.html) 一文可谓是经典之作。文中，Martin Fowler 提到 MVC 模式如何组织代码、划分模块职责，还提到 [Data Binding](http://martinfowler.com/eaaDev/DataBinding.html)、[Flow Synchronization](http://martinfowler.com/eaaDev/FlowSynchronization.html) 以及 [Observer Synchronization](http://www.martinfowler.com/eaaDev/MediatedSynchronization.html) 等核心概念。
-纵观十年来 GUI 框架演变，无论是 MVCS、MVP 还是 MVVM，其实讨论的核心问题还是如何分层、如何划分模块职责、做好代码隔离。
+移动开发架构，无论是 iOS、Andriod 还是 Web 都属于 GUI (Graphical User Interfaces) 架构范畴。2006年，Martin Fowler 的 [GUI Architectures](http://martinfowler.com/eaaDev/uiArchs.html) 一文可谓是经典之作。文中 Martin Fowler 提到 MVC 模式如何组织代码、划分模块职责，还提到 [Data Binding](http://martinfowler.com/eaaDev/DataBinding.html)、[Flow Synchronization](http://martinfowler.com/eaaDev/FlowSynchronization.html) 以及 [Observer Synchronization](http://www.martinfowler.com/eaaDev/MediatedSynchronization.html) 等核心概念。
+纵观十年来 GUI 架构演变，无论是 MVCS、MVP 还是 MVVM，其实讨论的核心问题还是如何分层、如何划分模块职责、做好代码隔离。
 
-谈到 iOS 上常见框架，相信只要有半年以上开发经验的同学都能侃侃而谈。但在实际交流过程中发现不少同学对关键细节问题却认知模糊，甚至是错误的。因此，本文尝试从细节入手对几种常见框架进行简单描述(对框架的认识智者见智、仁者见仁，我所描述的也不一定是正确的)。
+谈到 iOS 上常见架构，相信只要有半年以上开发经验的同学都能侃侃而谈。但在实际交流过程中发现不少同学对关键细节问题却认知模糊，甚至是错误的。因此，本文尝试从细节入手对几种常见架构进行简单描述(对架构的认识智者见智、仁者见仁，我所描述的也不一定是正确的)。
 
 # 为什么要分层
 ____________________________
-上文提到各种框架虽各种不同，但它们其实都是在讨论一个问题：『如何分层』。
+上文提到各种架构虽各种不同，但它们其实都是在讨论一个问题：『如何分层』。
 那么在继续之前，我们有必要思考一下：***为什么要分层？***
 
 计算机界有一句大道至简的名言：
@@ -38,7 +39,7 @@ ____________________________
 
 # Model-View-Controller
 _____________________________
-MVC(Model-View-Controller)作为最经典的框架，广为人熟知，也是 Apple 官方推荐的移动框架。![](/img/MVC-Apple.jpg)
+MVC(Model-View-Controller)作为最经典的架构，广为人熟知，也是 Apple 官方推荐的移动架构。![](/img/MVC-Apple.jpg)
 MVC模式的核心思想是数据层(Domain)与表现层(Presentation)的隔离。
 > [Separated Presentation:](http://www.martinfowler.com/eaaDev/uiArchs.html)
 > Ensure that any code that manipulates presentation only manipulates presentation, pushing all domain and data source logic into clearly separated areas of the program.
@@ -198,7 +199,7 @@ MVVM 与 MVP 有很多相似的点：
 
 # 华山论剑——MV* VS. MVVM
 ______________________________________
-根据是否有 Data Binding，可将常见 GUI 框架分为两大阵营：
+根据是否有 Data Binding，可将常见 GUI 构架分为两大阵营：
 + 有 Data Binding：MVVM；
 + 没有 Data Binding：MVC、MVP、MVCS 等。
 
@@ -211,7 +212,7 @@ MVVM 的 Data Binding 在一定程度上增加了编码的复杂度、数据流�
 MVVM、MVP 分别将展示逻辑从 Controller 中提取出来，使 Controller 得到一定程度的简化，在展示逻辑复杂的情况下，效果更加明显。
 ## 没有好坏，只有适合
 ________________________________________
-通过上述分析，我们可以看到，常见几种框架：MVC、MVCS、MVP、MVVM 并没有绝对的好坏之分，只是各有不同的适用场景。
+通过上述分析，我们可以看到，常见几种架构：MVC、MVCS、MVP、MVVM 并没有绝对的好坏之分，只是各有不同的适用场景。
 我们在选择时可以根据以下两点作为参考依据：
 + 数据是否可变(UI是动态还是静态)
 	静态：MV*
@@ -221,13 +222,13 @@ ________________________________________
 
 ## 万变不离其宗——MVC是根
 ________________________________________
-MVCS、MVP、MVVM 等各种新生框架，虽各有不同，但都是源自于 MVC，它们的核心思想一直没变，也不能变：
+MVCS、MVP、MVVM 等各种新生架构，虽各有不同，但都是源自于 MVC，它们的核心思想一直没变，也不能变：
 + Separated Presentation;
 + Observer Synchronization.
 
 # 实例
 ________________________________________
-理论的东西讲了不少，下面结合实际的项目，看看应该如何选择框架。
+理论的东西讲了不少，下面结合实际的项目，看看应该如何选择架构。
 
 ## 书籍详情页
 __________________________
@@ -236,11 +237,11 @@ __________________________
 + 在书籍下载过程中下载按钮需要显示下载状态(进度)——动态 UI；
 + 评分、作者分类、包月相关提示、打赏、粉丝榜等展示逻辑十分复杂。
 
-因此，该模块采用 MVVM 框架比较合适。遗憾的是，当时设计该模块时没有充分意识到其复杂程序，而是选择了传统的 MVC 框架。结果造成详情页 Controller 十分复杂，下面这段就是 Controller 中根据下载状态修改 toolbar 上3个按钮状态的代码(ps：看不清没关系，只要能看出其很复杂即可^_^)：
+因此，该模块采用 MVVM 架构比较合适。遗憾的是，当时设计该模块时没有充分意识到其复杂程序，而是选择了传统的 MVC 架构。结果造成详情页 Controller 十分复杂，下面这段就是 Controller 中根据下载状态修改 toolbar 上3个按钮状态的代码(ps：看不清没关系，只要能看出其很复杂即可^_^)：
 ![](/img/DetailPageChangeBookInfo.jpg)
 同时，大量的展示逻辑也耦合在了各个 View 中：
 ![](/img/BookDetailHeaderView.jpg)
-如果，采用 MVVM 框架，各种展示逻辑可以放到相应的 View Model 中，让 View 只专注于 layout。同时在 View Model 中处理下载相关逻辑，使下载逻辑与 View 解耦。
+如果，采用 MVVM 架构，各种展示逻辑可以放到相应的 View Model 中，让 View 只专注于 layout。同时在 View Model 中处理下载相关逻辑，使下载逻辑与 View 解耦。
 
 ## 信息流
 __________________________
@@ -250,12 +251,12 @@ __________________________
 + 信息流的数据是静态的，在显示过程中不会改变——静态UI；
 + 展示逻辑相对简单。
 
-因此，信息流模块没必要使用复杂的 MVVM 框架。
+因此，信息流模块没必要使用复杂的 MVVM 架构。
 ***很多场景属于此类情形：通过 UITableView 列举多行静态数据，若数据有更新时直接 reload tableview。***
 
 # 无剑胜有剑 皆可为剑
 ___________________________
-各种分层框架都是前辈充满智慧的宝贵经验，值得尊敬、借鉴、学习，但也不必拘泥于形式，重点是理解其背后的思想。设计模式有六大原则：
+各种分层架构都是前辈充满智慧的宝贵经验，值得尊敬、借鉴、学习，但也不必拘泥于形式，重点是理解其背后的思想。设计模式有六大原则：
 + 单一职责原则
 + 里氏代换原则
 + 依赖倒转原则
@@ -263,11 +264,11 @@ ___________________________
 + 迪米特法则
 + 开放-封闭原则
 
-其中除了里氏代换原则，其他五大原则都是分层框架的指导思想。只要我们深刻理解并能严格遵守这些原则，无论我们选择哪种框架、或在其基础上进行衍化，都能设计出高质量的代码。
+其中除了里氏代换原则，其他五大原则都是分层架构的指导思想。只要我们深刻理解并能严格遵守这些原则，无论我们选择哪种架构、或在其基础上进行衍化，都能设计出高质量的代码。
 
 # 小结
 ___________________________
-代码设计、框架选择及理解仁者见仁、智者见智，但经典的设计理念是公认的、也是经过时间检验的。
+代码设计、架构选择及理解仁者见仁、智者见智，但经典的设计理念是公认的、也是经过时间检验的。
 
 # 参考资料
 [GUI Architectures](http://martinfowler.com/eaaDev/uiArchs.html)
