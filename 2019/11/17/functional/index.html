@@ -104,13 +104,15 @@
 <meta property="og:site_name" content="雪峰的blog">
 <meta property="og:description" content="函数式编程中有很多优秀的设计理念值得我们去学习，本文对函数式编程中的基础理念进行了简要的介绍，但更重要的是思考、总结如何将它们应用到我们日常开发中，帮助我们去提升代码的可读性、可维护性等。">
 <meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/reduce.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/fold.png">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/stackusericon.jpeg">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/pipe.png">
-<meta property="og:updated_time" content="2019-11-23T11:41:46.090Z">
+<meta property="og:updated_time" content="2019-11-24T09:23:40.887Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="函数式思维">
 <meta name="twitter:description" content="函数式编程中有很多优秀的设计理念值得我们去学习，本文对函数式编程中的基础理念进行了简要的介绍，但更重要的是思考、总结如何将它们应用到我们日常开发中，帮助我们去提升代码的可读性、可维护性等。">
-<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/stackusericon.jpeg">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/reduce.png">
 
 
 
@@ -493,7 +495,7 @@
 <p>其中，dart提供了两个操作方法<code>reduce</code>、<code>fold</code>，主要区别在于后者可以提供折叠时的初始值。</p>
 <figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">List</span>&lt;<span class="built_in">int</span>&gt; nums = [<span class="number">1</span>, <span class="number">3</span>, <span class="number">5</span>, <span class="number">7</span>, <span class="number">9</span>,];</span><br><span class="line"><span class="comment">// reduceResult: 25</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="built_in">int</span> reduceResult = nums.reduce((value, elemnt) =&gt; value + elemnt);</span><br><span class="line"></span><br><span class="line"><span class="comment">// foldResult: 35</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="built_in">int</span> foldResult = nums.fold(<span class="number">10</span>, (value, elemnt) =&gt; value + elemnt);</span><br></pre></td></tr></table></figure>
 <p>如上例，<code>reduce</code>是直接对列表元素求和(结果是25)，而<code>fold</code>在求和时提供了初始值10(结果是35).</p>
-<p>以上<code>reduce</code>、<code>fold</code>都是从左往右进行折叠，有的语言还提供了从右往左折叠的版本，如JavaScript:<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">reduceRight(callback(accumulator, currentValue[, index[, array]])[, initialValue])</span><br></pre></td></tr></table></figure></p>
+<p><img src="/img/reduce.png" alt=""><br><img src="/img/fold.png" alt=""><br>以上<code>reduce</code>、<code>fold</code>都是从左往右进行折叠，有的语言还提供了从右往左折叠的版本，如JavaScript:<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">reduceRight(callback(accumulator, currentValue[, index[, array]])[, initialValue])</span><br></pre></td></tr></table></figure></p>
 <blockquote>
 <p>集合操作还有很多，在此不一一列举。当开始使用这些操作后，会惊奇地发现根本停不下来！</p>
 </blockquote>
