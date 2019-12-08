@@ -279,6 +279,8 @@ T reduce(T identity, BinaryOperator<T> accumulator);
 ```
 如上例，`reduce`是直接对列表元素求和(结果是25)，而`fold`在求和时提供了初始值10(结果是35).
 
+![](/img/reduce.png)
+![](/img/fold.png)
 以上`reduce`、`fold`都是从左往右进行折叠，有的语言还提供了从右往左折叠的版本，如JavaScript:
 ```JavaScript
 reduceRight(callback(accumulator, currentValue[, index[, array]])[, initialValue])
