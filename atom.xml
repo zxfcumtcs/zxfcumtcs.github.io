@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://zxfcumtcs.github.io/"/>
-  <updated>2019-11-24T09:23:40.887Z</updated>
+  <updated>2019-12-08T09:43:37.439Z</updated>
   <id>http://zxfcumtcs.github.io/</id>
   
   <author>
@@ -15,6 +15,26 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>论面向接口编程</title>
+    <link href="http://zxfcumtcs.github.io/2019/12/04/InterfaceBasedProgramming/"/>
+    <id>http://zxfcumtcs.github.io/2019/12/04/InterfaceBasedProgramming/</id>
+    <published>2019-12-04T14:25:55.000Z</published>
+    <updated>2019-12-08T09:43:37.439Z</updated>
+    
+    <content type="html"><![CDATA[<p>本文首先从接口的实现方、使用方角度阐述了什么是接口，其次分析了面向接口编程的意义。<br><a id="more"></a><br>©原创文章，转载请注明出处！</p><h1 id="我看中的接口"><a href="#我看中的接口" class="headerlink" title="我看中的接口"></a>我看中的接口</h1><hr><p>面向接口编程作为口号可以说是妇孺皆知，臭大街了！<br>但在日常开发、交流过程中发现很多同学对面向接口编程的理解还是有所偏差。<br>因此，想通过这篇小短文，谈谈我对面向接口编程的理解，希望对大家有所帮助。</p><p>首先要回答的问题就是：<br>接口是什么？</p><ul><li><code>C++</code>、<code>JavaScript</code>、<code>dart</code>的 (abstract)<code>class</code>——『形式上的接口』</li><li><code>Objective-C</code>的<code>delegate</code>、<code>Swift</code>的<code>protocol</code>、<code>Java</code>的<code>interface</code>——『语义上的接口』</li></ul><blockquote><p>接口属于面向对象编程(OOP)的范畴</p></blockquote><p>这样的答案无疑是『政治正确』的，但并非我们想要的，我想从另外一个角度来看待这个问题：</p><blockquote><p>接口是一种抽象</p></blockquote><ul><li>接口使用方：<strong>对外界『依赖』的抽象，表明其依赖哪些能力</strong>；</li><li>接口实现方：<strong>对自我『能力』的抽象，宣称其具备哪些能力</strong>。</li></ul><p>正是由于接口的抽象性，接口使用方与实现方才得以解耦。<br>下面，我们以<code>UITableViewDataSource</code>为例，来具体感受一下：<br><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@protocol</span> <span class="title">UITableViewDataSource</span>&lt;<span class="title">NSObject</span>&gt;</span></span><br><span class="line"></span><br><span class="line">-(<span class="built_in">NSInteger</span>)tableView:(<span class="built_in">UITableView</span> *)tableView numberOfRowsInSection:(<span class="built_in">NSInteger</span>)section;</span><br><span class="line">-(<span class="built_in">UITableViewCell</span> *)tableView:(<span class="built_in">UITableView</span> *)tableView cellForRowAtIndexPath:(<span class="built_in">NSIndexPath</span> *)indexPath;</span><br><span class="line">...</span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure></p><p><code>UITableView</code>对 iOS 开发同学来说再熟悉不过了，其有一个需要实现<code>UITableViewDataSource</code>接口的属性<code>dataSource</code>。<br><code>UITableView</code>作为<code>UITableViewDataSource</code>接口的<strong>使用方</strong>，很清楚的表明了其对外界的依赖：</p><ul><li><code>numberOfRowsInSection:</code>——依赖外界告诉它，某个 section 有几行；</li><li><code>cellForRowAtIndexPath:</code>——依赖外界提供某个 indexPath 处的cell；</li><li>…</li></ul><p>总之，通过<code>UITableViewDataSource</code>清楚地表明了<code>UITableView</code>需要哪些能力的支持，也就清楚地说明了该如何去使用<code>UITableView</code>。</p><figure class="highlight mm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">ABCViewController</span> () &lt;<span class="title">UITableViewDelegate</span>,<span class="title">UITableViewDataSource</span>&gt;</span></span><br><span class="line">...</span><br><span class="line"><span class="keyword">@end</span></span><br></pre></td></tr></table></figure><p>通过上面这行代码，我们就能清晰地知道，<code>ABCViewController</code>具有<code>numberOfRowsInSection</code>、<code>cellForRowAtIndexPath</code>等能力，因为其实现了<code>UITableViewDataSource</code>接口！也就是其可以供<code>UITableView</code>使用。</p><blockquote><p><code>UITableView</code>之所以有如此好的通用性，就是采用了面向接口编程，将其对外界的依赖抽象成2个接口：<code>UITableViewDelegate</code>、<code>UITableViewDataSource</code>，即只要是实现了这两个接口的都可以为其所用。</p></blockquote><h1 id="意义"><a href="#意义" class="headerlink" title="意义"></a>意义</h1><hr><ul><li><strong>简洁、易维护</strong>——如上节所提到的<code>UITableView</code>，其内部实现想必非常复杂，但由于有<code>UITableViewDelegate</code>、<code>UITableViewDataSource</code>两个抽象接口，表明了其对使用方的依赖，我们非常容易地就可以使用<code>UITableView</code>，无须关心其内部细节，只要实现这两个接口即可；</li><li><strong>解耦</strong>——接口作为一个抽象层，很好地将使用方与实现方隔离开来，使得两者不再有直接依赖关系，双方的复用性、扩展性(尤其是接口使用方)得到极大提高，具体例子可以参考<a href="https://zxfcumtcs.github.io/2017/03/04/CustomUIControls/">自定义 UI 组件库</a>这篇文章；</li><li><strong>分工协作</strong>——通过接口使得原本相互依赖的双方得以很好的解耦，分工协作更加顺畅，双方可以并行开发，互不干扰；</li><li><strong>可测性更好</strong>——这里主要指接口使用方的测试，因为通过接口可以更方便地 mock 数据供接口使用方测试用；</li><li><strong>拥抱变化</strong>——对开发同学来说最憎恨的莫过于已经开发好的或开发中的需求又变了，除了『撕』之外，我们还可以采取积极的防御措施，通过接口『隔离变化』，将变化带来的影响降到最低。</li></ul><p><img src="/img/tab_page.png" alt=""><br>这是一个前不久在项目中真实遇到的例子，某个页面，当初只有 A、B 两个 tab，但在开发过程中又变成 A、B、C 三个 tab，之后又变成了 D、E 两个 tab。(每个 tab 的数据开源、UI 样式完成不一样)</p><p>刚开始时，A、B 两个 tab 的逻辑是直接放在主页面里面的<br>当产品需要增加 C tab 时，隐约感到情况不妙<br>为了，防止后续还有改动带来的影响，决定将 tab 相关的逻辑抽离出来，主页面不再依赖于某个特定的 tab，而是依赖于抽象后的接口。<br>需要放到该主页面的 tab 自行实现这套接口即可。<br>从此，tab 的增删改就与主页面无关了，即实现了 『OCP』，这也是23种经典设计模式之一的：『策略模式』。</p><p>总之，面向接口，即面向简洁、面向变化。</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;本文首先从接口的实现方、使用方角度阐述了什么是接口，其次分析了面向接口编程的意义。&lt;br&gt;
+    
+    </summary>
+    
+    
+      <category term="设计" scheme="http://zxfcumtcs.github.io/tags/%E8%AE%BE%E8%AE%A1/"/>
+    
+  </entry>
   
   <entry>
     <title>函数式思维</title>
@@ -56,9 +76,9 @@
     </summary>
     
     
-      <category term="iOS" scheme="http://zxfcumtcs.github.io/tags/iOS/"/>
-    
       <category term="架构" scheme="http://zxfcumtcs.github.io/tags/%E6%9E%B6%E6%9E%84/"/>
+    
+      <category term="iOS" scheme="http://zxfcumtcs.github.io/tags/iOS/"/>
     
       <category term="UI 组件" scheme="http://zxfcumtcs.github.io/tags/UI-%E7%BB%84%E4%BB%B6/"/>
     
@@ -106,9 +126,9 @@
     </summary>
     
     
-      <category term="iOS" scheme="http://zxfcumtcs.github.io/tags/iOS/"/>
-    
       <category term="架构" scheme="http://zxfcumtcs.github.io/tags/%E6%9E%B6%E6%9E%84/"/>
+    
+      <category term="iOS" scheme="http://zxfcumtcs.github.io/tags/iOS/"/>
     
   </entry>
   
@@ -292,11 +312,11 @@
     </summary>
     
     
+      <category term="架构" scheme="http://zxfcumtcs.github.io/tags/%E6%9E%B6%E6%9E%84/"/>
+    
       <category term="iOS" scheme="http://zxfcumtcs.github.io/tags/iOS/"/>
     
       <category term="Objective-C" scheme="http://zxfcumtcs.github.io/tags/Objective-C/"/>
-    
-      <category term="架构" scheme="http://zxfcumtcs.github.io/tags/%E6%9E%B6%E6%9E%84/"/>
     
       <category term="Data Binding" scheme="http://zxfcumtcs.github.io/tags/Data-Binding/"/>
     
@@ -340,9 +360,9 @@
     </summary>
     
     
-      <category term="iOS" scheme="http://zxfcumtcs.github.io/tags/iOS/"/>
-    
       <category term="架构" scheme="http://zxfcumtcs.github.io/tags/%E6%9E%B6%E6%9E%84/"/>
+    
+      <category term="iOS" scheme="http://zxfcumtcs.github.io/tags/iOS/"/>
     
       <category term="GUI" scheme="http://zxfcumtcs.github.io/tags/GUI/"/>
     
@@ -442,26 +462,6 @@
     <summary type="html">
     
       &lt;p&gt;本文首先简要讨论了 Objective-C 消息传递机制，随后重点讨论了在 Objective-C 中实现 AOP 的三种方式：&lt;em&gt;Method Swizzling&lt;/em&gt;、&lt;em&gt;Aspects&lt;/em&gt;以及&lt;em&gt;Proxy&lt;/em&gt;。&lt;br&gt;
-    
-    </summary>
-    
-    
-      <category term="iOS" scheme="http://zxfcumtcs.github.io/tags/iOS/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>KVO漫谈</title>
-    <link href="http://zxfcumtcs.github.io/2015/09/18/KVO/"/>
-    <id>http://zxfcumtcs.github.io/2015/09/18/KVO/</id>
-    <published>2015-09-18T15:02:28.000Z</published>
-    <updated>2018-12-08T08:41:32.858Z</updated>
-    
-    <content type="html"><![CDATA[<p>本文讨论了 KVO 若干有趣的特性，并将 KVO 与其他通信方式进行了比较，最后深入分析了 KVO 内部实现机制。<br><a id="more"></a><br>©原创文章，转载请注明出处！</p><h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr><p>KVO(Key-Value Observing)对于 iOS 开发者来说应该并不陌生。通过 KVO 机制，当被观察对象的属性值发现变化时观察者能接到相应的通知。为了能接收到正确的 KVO 消息，需要满足以下三点：</p><ul><li>被观察对象的相应属性必须是 KVO 兼容；</li><li>通过<code>addObserver:forKeyPath:options:context:</code>方法注册观察者；</li><li>观察者必须实现<code>observeValueForKeyPath:ofObject:change:context:</code>方法。</li></ul><p>那么何为 KVO 兼容的属性？<br>同样需要满足三点：</p><ul><li>相应属性需要是 KVC 兼容；</li><li>相应属性值改变时需要触发 KVO 消息；</li><li>相关的dependent keys设置正确。</li></ul><p>其中，对于 KVC 兼容的属性，NSObject 已支持在属性值变化时自动发送 KVO 消息。当然也可以禁止 NSObject 的该功能，改为由手动实现，此时，只需重载<code>automaticallyNotifiesObserversForKey:</code>方法，对于需要禁止 KVO 的 key 返回 NO 即可。</p><p>关于 KVO 有几个点值得一提：</p><ul><li><p>Dependent Keys：<br>在 KVO 所有特性中，最让我心动的莫过于依赖键(Dependent Keys)，简单地说就是某个属性值可以依赖于其他若干个属性，当任何被依赖的属性值改变时，依赖属性就会触发 KVO 消息。对于To-one Relationships，可以通过<code>keyPathsForValuesAffectingValueForKey:</code>或<code>keyPathsForValuesAffecting&lt;Key&gt;</code>方法注册依赖键。</p></li><li><p>NSKeyValueObservingOptionInitial：<br>我们知道 KVO 的触发时机是被观察的属性值发生变化时，但有时可能需要在初始化时就能通过 KVO 获取被观察属性的值，此时就可以在注册观察者时添加<code>NSKeyValueObservingOptionInitial</code>选项。通过该选项，在调用<code>addObserver:forKeyPath:options:context:</code>方法时会同步触发 KVO 消息。</p></li><li><p>NSKeyValueObservingOptionPrior：<br>正常情况下，是在被观察属性的值改变后通过<code>didChangeValueForKey:</code>方法触发 KVO 消息。若在注册观察者时添加<code>NSKeyValueObservingOptionPrior</code>选项，则在属性值改变前，即在<code>willChangeValueForKey:</code>方法中也会触发一次 KVO 消息。此时，被观察属性值的改变会触发两次 KVO 消息，可以通过<code>change</code>中的<code>NSKeyValueChangeNotificationIsPriorKey</code>进行区分。</p></li><li><p>KVO 消息的同步性：<br>首先，KVO 消息的处理与被观察属性值的改变发生在同一线程上，因此<code>observeValueForKeyPath:ofObject:change:context:</code>方法可能会在不同的线程上执行，需要考虑线程安全问题。其次KVO 消息与被观察属性值的改变是同步的，也就是在被观察属性值的<code>setter</code>方法返回前所有的 KVO 消息都已处理完成。</p></li></ul><p>由于本文的定位不是 KVO 教程，关于<a href="https://developer.apple.com/library/ios/documentation/Cocoa/Conceptual/KeyValueObserving/KeyValueObserving.html" target="_blank" rel="noopener">KVO</a>、<a href="https://developer.apple.com/library/ios/documentation/Cocoa/Conceptual/KeyValueCoding/Articles/KeyValueCoding.html" target="_blank" rel="noopener">KVC</a>，Apple 官方有详细的描述，在此不再赘述。</p><h1 id="KVO、Notification、delegate、block"><a href="#KVO、Notification、delegate、block" class="headerlink" title="KVO、Notification、delegate、block"></a>KVO、Notification、delegate、block</h1><hr><p>KVO、NSNotfication、delegate、block这四种方式都可以用于对象间的通信。<br>KVO 与 NSNotification 有很多相似之处，都是一对多的、单向的通信方式，通过它们可以使得模块间较好的解耦。同时它们也有许多相似的缺点。<br>delegate、block 则是一对一的、『半双向』的通信方式。之所以说是『半双向』是因为它们可以有返回值。<br><img src="/img/MVC.jpg" alt=""><br>这是斯坦福大学 iOS 开发公开课里关于讲解 MVC 的一页 PPT，很好地总结了 M、V、C 间通信的规则与方式：</p><ul><li>Model 与 View 间不允许直接通信；</li><li>Controller 作为控制中枢，一般持有 Model 与 View 的 object，能直接与它们通信；</li><li>View 可以通过 delegate 与 Controller 通信以及通过将 Controller 设置为 target 响应来自 View 的事件；</li><li>Model 可以通过 KVO 或 Notification向 Controller 发送消息。</li></ul><p>可以看到，为了充分解耦，Model 与 Controller 间的通信有严格的限制，必须是单向的。<br>由于 View 与 Controller 严格要求是一对一的，两者的关系也更加紧密，故其间的通信 delegate 更加适合。</p><p>个人认为，从设计的角度出发，KVO 与 Notification 没有本质的区别。但前面提到 KVO 有个很棒的特性：Dependent Keys。有时，通过 KVO 的Dependent Keys特性能写出很漂亮的代码。</p><p>比如：界面中某个元素 V 的显示依赖于 Model 中 A、B、C、D 四个属性值，当其中任意属性值发生改变时，界面元素 V 的状态都需要变化。<br>如果，此时选用 Notification 的方式由 Modle 通知 Controller 刷新 UI，需要在A、B、C、D 四个属性值发生变化的地方都抛出 Notification，同时需要将4个属性值通过消息传递给 Controller 以便计算 V 的新状态。<br>若采用 KVO 机制，可以在 Model 中合成一个新的属性M，并且使得 M 依赖于 A、B、C、D，再在 Controller 中观察属性 M 即可。</p><h1 id="KVO陷阱"><a href="#KVO陷阱" class="headerlink" title="KVO陷阱"></a>KVO陷阱</h1><hr><p>KVO 本身存在不少争议，也有人为其开出了长长的『罪行』清单。<br>个人认为 KVO 值得我们关注的缺点有：</p><ul><li><p>string 类型的 key：<br>在 KVO 中所有 key path 都是 string 类型，也就意味着无法通过编译器在编译期发现像拼写错误这类的 warning、error；</p></li><li><p>无法指定响应 KVO 的selector：<br>一个类只能集中在<code>observeValueForKeyPath:ofObject:change:context:</code>方法中处理 KVO 消息，而无法像 NSNotification 那样在注册观察者时指定 selector，这就导致如果某个类观察的属性较多时，在该方法中就会出现长长的<code>if...else...</code>；</p></li><li><p>KVO 消息是隐式的(implicit)：<br>一旦 KVO 相关的观察者注册完毕，其余的事情都由 runtime 完成，虽然符合数据单向流通的设计要求，但在实际开发过程中还是有些困扰，尤其是新人接手老项目时，可能无法意识到修改某个属性的值会产生一系列的影响，不便于问题的调试、跟踪。</p></li></ul><p>当然，使用 KVO 还有一些要注意的地方，处理不好可能会 crash、产生意料之外的结果等，这些都属于编码规范一类的，在此不多作讨论。</p><h1 id="KVO背后的故事"><a href="#KVO背后的故事" class="headerlink" title="KVO背后的故事"></a>KVO背后的故事</h1><hr><p>我们知道被观察属性值发生变化时，观察者能自动收到 KVO 消息，这是如何实现的呢？<br>这一切都要归功于 Objective-C 语言的动态 runtime，<a href="https://www.mikeash.com/pyblog/friday-qa-2009-01-23.html" target="_blank" rel="noopener">mikeash</a>大神对此有过具体分析，在此我们再来梳理一下。<br><img src="/img/printClassInfo.png" alt=""><br><img src="/img/KVO1.png" alt=""><br><img src="/img/KVOResult1.png" alt=""><br>从上述结果我们能得出：</p><ul><li>在某个对象(<code>_observedObject</code>)上添加观察者时，runtime 会为其动态生成一个子类(<code>NSKVONotifying_KVOObserved</code>)，并将被观察对象(<code>_observedObject</code>)的<code>isa</code>指针切换到新生成的子类上；</li><li>在被观察对象(<code>_observedObject</code>)上移除观察者时，其<code>isa</code>指针又会切换回来；</li><li>Apple 君为了隐藏 KVO 的实现细节，在动态生成的子类中重写了<code>class</code>方法，使其返回原有类的信息(当然通过<code>object_getClass</code>获取的<code>isa</code>指针信息是无法隐藏的)。</li></ul><p>我们再来对比一下这两个类都包含了哪些方法(注：printNamesStr只会输出该类自身的方法，不会包含父类的方法)：<br><img src="/img/printNamesStr.png" alt=""><br><img src="/img/printNamesStrResult.png" alt=""></p><p>可以看到在<code>NSKVONotifying_KVOObserved</code>类中重载了<code>setX:</code>、<code>class</code>、<code>dealloc</code>方法，添加了<code>_isKVOA</code>方法。<br>更进一步，我们发现被<code>NSKVONotifying_KVOObserved</code>重载的<code>setX:</code>实际指向全局的：<code>_NSSetLongLongValueAndNotify</code>方法。<br><img src="/img/printIMP.png" alt=""></p><p>针对不同的类型，Apple 实现了以下方法：<br>_NSSetBoolValueAndNotify、_NSSetCharValueAndNotify、_NSSetDoubleValueAndNotify、_NSSetFloatValueAndNotify、_NSSetIntValueAndNotify、_NSSetLongLongValueAndNotify、_NSSetLongValueAndNotify、_NSSetObjectValueAndNotify、_NSSetPointValueAndNotify、_NSSetRangeValueAndNotify、_NSSetRectValueAndNotify、_NSSetShortValueAndNotify、_NSSetSizeValueAndNotify、_NSSetUnsignedCharValueAndNotify、_NSSetUnsignedIntValueAndNotify、_NSSetUnsignedLongLongValueAndNotify、_NSSetUnsignedLongValueAndNotify、_NSSetUnsignedShortValueAndNotify</p><p>这些方法虽没有开源，但其内部实现通过调用栈能所有了解：<br><img src="/img/NSSetLongLongValueAndNotify.png" alt=""><br>在该方法中我们看到了熟悉的<code>willChangeValueForKey:</code>以及<code>didChangeValueForKey:</code>方法的调用。</p><h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><hr><p>KVO 通过 runtime 动态机制实现了自动发送 KVO 消息，但正如前文所说 KVO 也存在不少争议，在使用前需要仔细思考，其是否是最佳选项。</p><p>参考资料：<br><a href="https://www.mikeash.com/pyblog/friday-qa-2009-01-23.html" target="_blank" rel="noopener">Friday Q&amp;A 2009-01-23</a><br><a href="https://www.mikeash.com/pyblog/key-value-observing-done-right.html" target="_blank" rel="noopener">Key-Value Observing Done Right</a><br><a href="http://nshipster.com/key-value-observing/" target="_blank" rel="noopener">Key-Value Observing</a><br><a href="https://developer.apple.com/library/ios/documentation/Cocoa/Conceptual/KeyValueObserving/KeyValueObserving.html" target="_blank" rel="noopener">Key-Value Observing Programming Guide</a><br><a href="https://developer.apple.com/library/ios/documentation/Cocoa/Conceptual/KeyValueCoding/Articles/KeyValueCoding.html" target="_blank" rel="noopener">Key-Value Coding Programming Guide</a><br><a href="https://www.objc.io/issues/7-foundation/key-value-coding-and-observing/" target="_blank" rel="noopener">Key-Value Coding and Observing</a><br><a href="http://khanlou.com/2013/12/kvo-considered-harmful/" target="_blank" rel="noopener">KVO Considered Harmful</a></p>]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;本文讨论了 KVO 若干有趣的特性，并将 KVO 与其他通信方式进行了比较，最后深入分析了 KVO 内部实现机制。&lt;br&gt;
     
     </summary>
     
