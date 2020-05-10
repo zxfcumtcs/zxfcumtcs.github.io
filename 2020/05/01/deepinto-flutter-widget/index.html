@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="flutter,移动开发,跨平台,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本文是『 深入浅出 Flutter Framework 』系列文章的第一篇，主要以不同类型 Widget 的核心方法为切入点，对其展开详细分析。">
+<meta name="keywords" content="flutter,移动开发,跨平台">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入浅出 Flutter Framework 之 Widget">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2020/05/01/deepinto-flutter-widget/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本文是『 深入浅出 Flutter Framework 』系列文章的第一篇，主要以不同类型 Widget 的核心方法为切入点，对其展开详细分析。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/flutter-layercake.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/Widget_Comment.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/Widget.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/Widget_Method.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/StatelessWidget_Comment.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/StatelessWidget_Method.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/Stateful_Comment.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/StatefulWidget_Method.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/StateLifecycle.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/State_Method.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ParentDataWidget_Comment.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ParentDataWidget_Method.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ParentDataWidget_Chain.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/InheritedWidget_Comment.jpg">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/InheritedWidget_Method.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RenderObjectWidget_Method.png">
+<meta property="og:updated_time" content="2020-05-10T13:28:35.037Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入浅出 Flutter Framework 之 Widget">
+<meta name="twitter:description" content="本文是『 深入浅出 Flutter Framework 』系列文章的第一篇，主要以不同类型 Widget 的核心方法为切入点，对其展开详细分析。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/flutter-layercake.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2020/05/01/deepinto-flutter-widget/">
+
+
+
+
+
+  <title>深入浅出 Flutter Framework 之 Widget | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2020/05/01/deepinto-flutter-widget/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深入浅出 Flutter Framework 之 Widget</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-05-01T21:29:16+08:00">
+                2020-05-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2020/05/01/deepinto-flutter-widget/" class="leancloud_visitors" data-flag-title="深入浅出 Flutter Framework 之 Widget">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  4,734
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  19
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文是『 深入浅出 Flutter Framework 』系列文章的第一篇，主要以不同类型 Widget 的核心方法为切入点，对其展开详细分析。</p>
+<a id="more"></a>
+<p>©原创文章，转载请注明出处！</p>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
+<p>Flutter 作为一种新兴跨平台解决方案，自 2017 年 Google 在 I/O 大会上推出后，尤其是在 2018 年 I/O 大会上发布第一个预览版后，迅速引起移动开发者的广泛关注，并成为时下最热门的跨平台解决方案 ( 没有之一 ) ！</p>
+<p>本系列文章将深入 Flutter Framework 内部逐步去分析其核心概念和流程，主要包括：<br>『 深入浅出 Flutter Framework 之 Widget 』<br>『 深入浅出 Flutter Framework 之 BuildOwner 』<br>『 深入浅出 Flutter Framework 之 Element 』<br>『 深入浅出 Flutter Framework 之 PipelineOwner 』<br>『 深入浅出 Flutter Framework 之 RenderObejct 』<br>『 深入浅出 Flutter Framework 之 Layer 』<br>『 深入浅出 Flutter Framework 之 Binding 』<br>『 深入浅出 Flutter Framework 之 Rendering Pipeline 』<br>『 深入浅出 Flutter Framework 之 自定义 Widget 』</p>
+<p>其中，前 7 篇属于基础篇，分别介绍 Flutter 中几个最核心的概念。Rendering Pipeline 篇则是在此基础上从 Build、Layout 到 Paint 的流程将它们串起来，分析 Flutter UI 是如何创建的、如何更新的。最后，自定义 Widget 属于回顾、实践篇，分析自定义一个 Render Widget 至少需要哪些步骤。</p>
+<blockquote>
+<p>如<a href="https://flutter.dev/docs/resources/technical-overview#layer-cakes-are-delicious" target="_blank" rel="noopener">下图</a>所示，Flutter 整体分为三层：Framework (dart)、Engine (C/C++)、Embedder (Platform)，上述文章主要集中在 Framework 这一层。<br><img src="/img/flutter-layercake.png" alt=""></p>
+</blockquote>
+<h1 id="Widget"><a href="#Widget" class="headerlink" title="Widget"></a>Widget</h1><hr>
+<blockquote>
+<p>Everything’s a widget.</p>
+</blockquote>
+<p>在开发 Flutter 应用过程中，接触最多的无疑就是<code>Widget</code>，是『描述』 Flutter UI 的基本单元，通过<code>Widget</code>可以做到：</p>
+<ul>
+<li>描述 UI 的层级结构 (通过<code>Widget</code>嵌套)；</li>
+<li>定制 UI 的具体样式 (如：<code>font</code>、<code>color</code>等)；</li>
+<li>指导 UI 的布局过程 (如：<code>padding</code>、<code>center</code>等)；</li>
+<li>…</li>
+</ul>
+<p>Google 在设计<code>Widget</code>时，还赋予它一些鲜明的特点：</p>
+<ul>
+<li><p>声明式 UI —— 相对于传统 Native 开发中的命令式 UI，声明式 UI 有不少优势，如：开发效率显著提升、UI 可维护性明显加强等；</p>
+</li>
+<li><p>不可变性 —— Flutter 中所有<code>Widget</code>都是不可变的(immutable)，即其内部成员都是不可变的(<code>final</code>)，对于变化的部分需要通过「Stateful Widget-State」的方式实现；</p>
+</li>
+<li><p>组合大于继承 —— <code>Widget</code>设计遵循组合大于继承这一优秀的设计理念，通过将多个功能相对单一的<code>Widget</code>组合起来便可得到功能相对复杂的<code>Widget</code>。</p>
+</li>
+</ul>
+<p>在<code>Widget</code>类定义处有这样一段注释：<br><img src="/img/Widget_Comment.png" alt=""><br>这段注释阐明了<code>Widget</code>的本质：<strong>用于配置<code>Element</code>的，<code>Widget</code>本质上是 UI 的配置信息 (附带部分业务逻辑)。</strong></p>
+<blockquote>
+<p>我们通常会将通过<code>Widget</code>描述的 UI 层级结构称之为「Widget Tree」，但与「Element Tree」、「RenderObject Tree」以及「Layer Tree」相比，实质上并不存在「Widget Tree」。为了描述方便，将 Widget 组合描述的 UI 层级结构称之为「Widget Tree」，也未尝不可。</p>
+</blockquote>
+<h2 id="分类"><a href="#分类" class="headerlink" title="分类"></a>分类</h2><p><img src="/img/Widget.png" alt=""><br>如上图所示，按照功能划分<code>Widget</code>大致可以分为 3 类：</p>
+<ul>
+<li><p><em>「Component Widget」</em> —— 组合类 Widget，这类 Widget 都直接或间接继承于<code>StatelessWidget</code>或<code>StatefulWidget</code>，上一小节提到过在 Widget 设计上遵循组合大于继承的原则，通过组合功能相对单一的 Widget 可以得到功能更为复杂的 Widget。平常的业务开发主要是在开发这一类型的 Widget；</p>
+</li>
+<li><p><em>「Proxy Widget」</em> —— 代理类 Widget，正如其名，「Proxy Widget」本身并不涉及 Widget 内部逻辑，只是为「Child Widget」提供一些附加的中间功能。典型的如：<code>InheritedWidget</code>用于在「Descendant Widgets」间传递共享信息、<code>ParentDataWidget</code>用于配置「Descendant Renderer Widget」的布局信息；</p>
+</li>
+<li><p><em>「Renderer Widget」</em> —— 渲染类 Widget，是最核心的<code>Widget</code>类型，会直接参与后面的「Layout」、「Paint」流程，无论是「Component Widget」还是「Proxy Widget」最终都会映射到「Renderer Widget」上，否则将无法被绘制到屏幕上。这 3 类 Widget 中，<strong>只有「Renderer Widget」有与之一一对应的「Render Object」</strong>。</p>
+</li>
+</ul>
+<h2 id="核心方法源码分析"><a href="#核心方法源码分析" class="headerlink" title="核心方法源码分析"></a>核心方法源码分析</h2><p>下面，我们重点介绍各类型 Widget 的核心方法，以便更好地理解 Widget 是如何参与整个 UI 的构建过程。</p>
+<h3 id="Widget-1"><a href="#Widget-1" class="headerlink" title="Widget"></a>Widget</h3><p><code>Widget</code>，所有 Widget 的基类。</p>
+<div style="width: 400px; margin: auto"><img src="/img/Widget_Method.png" alt=""></div>
+
+
+<p>如上图所示，在 <code>Widget</code>基类中有 3 个重要的方法 (属性)：</p>
+<ul>
+<li><p><em>Key key</em> —— 在同一父节点下，用作兄弟节点间的唯一标识，主要用于控制当 Widget 更新时，对应的 Element 如何处理 (是更新还是新建)。若某 Widget 是其「Parent Widget」唯一的子节点时，一般不用设置 key；</p>
+<blockquote>
+<p>GlobalKey 是一类较特殊的 key，在介绍 Element 时会附带介绍。</p>
+</blockquote>
+</li>
+<li><p><em>Element createElement()</em> —— 每个<code>Widget</code>都有一个与之对应的<code>Element</code>，由该方法负责创建，<code>createElement</code>可以理解为设计模式中的<em>工厂方法</em>，具体的<code>Element</code>类型由对应的<code>Widget</code>子类负责创建；</p>
+</li>
+<li><p><em>static bool canUpdate(Widget oldWidget, Widget newWidget)</em> —— 是否可以用 new widget 修改前一帧用 old widget 生成的 Element，而不是创建新的 Element，<code>Widget</code>类的默认实现为：2个<code>Widget</code>的<code>runtimeType</code>与<code>key</code>都相等时，返回<code>true</code>，即可以直接更新 (key 为 null 时，认为相等)。</p>
+<blockquote>
+<p>上述更新流程，同样在介绍 Element 时会重点分析。</p>
+</blockquote>
+</li>
+</ul>
+<h3 id="StatelessWidget"><a href="#StatelessWidget" class="headerlink" title="StatelessWidget"></a>StatelessWidget</h3><p>无状态-组合型 Widget，由其<code>build</code>方法描述组合 UI 的层级结构。在其生命周期内状态不可变。<br><img src="/img/StatelessWidget_Comment.png" alt=""></p>
+<div style="width: 400px; margin: auto"><img src="/img/StatelessWidget_Method.png" alt=""></div>
+
+<blockquote>
+<p>ps: 对于有父子关系的类，在子类中只会介绍新增或有变化的方法</p>
+</blockquote>
+<ul>
+<li><p><em>StatelessElement createElement()</em> ——「Stateless Widget」对应的 Element 为<code>StatelessElement</code>，一般情况下<code>StatelessWidget</code>子类不必重写该方法，即子类对应的 Element 也是<code>StatelessElement</code>；</p>
+</li>
+<li><p><em>Widget build(BuildContext context)</em> —— 算是 Flutter 体系中的核心方法之一，以『声明式 UI』的形式描述了该组合式 Widget 的 UI 层级结构及样式信息，也是开发 Flutter 应用的主要工作『场所』。该方法在 3 种情况下被调用：</p>
+<ul>
+<li>Widget 第一次被加入到 Widget Tree 中 (更准确地说是其对应的 Element 被加入到 Element Tree 时，即 Element 被挂载『mount』时)；</li>
+<li>「Parent Widget」修改了其配置信息；</li>
+<li>该 Widget 依赖的「Inherited Widget」发生变化时。</li>
+</ul>
+</li>
+</ul>
+<p>当「Parent Widget」或 依赖的「Inherited Widget」频繁变化时，<code>build</code>方法也会频繁被调用。因此，提升<code>build</code>方法的性能就显得十分重要，Flutter 官方给出了几点建议：</p>
+<ul>
+<li><p><em>减少不必要的中间节点，即减少 UI 的层级，</em>如：对于「Single Child Widget」，没必要通过组合「Row」、「Column」、「Padding」、「SizedBox」等复杂的 Widget 达到某种布局的目标，或许通过简单的「Align」、「CustomSingleChildLayout」即可实现。又或者，为了实现某种复杂精细的 UI 效果，不一定要通过组合多个「Container」，再附加「Decoration」来实现，通过 「CustomPaint」自定义或许是更好的选择；</p>
+</li>
+<li><p><em>尽可能使用<code>const</code> Widget，</em>为 Widget 提供<code>const</code>构造方法；</p>
+<blockquote>
+<p>关于 const constructor 推荐 <a href="https://japhr.blogspot.com/2012/12/dart-constant-constructors.html" target="_blank" rel="noopener">Dart Constant Constructors</a> 看看这篇文章的评论。</p>
+</blockquote>
+</li>
+<li><p>必要时，<em>可以将「Stateless Widget」重构成「Stateful Widget」，</em>以便可以使用「Stateful Widget」中一些特定的优化手法，如：缓存「sub trees」的公共部分，并在改变树结构时使用<code>GlobalKey</code>；</p>
+</li>
+<li><p><em>尽量减小 rebuilt 范围，</em>如：某个 Widget 因使用了「Inherited Widget」，导致频繁 rebuilt，可以将真正依赖「Inherited Widget」的部分提取出来，封装成更小的独立 Widget，并尽量将该独立 Widget 推向树的叶子节点，以便减小 rebuilt 时受影响的范围。</p>
+</li>
+</ul>
+<h3 id="StatefulWidget"><a href="#StatefulWidget" class="headerlink" title="StatefulWidget"></a>StatefulWidget</h3><p>有状态-组合型 Widget，但要注意的是<code>StatefulWidget</code>本身还是不可变的，其可变状态存在于<code>State</code>中。<br><img src="/img/Stateful_Comment.png" alt=""></p>
+<div style="width: 400px; margin: auto"><img src="/img/StatefulWidget_Method.png" alt=""></div>
+
+<ul>
+<li><p><em>StatefulElement createElement()</em> ——「Stateful Widget」对应的 Element 为<code>StatefulElement</code>，一般情况下<code>StatefulWidget</code>子类不用重写该方法，即子类对应的Element 也是<code>StatefulElement</code>；</p>
+</li>
+<li><p><em>State createState()</em> —— 创建对应的 State，该方法在<code>StatefulElement</code>的构造方法中被调用。可以简单地理解为当「Stateful Widget」被添加到 Widget Tree 时会调用该方法。</p>
+  <figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 代码已精简处理(本文中其他代码会做同样的简化处理)</span></span><br><span class="line">StatefulElement(StatefulWidget widget)</span><br><span class="line">     : _state = widget.createState(),</span><br><span class="line">       <span class="keyword">super</span>(widget) &#123;</span><br><span class="line">   _state._element = <span class="keyword">this</span>;</span><br><span class="line">   _state._widget = widget;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<blockquote>
+<p>实际上是「Stateful Widget」对应的「Stateful Element」被添加到 Element Tree 时，伴随「Stateful Element」的初始化，<code>createState</code>方法被调用。从后文可知一个 Widget 实例可以对应多个 Element 实例 (也就是同一份配置信息 (Widget) 可以在 Element Tree 上不同位置配置多个 Element 节点)，因此，<code>createState</code>方法在「Stateful Widget」生命周期内可能会被调用多次。<br>另外，需要注意的是配有<code>GlobalKey</code>的 Widget 对应的 Element 在整个 Element Tree 中只有一个实例。</p>
+</blockquote>
+<h3 id="State"><a href="#State" class="headerlink" title="State"></a>State</h3><blockquote>
+<p>The logic and internal state for a 「Stateful Widget」.</p>
+</blockquote>
+<p>State 用于处理「Stateful Widget」的业务逻辑以及可变状态。<br>由于其内部状态是可变的，故 State 有较复杂的生命周期：<br><img src="/img/StateLifecycle.png" alt=""><br>如上图，State 的生命周期大致可以分为 8 个阶段：</p>
+<ul>
+<li><p>在对应的「Stateful Element」被挂载 (mount) 到树上时，通过<code>StatefulElement.constructor</code> –&gt; <code>StatefulWidget.createState</code>创建 State 实例；</p>
+<blockquote>
+<p>从<code>StatefulElement.constructor</code>中的<code>_state._element = this;</code>可知，<code>State._emelent</code>指向了对应的 Element 实例，而我们熟知的<code>State.context</code>引用的就是这个<code>_element</code>：<code>BuildContext get context =&gt; _element;</code>。<br><code>State</code>实例与<code>Element</code>实例间的绑定关系一经确定，在整个生命周期内不会再变了 (<strong>Element 对应的 Widget 可能会变，但对应的 State 永远不会变</strong>)，期间，<code>Element</code>可以在树上移动，但上述关系不会变 (即「Stateful Element」是带着状态移动的)。</p>
+</blockquote>
+</li>
+<li><p>StatefulElement 在挂载过程中接着会调用<code>State.initState</code>，子类可以重写该方法执行相关的初始化操作 (此时可以引用<code>context</code>、<code>widget</code>属性)；</p>
+</li>
+<li><p>同样在挂载过程中会调用<code>State.didChangeDependencies</code>，该方法在 State 依赖的对象 (如：「Inherited Widget」) 状态发生变化时也会被调用，<em>子类很少需要重写该方法，</em>除非有非常耗时不宜在<code>build</code>中进行的操作，因为在依赖有变化时<code>build</code>方法也会被调用；</p>
+</li>
+<li><p>此时，State 初始化已完成，其<code>build</code>方法此后可能会被多次调用，在状态变化时 State 可通过<code>setState</code>方法来触发其子树的重建；</p>
+</li>
+<li><p>此时，「element tree」、「renderobject tree」、「layer tree」已构建完成，完整的 UI 应该已呈现出来。此后因为变化，「element tree」中「parent element」可能会对树上该位置的节点用新配置 (Widget) 进行重建，当新老配置 (oldWidget、newWidget)具有相同的「runtimeType」&amp;&amp;「key」时，framework 会用 newWidget 替换 oldWidget，并触发一系列的更新操作 (在子树上递归进行)。同时，<code>State.didUpdateWidget</code>方法被调用，子类重写该方法去响应 Widget 的变化；</p>
+<blockquote>
+<p>上述 3 棵树以及更新流程在后续文章中会有详细介绍</p>
+</blockquote>
+</li>
+<li><p>在 UI 更新过程中，任何节点都有被移除的可能，State 也会随之移除，(如上一步中「runtimeType」||「key」不相等时)。此时会调用<code>State.deactivate</code>方法，由于被移除的节点可能会被重新插入树中某个新的位置上，故子类重写该方法以清理与节点位置相关的信息 (如：该 State 对其他 element 的引用)、同时，不应在该方法中做资源清理；</p>
+<blockquote>
+<p>重新插入操作必须在当前帧动画结束之前</p>
+</blockquote>
+</li>
+<li><p>当节点被重新插入树中时，<code>State.build</code>方法被再次调用；</p>
+</li>
+<li><p>对于在当前帧动画结束时尚未被重新插入的节点，<code>State.dispose</code>方法被执行，State 生命周期随之结束，此后再调用<code>State.setState</code>方法将报错。子类重写该方法以释放任何占用的资源。</p>
+</li>
+</ul>
+<p><img src="/img/State_Method.png" alt=""><br>至此，State 中的核心方法基本都已在上述过程中介绍了，下面重点看一下<code>setState</code>方法：<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> setState(VoidCallback fn) &#123;</span><br><span class="line">  <span class="keyword">assert</span>(fn != <span class="keyword">null</span>);</span><br><span class="line">  <span class="keyword">assert</span>(() &#123;</span><br><span class="line">    <span class="keyword">if</span> (_debugLifecycleState == _StateLifecycle.defunct) &#123;</span><br><span class="line">      <span class="keyword">throw</span> FlutterError.fromParts(&lt;DiagnosticsNode&gt;[...]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (_debugLifecycleState == _StateLifecycle.created &amp;&amp; !mounted) &#123;</span><br><span class="line">      <span class="keyword">throw</span> FlutterError.fromParts(&lt;DiagnosticsNode&gt;[...]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">  &#125;());</span><br><span class="line">  <span class="keyword">final</span> <span class="keyword">dynamic</span> result = fn() <span class="keyword">as</span> <span class="keyword">dynamic</span>;</span><br><span class="line">  <span class="keyword">assert</span>(() &#123;</span><br><span class="line">    <span class="keyword">if</span> (result <span class="keyword">is</span> Future) &#123;</span><br><span class="line">      <span class="keyword">throw</span> FlutterError.fromParts(&lt;DiagnosticsNode&gt;[...]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">  &#125;());</span><br><span class="line">  _element.markNeedsBuild();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>从上述源码可以看到，关于<code>setState</code>方法有几点值得关注：</p>
+<ul>
+<li><p>在<code>State.dispose</code>后不能调用<code>setState</code> (第 4 行)；</p>
+</li>
+<li><p>在 State 的构造方法中不能调用<code>setState</code> (第 7 行)；</p>
+</li>
+<li><p><code>setState</code>方法的回调函数 (<code>fn</code>) 不能是异步的 (返回值为<code>Future</code>)，原因很简单，因为从流程设计上 framework 需要根据回调函数产生的新状态去刷新 UI (第 14 行)；</p>
+</li>
+<li><p>通过<code>setState</code>方法之所以能更新 UI，是在其内部调用<code>_element.markNeedsBuild()</code>实现的 (具体过程在介绍 Element 时再详细分析)。</p>
+</li>
+</ul>
+<p>关于 State 最后再强调 2 点：</p>
+<ul>
+<li>若<code>State.build</code>方法依赖了自身状态会变化的对象，如：<code>ChangeNotifier</code>、<code>Stream</code>或其他可以被订阅的对象，需要确保在<code>initState</code>、<code>didUpdateWidget</code>、<code>dispose</code>等 3 方法间有正确的订阅 (subscribe) 与取消订阅 (unsubscribe) 的操作：<ul>
+<li>在<code>initState</code>中执行 subscribe；</li>
+<li>如果关联的「Stateful Widget」与订阅有关，在<code>didUpdateWidget</code>中先取消旧的订阅，再执行新的订阅；</li>
+<li>在<code>dispose</code>中执行 unsubscribe。</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>在<code>State.initState</code>方法中不能调用<code>BuildContext.dependOnInheritedWidgetOfExactType</code>，但<code>State.didChangeDependencies</code>会随之执行，在该方法中可以调用。</li>
+</ul>
+<h3 id="ParentDataWidget"><a href="#ParentDataWidget" class="headerlink" title="ParentDataWidget"></a>ParentDataWidget</h3><p><code>ParentDataWidget</code>以及下面要介绍的<code>InheritedElement</code>都继承自<code>ProxyWidget</code>，由于<code>ProxyWidget</code>作为抽象基类本身没有任何功能，故下面直接介绍<code>ParentDataWidget</code>、<code>InheritedElement</code>。<br><img src="/img/ParentDataWidget_Comment.png" alt=""><br><code>ParentDataWidget</code>作为 Proxy 型 Widget，其功能主要是为其他 Widget 提供<code>ParentData</code>信息。虽然其 child widget 不一定是 RenderObejctWidget 类型，但其提供的<code>ParentData</code>信息最终都会落地到 RenderObejctWidget 类型子孙 Widget 上。</p>
+<blockquote>
+<p>ParentData 是『parent renderobject』在 layout『child renderobject』时使用的辅助定位信息，详细信息会在介绍 RenderObject 时介绍。</p>
+</blockquote>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> attachRenderObject(<span class="keyword">dynamic</span> newSlot) &#123;</span><br><span class="line">  <span class="keyword">assert</span>(_ancestorRenderObjectElement == <span class="keyword">null</span>);</span><br><span class="line">  _slot = newSlot;</span><br><span class="line">  _ancestorRenderObjectElement = _findAncestorRenderObjectElement();</span><br><span class="line">  _ancestorRenderObjectElement?.insertChildRenderObject(renderObject, newSlot);</span><br><span class="line">  <span class="keyword">final</span> ParentDataElement&lt;RenderObjectWidget&gt; parentDataElement = _findAncestorParentDataElement();</span><br><span class="line">  <span class="keyword">if</span> (parentDataElement != <span class="keyword">null</span>)</span><br><span class="line">    _updateParentData(parentDataElement.widget);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">ParentDataElement&lt;RenderObjectWidget&gt; _findAncestorParentDataElement() &#123;</span><br><span class="line">  <span class="built_in">Element</span> ancestor = _parent;</span><br><span class="line">  <span class="keyword">while</span> (ancestor != <span class="keyword">null</span> &amp;&amp; ancestor <span class="keyword">is</span>! RenderObjectElement) &#123;</span><br><span class="line">    <span class="keyword">if</span> (ancestor <span class="keyword">is</span> ParentDataElement&lt;RenderObjectWidget&gt;)</span><br><span class="line">      <span class="keyword">return</span> ancestor;</span><br><span class="line">    ancestor = ancestor._parent;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> _updateParentData(ParentDataWidget&lt;RenderObjectWidget&gt; parentData) &#123;</span><br><span class="line">  parentData.applyParentData(renderObject);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面这段代码来自<code>RenderObjectElement</code>，可以看到在其<code>attachRenderObject</code>方法第 6 行从祖先节点找<code>ParentDataElement</code>，如果找到就用其 Widget(ParentDataWidget) 中的 parentData 信息去设置 Render Obejct。在查找过程中如查到<code>RenderObjectElement</code> (第 13 行)，说明当前 RenderObject 没有 Parent Data 信息。<br>最终会调用到<code>ParentDataWidget.applyParentData(RenderObject renderObject)</code>，子类需要重写该方法，以便设置对应<code>RenderObject.parentData</code>。</p>
+<div style="width: 400px; margin: auto"><img src="/img/ParentDataWidget_Method.png" alt=""></div>
+
+<p>来看个例子，通常配置<code>Stack</code>使用的<code>Positioned</code>(继承自ParentDataWidget)：<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> applyParentData(RenderObject renderObject) &#123;</span><br><span class="line">  <span class="keyword">assert</span>(renderObject.parentData <span class="keyword">is</span> StackParentData);</span><br><span class="line">  <span class="keyword">final</span> StackParentData parentData = renderObject.parentData;</span><br><span class="line">  <span class="built_in">bool</span> needsLayout = <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (parentData.left != left) &#123;</span><br><span class="line">    parentData.left = left;</span><br><span class="line">    needsLayout = <span class="keyword">true</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  ...</span><br><span class="line">  <span class="keyword">if</span> (parentData.width != width) &#123;</span><br><span class="line">    parentData.width = width;</span><br><span class="line">    needsLayout = <span class="keyword">true</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  ...</span><br><span class="line">  <span class="keyword">if</span> (needsLayout) &#123;</span><br><span class="line">    <span class="keyword">final</span> AbstractNode targetParent = renderObject.parent;</span><br><span class="line">    <span class="keyword">if</span> (targetParent <span class="keyword">is</span> RenderObject)</span><br><span class="line">      targetParent.markNeedsLayout();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可以看到，<code>Positioned</code>在必要时将自己的属性赋值给了对应的<code>RenderObject.parentData</code> (此处是<code>StackParentData</code>)，并对「parent render object」调用<code>markNeedsLayout</code>(第 19 行)，以便重新 layout，毕竟修改了布局相关的信息。</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">ParentDataWidget</span>&lt;<span class="title">T</span> <span class="keyword">extends</span> <span class="title">RenderObjectWidget</span>&gt; <span class="keyword">extends</span> <span class="title">ProxyWidget</span></span></span><br></pre></td></tr></table></figure>
+<p>如上所示，<code>ParentDataWidget</code>在定义上使用了泛型<code>&lt;T extends RenderObjectWidget&gt;</code>，其背后的含义是：<br><em>从当前<code>ParentDataWidget</code>节点向上追溯形成的祖先节点链(『parent widget chain』)上，在 2 个<code>ParentDataWidget</code>类型的节点形成的链上至少要有一个『RenderObject Widget』类型的节点。因为一个『RenderObject Widget』不能接受来自 2 个及以上『ParentData Widget』的信息。</em></p>
+<div style="width: 400px; margin: auto"><img src="/img/ParentDataWidget_Chain.png" alt=""></div>
+
+<h3 id="InheritedWidget"><a href="#InheritedWidget" class="headerlink" title="InheritedWidget"></a>InheritedWidget</h3><p><img src="/img/InheritedWidget_Comment.jpg" alt=""><br>InheritedWidget 用于在树上向下传递数据。<br>通过<code>BuildContext.dependOnInheritedWidgetOfExactType</code>可以获取最近的「Inherited Widget」，需要注意的是通过这种方式获取「Inherited Widget」时，当「Inherited Widget」状态有变化时，会导致该引用方 rebuild。</p>
+<blockquote>
+<p>具体原理在介绍 Element 时会详细分析。</p>
+</blockquote>
+<p>通常，为了使用方便会「Inherited Widget」会提供静态方法<code>of</code>，在该方法中调用<code>BuildContext.dependOnInheritedWidgetOfExactType</code>。<code>of</code>方法可以直接返回「Inherited Widget」，也可以是具体的数据。</p>
+<p>有时，「Inherited Widget」是作为另一个类的实现细节而存在的，其本身是私有的(外部不可见)，此时<code>of</code>方法就会放到对外公开的类上。最典型的例子就是<code>Theme</code>，其本身是<code>StatelessWidget</code>类型，但其内部创建了一个「Inherited Widget」：<code>_InheritedTheme</code>，<code>of</code>方法就定义在上<code>Theme</code>上：<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> ThemeData of(BuildContext context, &#123; <span class="built_in">bool</span> shadowThemeOnly = <span class="keyword">false</span> &#125;) &#123;</span><br><span class="line">  <span class="keyword">final</span> _InheritedTheme inheritedTheme = context.dependOnInheritedWidgetOfExactType&lt;_InheritedTheme&gt;();</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> ThemeData.localize(theme, theme.typography.geometryThemeFor(category));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>该<code>of</code>方法返回的是<code>ThemeData</code>类型的具体数据，并在其内部首先调用了<code>BuildContext.dependOnInheritedWidgetOfExactType</code>。</p>
+<p>我们经常使用的「Inherited Widget」莫过于<code>MediaQuery</code>，同样提供了<code>of</code>方法：<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> MediaQueryData of(BuildContext context, &#123; <span class="built_in">bool</span> nullOk = <span class="keyword">false</span> &#125;) &#123;</span><br><span class="line">  <span class="keyword">final</span> MediaQuery query = context.dependOnInheritedWidgetOfExactType&lt;MediaQuery&gt;();</span><br><span class="line">  <span class="keyword">if</span> (query != <span class="keyword">null</span>)</span><br><span class="line">    <span class="keyword">return</span> query.data;</span><br><span class="line">  <span class="keyword">if</span> (nullOk)</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<div style="width: 400px; margin: auto"><img src="/img/InheritedWidget_Method.png" alt=""></div>
+
+<ul>
+<li><p><em>InheritedElement createElement()</em> ——「Inherited Widget」对应的 Element 为<code>InheritedElement</code>，一般情况下<code>InheritedElement</code>子类不用重写该方法；</p>
+</li>
+<li><p><em>bool updateShouldNotify(covariant InheritedWidget oldWidget)</em> —— 在「Inherited Widget」rebuilt 时判断是否需要 rebuilt 那些依赖它的 Widget；</p>
+</li>
+</ul>
+<p>如下是<code>MediaQuery.updateShouldNotify</code>的实现，在新老<code>Widget.data</code> 不相等时才 rebuilt 那依赖的 Widget。<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">bool</span> updateShouldNotify(MediaQuery oldWidget) =&gt; data != oldWidget.data;</span><br></pre></td></tr></table></figure></p>
+<h3 id="RenderObjectWidget"><a href="#RenderObjectWidget" class="headerlink" title="RenderObjectWidget"></a>RenderObjectWidget</h3><p>真正与渲染相关的 Widget，属于最核心的类型，一切其他类型的 Widget 要渲染到屏幕上，最终都要回归到该类型的 Widget 上。</p>
+<div style="width: 400px; margin: auto"><img src="/img/RenderObjectWidget_Method.png" alt=""></div>
+
+<ul>
+<li><p><em>RenderObjectElement createElement()</em> ——「RenderObject Widget」对应的 Element 为<code>RenderObjectElement</code>，由于<code>RenderObjectElement</code>也是抽象类，故子类需要重写该方法；</p>
+</li>
+<li><p><em>RenderObject createRenderObject(BuildContext context)</em> —— 核心方法，创建 Render Widget 对应的 Render Object，同样子类需要重写该方法。该方法在对应的 Element 被挂载到树上时调用(<code>Element.mount</code>)，即在 Element 挂载过程中同步构建了「Render Tree」(详细过程后续文章会详细分析)；</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@override</span></span><br><span class="line">RenderFlex createRenderObject(BuildContext context) &#123;</span><br><span class="line">  <span class="keyword">return</span> RenderFlex(</span><br><span class="line">    direction: direction,</span><br><span class="line">    mainAxisAlignment: mainAxisAlignment,</span><br><span class="line">    mainAxisSize: mainAxisSize,</span><br><span class="line">    crossAxisAlignment: crossAxisAlignment,</span><br><span class="line">    textDirection: getEffectiveTextDirection(context),</span><br><span class="line">    verticalDirection: verticalDirection,</span><br><span class="line">    textBaseline: textBaseline,</span><br><span class="line">  );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>  上面是<code>Flex.createRenderObject</code>的源码，真实感受一下 (还是代码更有感觉)。可以看到，用<code>Flex</code>的信息(配置)初始化了<code>RenderFlex</code>。</p>
+<blockquote>
+<p><code>Flex</code>是<code>Row</code>、<code>Column</code>的基类，<code>RenderFlex</code>继承自<code>RenderBox</code>，后者继续自<code>RenderObject</code>。</p>
+</blockquote>
+</li>
+<li><p><em>void updateRenderObject(BuildContext context, covariant RenderObject renderObject)</em> —— 核心方法，在 Widget 更新后，修改对应的 Render Object。该方法在首次 build 以及需要更新 Widget 时都会调用；</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@override</span></span><br><span class="line"><span class="keyword">void</span> updateRenderObject(BuildContext context, covariant RenderFlex renderObject) &#123;</span><br><span class="line">  renderObject</span><br><span class="line">    ..direction = direction</span><br><span class="line">    ..mainAxisAlignment = mainAxisAlignment</span><br><span class="line">    ..mainAxisSize = mainAxisSize</span><br><span class="line">    ..crossAxisAlignment = crossAxisAlignment</span><br><span class="line">    ..textDirection = getEffectiveTextDirection(context)</span><br><span class="line">    ..verticalDirection = verticalDirection</span><br><span class="line">    ..textBaseline = textBaseline;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>  <code>Flex.updateRenderObject</code>的源码也很简单，与<code>Flex.createRenderObject</code>几乎一一对应，用当前<code>Flex</code>的信息修改<code>renderObject</code>。</p>
+</li>
+<li><p><em>void didUnmountRenderObject(covariant RenderObject renderObject)</em> —— 对应的「Render Object」从「Render Tree」上移除时调用该方法。</p>
+</li>
+</ul>
+<blockquote>
+<p><code>RenderObjectWidget</code>的几个子类：<code>LeafRenderObjectWidget</code>、<code>SingleChildRenderObjectWidget</code>、<code>MultiChildRenderObjectWidget</code>只是重写了<code>createElement</code>方法以便返回各自对应的具体的 Element 类实例。</p>
+</blockquote>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><hr>
+<p>至此，重要的基础型 Widget 基本介绍完了，总结一下：</p>
+<ul>
+<li><p>Widget 本质上是 UI 的配置信息 (附加部分业务逻辑)，并不存在一颗真实的「Widget Tree」(与「Element Tree」、「RenderObject Tree」以及「Layer Tree」相比)；</p>
+</li>
+<li><p>Widget 从功能上可以分为 3 类：「Component Widget」、「Proxy Widget」以及「Renderer Widget」；</p>
+</li>
+<li><p>Widget 与 Element 一一对应，Widget 提供创建 Element 的方法 (<code>createElement</code>，本质上是一个工厂方法)；</p>
+</li>
+<li><p>只有「Renderer Widget」才会参与最终的 UI 生成过程(Layout、Paint)，只有该类型的 Widget 才有与之对应的「Render Object」，同样由其提供创建方法(<code>createRenderObject</code>)。</p>
+</li>
+</ul>
+<p>下篇再见！</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/flutter/" rel="tag"># flutter</a>
+          
+            <a href="/tags/移动开发/" rel="tag"># 移动开发</a>
+          
+            <a href="/tags/跨平台/" rel="tag"># 跨平台</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/12/04/InterfaceBasedProgramming/" rel="next" title="论面向接口编程">
+                <i class="fa fa-chevron-left"></i> 论面向接口编程
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">44</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">21</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Widget"><span class="nav-number">2.</span> <span class="nav-text">Widget</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#分类"><span class="nav-number">2.1.</span> <span class="nav-text">分类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#核心方法源码分析"><span class="nav-number">2.2.</span> <span class="nav-text">核心方法源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Widget-1"><span class="nav-number">2.2.1.</span> <span class="nav-text">Widget</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#StatelessWidget"><span class="nav-number">2.2.2.</span> <span class="nav-text">StatelessWidget</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#StatefulWidget"><span class="nav-number">2.2.3.</span> <span class="nav-text">StatefulWidget</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#State"><span class="nav-number">2.2.4.</span> <span class="nav-text">State</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ParentDataWidget"><span class="nav-number">2.2.5.</span> <span class="nav-text">ParentDataWidget</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#InheritedWidget"><span class="nav-number">2.2.6.</span> <span class="nav-text">InheritedWidget</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RenderObjectWidget"><span class="nav-number">2.2.7.</span> <span class="nav-text">RenderObjectWidget</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#小结"><span class="nav-number">3.</span> <span class="nav-text">小结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
