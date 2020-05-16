@@ -18,8 +18,8 @@ Flutter 作为一种新兴跨平台解决方案，自 2017 年 Google 在 I/O �
 
 本系列文章将深入 Flutter Framework 内部逐步去分析其核心概念和流程，主要包括：
 『 深入浅出 Flutter Framework 之 Widget 』
-『 深入浅出 Flutter Framework 之 BuildOwner 』
-『 深入浅出 Flutter Framework 之 Element 』
+[『 深入浅出 Flutter Framework 之 BuildOwner 』](https://zxfcumtcs.github.io/2020/05/16/deepinto-flutter-buildowner/)
+[『 深入浅出 Flutter Framework 之 Element 』](https://zxfcumtcs.github.io/2020/05/17/deepinto-flutter-element/)
 『 深入浅出 Flutter Framework 之 PipelineOwner 』
 『 深入浅出 Flutter Framework 之 RenderObejct 』
 『 深入浅出 Flutter Framework 之 Layer 』
