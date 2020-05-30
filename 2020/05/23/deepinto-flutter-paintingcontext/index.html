@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="flutter,移动开发,跨平台,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本文是『 深入浅出 Flutter Framework 』系列文章的第五篇，主要目的是为后面介绍 RenderObject 作准备。文章对 PaintingContext 进行了较详细的分析，主要包括在 Rendering Pipeline 中 PaintingContext 是如何配合 RenderObject 进行绘制的，同时对一些基础概念进行了简要的介绍(如：Canvas、Picture、P">
+<meta name="keywords" content="flutter,移动开发,跨平台">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入浅出 Flutter Framework 之 PaintingContext">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2020/05/23/deepinto-flutter-paintingcontext/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本文是『 深入浅出 Flutter Framework 』系列文章的第五篇，主要目的是为后面介绍 RenderObject 作准备。文章对 PaintingContext 进行了较详细的分析，主要包括在 Rendering Pipeline 中 PaintingContext 是如何配合 RenderObject 进行绘制的，同时对一些基础概念进行了简要的介绍(如：Canvas、Picture、P">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/PaintContextClassDiagram.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/drawcircle.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/PaintingPipeline.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/PaintContext_needCompositing.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/PaintContext_no_needCompositing.png">
+<meta property="og:updated_time" content="2020-05-30T13:23:45.276Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入浅出 Flutter Framework 之 PaintingContext">
+<meta name="twitter:description" content="本文是『 深入浅出 Flutter Framework 』系列文章的第五篇，主要目的是为后面介绍 RenderObject 作准备。文章对 PaintingContext 进行了较详细的分析，主要包括在 Rendering Pipeline 中 PaintingContext 是如何配合 RenderObject 进行绘制的，同时对一些基础概念进行了简要的介绍(如：Canvas、Picture、P">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/PaintContextClassDiagram.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2020/05/23/deepinto-flutter-paintingcontext/">
+
+
+
+
+
+  <title>深入浅出 Flutter Framework 之 PaintingContext | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2020/05/23/deepinto-flutter-paintingcontext/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深入浅出 Flutter Framework 之 PaintingContext</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-05-23T21:06:13+08:00">
+                2020-05-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2020/05/23/deepinto-flutter-paintingcontext/" class="leancloud_visitors" data-flag-title="深入浅出 Flutter Framework 之 PaintingContext">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  2,623
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  11
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文是『 深入浅出 Flutter Framework 』系列文章的第五篇，主要目的是为后面介绍 RenderObject 作准备。<br>文章对 PaintingContext 进行了较详细的分析，主要包括在 Rendering Pipeline 中 PaintingContext 是如何配合 RenderObject 进行绘制的，同时对一些基础概念进行了简要的介绍(如：Canvas、Picture、PictureRecorder、SceneBuilder 以及 Scene 等)。</p>
+<a id="more"></a>
+<p>©原创文章，转载请注明出处！</p>
+<p>本系列文章将深入 Flutter Framework 内部逐步去分析其核心概念和流程，主要包括：<br><a href="https://zxfcumtcs.github.io/2020/05/01/deepinto-flutter-widget/">『 深入浅出 Flutter Framework 之 Widget 』</a><br><a href="https://zxfcumtcs.github.io/2020/05/16/deepinto-flutter-buildowner/">『 深入浅出 Flutter Framework 之 BuildOwner 』</a><br><a href="https://zxfcumtcs.github.io/2020/05/17/deepinto-flutter-element/">『 深入浅出 Flutter Framework 之 Element 』</a><br>『 深入浅出 Flutter Framework 之 PaintingContext 』<br>『 深入浅出 Flutter Framework 之 Layer 』<br>『 深入浅出 Flutter Framework 之 PipelineOwner 』<br>『 深入浅出 Flutter Framework 之 RenderObejct 』<br>『 深入浅出 Flutter Framework 之 Binding 』<br>『 深入浅出 Flutter Framework 之 Rendering Pipeline 』<br>『 深入浅出 Flutter Framework 之 自定义 Widget 』</p>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
+<p>『 Widget 』—『 Element 』—『 RenderObject 』可称之为 Flutter Framework『三剑客』，其中 <a href="https://zxfcumtcs.github.io/2020/05/01/deepinto-flutter-widget/">Widget</a>、<a href="https://zxfcumtcs.github.io/2020/05/17/deepinto-flutter-element/">Element</a> 都已介绍过，而 RenderObject 在这三者中属于最核心、最复杂的，涉及 Layout、Paint 等核心流程。<br>为了更好、更流畅地去理解 RenderObject，在正式介绍之前，需要做些准备工作，本文介绍的 PaintingContext 在 RenderObject 的绘制流程上扮演了重要角色。</p>
+<p>『Painting Context』，其名称已说明了一些事情：绘制上下文，最简单的理解就是为绘制操作 (Paint) 提供了场所或者说环境 (上下文)。<br>其主要职责包括：</p>
+<ul>
+<li>在绘制流程中按需引入新的 Layer(主要依据 Repaint Boundary、need compositing)；</li>
+<li>维护「Layer Tree」，每个 PaintingContext 实例都会生成一棵 Layer Sub Tree；</li>
+<li>管理 Canvas，对底层细节进行抽象、封装。</li>
+</ul>
+<p><img src="/img/PaintContextClassDiagram.png" alt=""><br>如上图：</p>
+<ul>
+<li><code>PaintingContext</code>继承自<code>ClipContext</code>，<code>ClipContext</code>是抽象类，主要提供了几个与裁剪 (Clip) 有关的辅助方法；</li>
+<li><code>PictureLayer _currentLayer</code>、<code>ui.PictureRecorder _recorder</code>以及<code>Canvas _canvas</code>用于具体的绘制操作；</li>
+<li><code>ContainerLayer _containerLayer</code>，「Layer Subtree」的根节点，由<code>PaintingContext</code>构造函数传入，一般传入的是<code>RenderObject._layer</code>。<blockquote>
+<p>RenderObject 与 Layer 是多对一的关系，即多个 RenderObject 绘制在一个 Layer 上。</p>
+</blockquote>
+</li>
+</ul>
+<h1 id="基础概念"><a href="#基础概念" class="headerlink" title="基础概念"></a>基础概念</h1><hr>
+<p>在上一小节中提及一些基础的概念，本小节对它们逐一进行简要介绍。</p>
+<h2 id="Canvas"><a href="#Canvas" class="headerlink" title="Canvas"></a>Canvas</h2><p><code>Canvas</code>是 Engine(C++) 层到 Framework(Dart) 层的桥接，真正的功能在 Engine 层实现。</p>
+<blockquote>
+<p>下文将要出现的<code>Picture</code>、<code>PictureRecorder</code>、<code>SceneBuilder</code>以及<code>SceneBuilder</code>都属于Engine(C++) 层到 Framework(Dart) 层的桥接。</p>
+</blockquote>
+<p>Canvas 向 Framework 层曝露了与绘制相关的基础接口，如：<code>draw*</code>、<code>clip*</code>、<code>transform</code>以及<code>scale</code>等，RenderObject 正是通过这些基础接口完成绘制任务的。</p>
+<blockquote>
+<p>通过这套接口进行的所有操作都将被<code>PictureRecorder</code>记录下来。</p>
+</blockquote>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Canvas(PictureRecorder recorder, [ Rect cullRect ])&#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，在<code>Canvas</code>初始化时需要指定<code>PictureRecorder</code>，用于记录所有的「graphical operations」。</p>
+<p>除了正常的绘制操作(<code>draw*</code>)，Canvas 还支持矩阵变换(transformation matrix)、区域裁剪(clip region)，它们将作用于其后在该 Canvas 上进行的所有绘制操作。<br>下面列举部分方法，以便有更直观的感受：<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> scale(<span class="built_in">double</span> sx, [<span class="built_in">double</span> sy]);</span><br><span class="line"><span class="keyword">void</span> rotate(<span class="built_in">double</span> radians) native;</span><br><span class="line"><span class="keyword">void</span> transform(Float64List matrix4);</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> clipRect(Rect rect, &#123; ClipOp clipOp = ClipOp.intersect, <span class="built_in">bool</span> doAntiAlias = <span class="keyword">true</span> &#125;);</span><br><span class="line"><span class="keyword">void</span> clipPath(Path path, &#123;<span class="built_in">bool</span> doAntiAlias = <span class="keyword">true</span>&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> drawColor(Color color, BlendMode blendMode);</span><br><span class="line"><span class="keyword">void</span> drawLine(Offset p1, Offset p2, Paint paint);</span><br><span class="line"><span class="keyword">void</span> drawRect(Rect rect, Paint paint);</span><br><span class="line"><span class="keyword">void</span> drawCircle(Offset c, <span class="built_in">double</span> radius, Paint paint);</span><br><span class="line"><span class="keyword">void</span> drawImage(Image image, Offset p, Paint paint);</span><br><span class="line"><span class="keyword">void</span> drawParagraph(Paragraph paragraph, Offset offset);</span><br></pre></td></tr></table></figure></p>
+<h2 id="Picture"><a href="#Picture" class="headerlink" title="Picture"></a>Picture</h2><p>其本质是一系列「graphical operations」的集合，对 Framework 层透明。<br><code>Future&lt;Image&gt; toImage(int width, int height)</code>，通过<code>toImage</code>方法可以将其记录的所有操作经光栅化后生成<code>Image</code>对象。</p>
+<h2 id="PictureRecorder"><a href="#PictureRecorder" class="headerlink" title="PictureRecorder"></a>PictureRecorder</h2><p>其主要作用是记录在<code>Canvas</code>上执行的「graphical operations」，通过<code>Picture#endRecording</code>最终生成<code>Picture</code>。</p>
+<h2 id="Scene"><a href="#Scene" class="headerlink" title="Scene"></a>Scene</h2><p>同样对 Framework 层透明，是一系列 Picture、Texture 合成的结果。</p>
+<blockquote>
+<p>An opaque object representing a composited scene.</p>
+</blockquote>
+<p>UI 帧刷新时，在 Rendering Pipeline 中 Flutter UI 经 build、layout、paint 等步骤后最终生成 Scene。<br>其后通过<code>window.render</code>将该 Scene 送入 Engine 层，最终经 GPU 光栅化后显示在屏幕上。</p>
+<h2 id="SceneBuilder"><a href="#SceneBuilder" class="headerlink" title="SceneBuilder"></a>SceneBuilder</h2><p>用于将多个图层(Layer)、Picture、Texture 合成为 Scene。<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> addPicture(Offset offset, Picture picture, &#123; <span class="built_in">bool</span> isComplexHint = <span class="keyword">false</span>, <span class="built_in">bool</span> willChangeHint = <span class="keyword">false</span> &#125;);</span><br><span class="line"><span class="keyword">void</span> addTexture(<span class="built_in">int</span> textureId, &#123; Offset offset = Offset.zero, <span class="built_in">double</span> width = <span class="number">0.0</span>, <span class="built_in">double</span> height = <span class="number">0.0</span> , <span class="built_in">bool</span> freeze = <span class="keyword">false</span>&#125;);</span><br></pre></td></tr></table></figure></p>
+<p>通过<code>addPicture</code>、<code>addTexture</code>可以引入要合成的 Picture、Texture。</p>
+<p>同时，SceneBuilder 还会维护一个图形操作 stack：<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">pushTransform</span><br><span class="line">pushOffset</span><br><span class="line">pushClipRect</span><br><span class="line">...</span><br><span class="line">pop</span><br></pre></td></tr></table></figure></p>
+<p>这些操作主要用于<code>OffsetLayer</code>、<code>ClipRectLayer</code>等。</p>
+<p>是不是觉得很抽象，晕乎乎的！<br>下面通过一个小例子将它们串起来，真实感受一下。</p>
+<h2 id="小例子"><a href="#小例子" class="headerlink" title="小例子"></a>小例子</h2><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> main() &#123;</span><br><span class="line">  PictureRecorder recorder = PictureRecorder();</span><br><span class="line">  <span class="comment">// 初始化 Canvas 时，传入 PictureRecorder 实例</span></span><br><span class="line">  <span class="comment">// 用于记录发生在该 canvas 上的所有操作</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  Canvas canvas = Canvas(recorder);</span><br><span class="line"></span><br><span class="line">  Paint circlePaint= Paint();</span><br><span class="line">  circlePaint.color = Colors.blueAccent;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 调用 Canvas 的绘制接口，画一个圆形</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  canvas.drawCircle(Offset(<span class="number">400</span>, <span class="number">400</span>), <span class="number">300</span>, circlePaint);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 绘制结束，生成Picture</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  Picture picture = recorder.endRecording();</span><br><span class="line"></span><br><span class="line">  SceneBuilder sceneBuilder = SceneBuilder();</span><br><span class="line">  sceneBuilder.pushOffset(<span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">  <span class="comment">// 将 picture 送入 SceneBuilder</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  sceneBuilder.addPicture(Offset(<span class="number">0</span>, <span class="number">0</span>), picture);</span><br><span class="line">  sceneBuilder.pop();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 生成 Scene</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  Scene scene = sceneBuilder.build();</span><br><span class="line"></span><br><span class="line">  <span class="built_in">window</span>.onDrawFrame = () &#123;</span><br><span class="line">    <span class="comment">// 将 scene 送入 Engine 层进行渲染显示</span></span><br><span class="line">    <span class="comment">//</span></span><br><span class="line">    <span class="built_in">window</span>.render(scene);</span><br><span class="line">  &#125;;</span><br><span class="line">  <span class="built_in">window</span>.scheduleFrame();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="/img/drawcircle.png" alt=""></p>
+<p>通过直接操作 Canvas，我们在屏幕上画了一个⭕️。</p>
+<blockquote>
+<p>仅仅是为了演示，在日常开发中并不需要直接操作这些基础 API。</p>
+</blockquote>
+<h1 id="绘制流程"><a href="#绘制流程" class="headerlink" title="绘制流程"></a>绘制流程</h1><hr>
+<blockquote>
+<p>本小节介绍的绘制流程，仅局限于 PaintingContext 周围，更完整的流程将在介绍 RenderObject 时进行分析。</p>
+</blockquote>
+<p>PaintingContext 与 RenderObject 是什么关系？<br>从『类间关系』角度看，它们之间是<strong>依赖关系</strong>，即 RenderObject 依赖于 PaintingContext —— PaintingContext 作为参数出现在 RenderObject 的绘制方法中。<br>也就是说，PaintingContext 是一次性的，每次执行 Paint 时都会生成对应的 PaintingContext，当绘制完成时其生命周期也随之结束。<br>PaintingContext 在 RenderObject 的绘制过程中的作用如下图所示：<br><img src="/img/PaintingPipeline.png" alt=""></p>
+<ul>
+<li>在 UI Frame 刷新时，通过<code>RendererBinding#drawFrame</code>-&gt;<code>PipelineOwner#flushPaint</code>触发<code>RenderObject#paint</code>；</li>
+<li><code>RenderObject#paint</code>调用<code>PaintingContext.canvas</code>提供的图形操作接口(<code>draw*</code>、<code>clip*</code>、<code>transform</code>等)完成绘制任务；</li>
+<li>上述绘制操作被 PictureRecorder 记录下来，在绘制结束时生成 picture，并被添加到 PictureLayer (_currentLayer)上；</li>
+<li>随后，RenderObject 通过<code>PaintingContext#paintChild</code>递归地绘制子节点(child renderobject，如有)；</li>
+<li>在绘制子节点时，根据子节点是否是「Repaint Boundary」而采用不同的策略：<ul>
+<li>是「Repaint Boundary」— 为子节点生成新的 PaintingContext，从而子节点可以独立进行绘制，绘制结果就是一颗「Layer subTree」，最后将该子树 append 到父节点生成的「Layer Tree」上；</li>
+<li>不是「Repaint Boundary」— 子节点直接绘制在当前<code>PaintingContext.canvas</code>上，即 RenderObject 与 Layer 是多对一的关系。</li>
+</ul>
+</li>
+<li>整个绘制流程结束时就得到了一棵「Layer Tree」，其后通过 SceneBuilder 生成 Scene，再经<code>window.render</code>送入 Engine 层，最终 GPU 对其进行光栅化处理，显示在屏幕上。<blockquote>
+<p>Repaint Boundary 的概念将在介绍 RenderObject 时重点分析。</p>
+</blockquote>
+</li>
+</ul>
+<p>上述流程中，起到关键作用的几个方法：<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">Canvas <span class="keyword">get</span> canvas &#123;</span><br><span class="line">  <span class="keyword">if</span> (_canvas == <span class="keyword">null</span>)</span><br><span class="line">    _startRecording();</span><br><span class="line">  <span class="keyword">return</span> _canvas;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> _startRecording() &#123;</span><br><span class="line">  <span class="comment">// 在当前 Canvas 上进行的图形操作生成的 Picture 将添加到该 layer 上</span></span><br><span class="line">  <span class="comment">// </span></span><br><span class="line">  _currentLayer = PictureLayer(estimatedBounds);</span><br><span class="line">  _recorder = ui.PictureRecorder();</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 初始化 Canvas，传入_recorder</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  _canvas = Canvas(_recorder);</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 将_currentLayer插入以_containerLayer为根节点的子树上</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  _containerLayer.append(_currentLayer);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> stopRecordingIfNeeded() &#123;</span><br><span class="line">  <span class="comment">// 在停止记录时，将结果 picture 加到 _currentLayer 上</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  _currentLayer.picture = _recorder.endRecording();</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 注意！</span></span><br><span class="line">  <span class="comment">// 此时，_currentLayer、_recorder、_canvas 被释放，</span></span><br><span class="line">  <span class="comment">// 此后，若还要通过当前 PaintingContext 进行绘制，则会生成新的 _currentLayer、_recorder、_canvas</span></span><br><span class="line">  <span class="comment">// 即在 PaintingContext 的生命周期内 _canvas 可能会变</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  _currentLayer = <span class="keyword">null</span>;</span><br><span class="line">  _recorder = <span class="keyword">null</span>;</span><br><span class="line">  _canvas = <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="Compositing"><a href="#Compositing" class="headerlink" title="Compositing"></a>Compositing</h1><hr>
+<p>Compositing，合成，属于 Rendering Pipeline 中的一环，表示是否要生成新的 Layer 来实现某些特定的图形效果。</p>
+<blockquote>
+<p><code>RenderObject.needCompositing</code>表示该 RenderObject 是否需要合成，即在<code>paint</code>方法中是否需要生成新的 Layer。<br>更详细的信息将在介绍 RenderObject 是进行分析。</p>
+</blockquote>
+<p>通常 RenderObject 会通过<code>PaintingContext#push*</code>来处理 Compositing：<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> pushLayer(ContainerLayer childLayer, PaintingContextCallback painter, Offset offset, &#123; Rect childPaintBounds &#125;) &#123;</span><br><span class="line">  <span class="comment">// 注意！</span></span><br><span class="line">  <span class="comment">// 在 append sub layer 前先终止现有的绘制操作</span></span><br><span class="line">  <span class="comment">// stopRecordingIfNeeded 所执行的操作见上文</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  stopRecordingIfNeeded();</span><br><span class="line">  appendLayer(childLayer);</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 为 childLayer 创建新的 PaintingContext，以便独立进行绘制操作</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  <span class="keyword">final</span> PaintingContext childContext = createChildContext(childLayer, childPaintBounds ?? estimatedBounds);</span><br><span class="line">  painter(childContext, offset);</span><br><span class="line">  childContext.stopRecordingIfNeeded();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">PaintingContext createChildContext(ContainerLayer childLayer, Rect bounds) &#123;</span><br><span class="line">  <span class="keyword">return</span> PaintingContext(childLayer, bounds);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// needsCompositing 参数一般来自 RenderObject.needCompositing</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line">ClipRectLayer pushClipRect(<span class="built_in">bool</span> needsCompositing, Offset offset, Rect clipRect, PaintingContextCallback painter, &#123; Clip clipBehavior = Clip.hardEdge, ClipRectLayer oldLayer &#125;) &#123;</span><br><span class="line">  <span class="keyword">final</span> Rect offsetClipRect = clipRect.shift(offset);</span><br><span class="line">  <span class="keyword">if</span> (needsCompositing) &#123;</span><br><span class="line">    <span class="comment">// 在需要合成时，创建新 Layer</span></span><br><span class="line">    <span class="comment">//</span></span><br><span class="line">    <span class="keyword">final</span> ClipRectLayer layer = oldLayer ?? ClipRectLayer();</span><br><span class="line">    layer</span><br><span class="line">      ..clipRect = offsetClipRect</span><br><span class="line">      ..clipBehavior = clipBehavior;</span><br><span class="line">      </span><br><span class="line">    <span class="comment">// 将新 layer 添加到 layer tree 上，并在其上完成绘制</span></span><br><span class="line">    <span class="comment">//</span></span><br><span class="line">    pushLayer(layer, painter, offset, childPaintBounds: offsetClipRect);</span><br><span class="line">    <span class="keyword">return</span> layer;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 否则在当前 Canvas 上进行裁剪、绘制</span></span><br><span class="line">    <span class="comment">//</span></span><br><span class="line">    clipRectAndPaint(offsetClipRect, clipBehavior, offsetClipRect, () =&gt; painter(<span class="keyword">this</span>, offset));</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>如上，<code>pushClipRect</code>在<code>needsCompositing</code>为<code>true</code>时，创建了新 Layer 并在其上进行裁剪、绘制，否则在当前 Canvas 上进行裁剪、绘制。</p>
+<h2 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h2><p>下面，我们再通过一个简单的例子将上面的内容串一下：<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> main() &#123;</span><br><span class="line">  ContainerLayer containerLayer = ContainerLayer();</span><br><span class="line">  PaintingContext paintingContext = PaintingContext(containerLayer, Rect.zero);</span><br><span class="line"></span><br><span class="line">  Paint circle1Paint= Paint();</span><br><span class="line">  circle1Paint.color = Colors.blue;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 注释1</span></span><br><span class="line">  <span class="comment">// paintingContext.canvas.save();</span></span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 对画布进行裁剪</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  paintingContext.canvas.clipRect(Rect.fromCenter(center: Offset(<span class="number">400</span>, <span class="number">400</span>), width: <span class="number">280</span>, height: <span class="number">600</span>));</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 在裁剪后的画布上画一个⭕️</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  paintingContext.canvas.drawCircle(Offset(<span class="number">400</span>, <span class="number">400</span>), <span class="number">300</span>, circle1Paint);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 注释2</span></span><br><span class="line">  <span class="comment">// paintingContext.canvas.restore();</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">void</span> _painter(PaintingContext context, Offset offset) &#123;</span><br><span class="line">    Paint circle2Paint = Paint();</span><br><span class="line">    circle2Paint.color = Colors.red;</span><br><span class="line">    context.canvas.drawCircle(Offset(<span class="number">400</span>, <span class="number">400</span>), <span class="number">250</span>, circle2Paint);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 通过 pushClipRect 方法再次执行裁剪</span></span><br><span class="line">  <span class="comment">// 注意此处 needsCompositing 参数为 true</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  paintingContext.pushClipRect(<span class="keyword">true</span>, Offset.zero, Rect.fromCenter(center: Offset(<span class="number">500</span>, <span class="number">400</span>), width: <span class="number">200</span>, height: <span class="number">200</span>), _painter,);</span><br><span class="line"></span><br><span class="line">  Paint circle3Paint= Paint();</span><br><span class="line">  circle3Paint.color = Colors.yellow;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 再次画一个⭕️</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  paintingContext.canvas.drawCircle(Offset(<span class="number">400</span>, <span class="number">800</span>), <span class="number">300</span>, circle3Paint);</span><br><span class="line">  paintingContext.stopRecordingIfNeeded();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 为了减少篇幅，生成 Scene 相关的代码已省略</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>绘制结果如下图所示：</p>
+<p><div style="width: 200px; margin: auto"><img src="/img/PaintContext_needCompositing.png" alt=""></div><br>若上述代码中在调用<code>paintingContext.pushClipRect</code>时，<code>needsCompositing</code>参数为<code>false</code>，则结果如下：</p>
+<p><div style="width: 150px; margin: auto"><img src="/img/PaintContext_no_needCompositing.png" alt=""></div><br>那么，在<code>needsCompositing</code>参数为<code>false</code>时，如何实现图1的效果呢？<br>很简单，将代码中1、2处的注释去掉即可。<br>过程就不分析了，兴趣的同学可以自己分析一下。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>PaintingContext 在协助 RenderObject 绘制过程中起到重要作用，如：对 Layer Tree 的管理、对 Repaint Boundary、need Compositing 的处理、对基础 api 的封装等。了解了这些对后面理解 RenderObject 有很大的帮助。</p>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p><a href="https://www.flutterinternals.org/rendering/compositing" target="_blank" rel="noopener">Flutter Internals</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/flutter/" rel="tag"># flutter</a>
+          
+            <a href="/tags/移动开发/" rel="tag"># 移动开发</a>
+          
+            <a href="/tags/跨平台/" rel="tag"># 跨平台</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/05/17/deepinto-flutter-element/" rel="next" title="深入浅出 Flutter Framework 之 Element">
+                <i class="fa fa-chevron-left"></i> 深入浅出 Flutter Framework 之 Element
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">47</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">21</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#基础概念"><span class="nav-number">2.</span> <span class="nav-text">基础概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Canvas"><span class="nav-number">2.1.</span> <span class="nav-text">Canvas</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Picture"><span class="nav-number">2.2.</span> <span class="nav-text">Picture</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PictureRecorder"><span class="nav-number">2.3.</span> <span class="nav-text">PictureRecorder</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Scene"><span class="nav-number">2.4.</span> <span class="nav-text">Scene</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SceneBuilder"><span class="nav-number">2.5.</span> <span class="nav-text">SceneBuilder</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小例子"><span class="nav-number">2.6.</span> <span class="nav-text">小例子</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#绘制流程"><span class="nav-number">3.</span> <span class="nav-text">绘制流程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Compositing"><span class="nav-number">4.</span> <span class="nav-text">Compositing</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#例子"><span class="nav-number">4.1.</span> <span class="nav-text">例子</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考资料"><span class="nav-number">6.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
