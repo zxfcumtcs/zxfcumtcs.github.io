@@ -16,9 +16,10 @@ tags:
 [『 深入浅出 Flutter Framework 之 Widget 』](https://zxfcumtcs.github.io/2020/05/01/deepinto-flutter-widget/)
 [『 深入浅出 Flutter Framework 之 BuildOwner 』](https://zxfcumtcs.github.io/2020/05/16/deepinto-flutter-buildowner/)
 『 深入浅出 Flutter Framework 之 Element 』
+[『 深入浅出 Flutter Framework 之 PaintingContext 』](https://zxfcumtcs.github.io/2020/05/23/deepinto-flutter-paintingcontext/)
+『 深入浅出 Flutter Framework 之 Layer 』
 『 深入浅出 Flutter Framework 之 PipelineOwner 』
 『 深入浅出 Flutter Framework 之 RenderObejct 』
-『 深入浅出 Flutter Framework 之 Layer 』
 『 深入浅出 Flutter Framework 之 Binding 』
 『 深入浅出 Flutter Framework 之 Rendering Pipeline 』
 『 深入浅出 Flutter Framework 之 自定义 Widget 』
