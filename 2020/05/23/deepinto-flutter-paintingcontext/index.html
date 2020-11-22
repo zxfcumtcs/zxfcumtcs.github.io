@@ -96,23 +96,23 @@
 
 
 
-<meta name="description" content="本文是『 深入浅出 Flutter Framework 』系列文章的第五篇，主要目的是为后面介绍 RenderObject 作准备。文章对 PaintingContext 进行了较详细的分析，主要包括在 Rendering Pipeline 中 PaintingContext 是如何配合 RenderObject 进行绘制的，同时对一些基础概念进行了简要的介绍(如：Canvas、Picture、P">
+<meta name="description" content="本文是『 深入浅出 Flutter Framework 』系列文章的第四篇，主要目的是为后面介绍 RenderObject 作准备。文章对 PaintingContext 进行了较详细的分析，主要包括在 Rendering Pipeline 中 PaintingContext 是如何配合 RenderObject 进行绘制的，同时对一些基础概念进行了简要的介绍(如：Canvas、Picture、P">
 <meta name="keywords" content="flutter,移动开发,跨平台">
 <meta property="og:type" content="article">
 <meta property="og:title" content="深入浅出 Flutter Framework 之 PaintingContext">
 <meta property="og:url" content="http://zxfcumtcs.github.io/2020/05/23/deepinto-flutter-paintingcontext/index.html">
 <meta property="og:site_name" content="雪峰的blog">
-<meta property="og:description" content="本文是『 深入浅出 Flutter Framework 』系列文章的第五篇，主要目的是为后面介绍 RenderObject 作准备。文章对 PaintingContext 进行了较详细的分析，主要包括在 Rendering Pipeline 中 PaintingContext 是如何配合 RenderObject 进行绘制的，同时对一些基础概念进行了简要的介绍(如：Canvas、Picture、P">
+<meta property="og:description" content="本文是『 深入浅出 Flutter Framework 』系列文章的第四篇，主要目的是为后面介绍 RenderObject 作准备。文章对 PaintingContext 进行了较详细的分析，主要包括在 Rendering Pipeline 中 PaintingContext 是如何配合 RenderObject 进行绘制的，同时对一些基础概念进行了简要的介绍(如：Canvas、Picture、P">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/PaintContextClassDiagram.png">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/drawcircle.png">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/PaintingPipeline.png">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/PaintContext_needCompositing.png">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/PaintContext_no_needCompositing.png">
-<meta property="og:updated_time" content="2020-05-30T13:23:45.276Z">
+<meta property="og:updated_time" content="2020-11-22T15:24:22.450Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="深入浅出 Flutter Framework 之 PaintingContext">
-<meta name="twitter:description" content="本文是『 深入浅出 Flutter Framework 』系列文章的第五篇，主要目的是为后面介绍 RenderObject 作准备。文章对 PaintingContext 进行了较详细的分析，主要包括在 Rendering Pipeline 中 PaintingContext 是如何配合 RenderObject 进行绘制的，同时对一些基础概念进行了简要的介绍(如：Canvas、Picture、P">
+<meta name="twitter:description" content="本文是『 深入浅出 Flutter Framework 』系列文章的第四篇，主要目的是为后面介绍 RenderObject 作准备。文章对 PaintingContext 进行了较详细的分析，主要包括在 Rendering Pipeline 中 PaintingContext 是如何配合 RenderObject 进行绘制的，同时对一些基础概念进行了简要的介绍(如：Canvas、Picture、P">
 <meta name="twitter:image" content="http://zxfcumtcs.github.io/img/PaintContextClassDiagram.png">
 
 
@@ -386,7 +386,7 @@
       
 
       
-        <p>本文是『 深入浅出 Flutter Framework 』系列文章的第五篇，主要目的是为后面介绍 RenderObject 作准备。<br>文章对 PaintingContext 进行了较详细的分析，主要包括在 Rendering Pipeline 中 PaintingContext 是如何配合 RenderObject 进行绘制的，同时对一些基础概念进行了简要的介绍(如：Canvas、Picture、PictureRecorder、SceneBuilder 以及 Scene 等)。</p>
+        <p>本文是『 深入浅出 Flutter Framework 』系列文章的第四篇，主要目的是为后面介绍 RenderObject 作准备。<br>文章对 PaintingContext 进行了较详细的分析，主要包括在 Rendering Pipeline 中 PaintingContext 是如何配合 RenderObject 进行绘制的，同时对一些基础概念进行了简要的介绍(如：Canvas、Picture、PictureRecorder、SceneBuilder 以及 Scene 等)。</p>
 <a id="more"></a>
 <p>©原创文章，转载请注明出处！</p>
 <p>本系列文章将深入 Flutter Framework 内部逐步去分析其核心概念和流程，主要包括：<br><a href="https://zxfcumtcs.github.io/2020/05/01/deepinto-flutter-widget/">『 深入浅出 Flutter Framework 之 Widget 』</a><br><a href="https://zxfcumtcs.github.io/2020/05/16/deepinto-flutter-buildowner/">『 深入浅出 Flutter Framework 之 BuildOwner 』</a><br><a href="https://zxfcumtcs.github.io/2020/05/17/deepinto-flutter-element/">『 深入浅出 Flutter Framework 之 Element 』</a><br>『 深入浅出 Flutter Framework 之 PaintingContext 』<br>『 深入浅出 Flutter Framework 之 Layer 』<br>『 深入浅出 Flutter Framework 之 PipelineOwner 』<br>『 深入浅出 Flutter Framework 之 RenderObejct 』<br>『 深入浅出 Flutter Framework 之 Binding 』<br>『 深入浅出 Flutter Framework 之 Rendering Pipeline 』<br>『 深入浅出 Flutter Framework 之 自定义 Widget 』</p>
