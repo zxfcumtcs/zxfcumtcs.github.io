@@ -7,7 +7,7 @@ tags:
 - 移动开发
 - 跨平台
 ---
-本文是『 深入浅出 Flutter Framework 』系列文章的第五篇，主要目的是为后面介绍 RenderObject 作准备。
+本文是『 深入浅出 Flutter Framework 』系列文章的第四篇，主要目的是为后面介绍 RenderObject 作准备。
 文章对 PaintingContext 进行了较详细的分析，主要包括在 Rendering Pipeline 中 PaintingContext 是如何配合 RenderObject 进行绘制的，同时对一些基础概念进行了简要的介绍(如：Canvas、Picture、PictureRecorder、SceneBuilder 以及 Scene 等)。
 
 <!--more-->
@@ -18,7 +18,7 @@ tags:
 [『 深入浅出 Flutter Framework 之 BuildOwner 』](https://zxfcumtcs.github.io/2020/05/16/deepinto-flutter-buildowner/)
 [『 深入浅出 Flutter Framework 之 Element 』](https://zxfcumtcs.github.io/2020/05/17/deepinto-flutter-element/)
 『 深入浅出 Flutter Framework 之 PaintingContext 』
-『 深入浅出 Flutter Framework 之 Layer 』
+[『 深入浅出 Flutter Framework 之 Layer 』](https://zxfcumtcs.github.io/2020/06/07/deepinto-flutter-layer/)
 『 深入浅出 Flutter Framework 之 PipelineOwner 』
 『 深入浅出 Flutter Framework 之 RenderObejct 』
 『 深入浅出 Flutter Framework 之 Binding 』
