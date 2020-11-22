@@ -112,7 +112,7 @@
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/element1to1.1.jpg">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/element1ton.jpg">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/element-deactivate.jpg">
-<meta property="og:updated_time" content="2020-05-30T13:32:58.112Z">
+<meta property="og:updated_time" content="2020-11-22T15:46:26.978Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="深入浅出 Flutter Framework 之 Element">
 <meta name="twitter:description" content="本文是『 深入浅出 Flutter Framework 』系列文章的第三篇，主要围绕 Element 相关内容进行分析介绍，包括 Element 分类、Element 与其他几个核心元素的关系、Element 生命周期以及核心方法解读等。">
@@ -392,7 +392,7 @@
         <p>本文是『 深入浅出 Flutter Framework 』系列文章的第三篇，主要围绕 Element 相关内容进行分析介绍，包括 Element 分类、Element 与其他几个核心元素的关系、Element 生命周期以及核心方法解读等。</p>
 <a id="more"></a>
 <p>©原创文章，转载请注明出处！</p>
-<p>本系列文章将深入 Flutter Framework 内部逐步去分析其核心概念和流程，主要包括：<br><a href="https://zxfcumtcs.github.io/2020/05/01/deepinto-flutter-widget/">『 深入浅出 Flutter Framework 之 Widget 』</a><br><a href="https://zxfcumtcs.github.io/2020/05/16/deepinto-flutter-buildowner/">『 深入浅出 Flutter Framework 之 BuildOwner 』</a><br>『 深入浅出 Flutter Framework 之 Element 』<br><a href="https://zxfcumtcs.github.io/2020/05/23/deepinto-flutter-paintingcontext/">『 深入浅出 Flutter Framework 之 PaintingContext 』</a><br>『 深入浅出 Flutter Framework 之 Layer 』<br>『 深入浅出 Flutter Framework 之 PipelineOwner 』<br>『 深入浅出 Flutter Framework 之 RenderObejct 』<br>『 深入浅出 Flutter Framework 之 Binding 』<br>『 深入浅出 Flutter Framework 之 Rendering Pipeline 』<br>『 深入浅出 Flutter Framework 之 自定义 Widget 』</p>
+<p>本系列文章将深入 Flutter Framework 内部逐步去分析其核心概念和流程，主要包括：<br><a href="https://zxfcumtcs.github.io/2020/05/01/deepinto-flutter-widget/">『 深入浅出 Flutter Framework 之 Widget 』</a><br><a href="https://zxfcumtcs.github.io/2020/05/16/deepinto-flutter-buildowner/">『 深入浅出 Flutter Framework 之 BuildOwner 』</a><br>『 深入浅出 Flutter Framework 之 Element 』<br><a href="https://zxfcumtcs.github.io/2020/05/23/deepinto-flutter-paintingcontext/">『 深入浅出 Flutter Framework 之 PaintingContext 』</a><br><a href="https://zxfcumtcs.github.io/2020/06/07/deepinto-flutter-layer/">『 深入浅出 Flutter Framework 之 Layer 』</a><br>『 深入浅出 Flutter Framework 之 PipelineOwner 』<br>『 深入浅出 Flutter Framework 之 RenderObejct 』<br>『 深入浅出 Flutter Framework 之 Binding 』<br>『 深入浅出 Flutter Framework 之 Rendering Pipeline 』<br>『 深入浅出 Flutter Framework 之 自定义 Widget 』</p>
 <h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
 <p>通过<a href="https://zxfcumtcs.github.io/2020/05/01/deepinto-flutter-widget/">『 深入浅出 Flutter Framework 之 Widget 』</a>的介绍，我们知道 Widget 本质上是 UI 的配置数据 (静态、不可变)，Element 则是通过 Widget 生成的『实例』，两者间的关系就像是 json 与 object。</p>
 <blockquote>
