@@ -120,7 +120,7 @@
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/InheritedWidget_Comment.jpg">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/InheritedWidget_Method.png">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/RenderObjectWidget_Method.png">
-<meta property="og:updated_time" content="2020-11-22T15:46:07.631Z">
+<meta property="og:updated_time" content="2020-12-06T09:35:34.045Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="深入浅出 Flutter Framework 之 Widget">
 <meta name="twitter:description" content="本文是『 深入浅出 Flutter Framework 』系列文章的第一篇，主要以不同类型 Widget 的核心方法为切入点，对其展开详细分析。">
@@ -402,7 +402,7 @@
 <p>©原创文章，转载请注明出处！</p>
 <h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
 <p>Flutter 作为一种新兴跨平台解决方案，自 2017 年 Google 在 I/O 大会上推出后，尤其是在 2018 年 I/O 大会上发布第一个预览版后，迅速引起移动开发者的广泛关注，并成为时下最热门的跨平台解决方案 ( 没有之一 ) ！</p>
-<p>本系列文章将深入 Flutter Framework 内部逐步去分析其核心概念和流程，主要包括：<br>『 深入浅出 Flutter Framework 之 Widget 』<br><a href="https://zxfcumtcs.github.io/2020/05/16/deepinto-flutter-buildowner/">『 深入浅出 Flutter Framework 之 BuildOwner 』</a><br><a href="https://zxfcumtcs.github.io/2020/05/17/deepinto-flutter-element/">『 深入浅出 Flutter Framework 之 Element 』</a><br><a href="https://zxfcumtcs.github.io/2020/05/23/deepinto-flutter-paintingcontext/">『 深入浅出 Flutter Framework 之 PaintingContext 』</a><br><a href="https://zxfcumtcs.github.io/2020/06/07/deepinto-flutter-layer/">『 深入浅出 Flutter Framework 之 Layer 』</a><br>『 深入浅出 Flutter Framework 之 PipelineOwner 』<br>『 深入浅出 Flutter Framework 之 RenderObejct 』<br>『 深入浅出 Flutter Framework 之 Binding 』<br>『 深入浅出 Flutter Framework 之 Rendering Pipeline 』<br>『 深入浅出 Flutter Framework 之 自定义 Widget 』</p>
+<p>本系列文章将深入 Flutter Framework 内部逐步去分析其核心概念和流程，主要包括：<br>『 深入浅出 Flutter Framework 之 Widget 』<br><a href="https://zxfcumtcs.github.io/2020/05/16/deepinto-flutter-buildowner/">『 深入浅出 Flutter Framework 之 BuildOwner 』</a><br><a href="https://zxfcumtcs.github.io/2020/05/17/deepinto-flutter-element/">『 深入浅出 Flutter Framework 之 Element 』</a><br><a href="https://zxfcumtcs.github.io/2020/05/23/deepinto-flutter-paintingcontext/">『 深入浅出 Flutter Framework 之 PaintingContext 』</a><br><a href="https://zxfcumtcs.github.io/2020/06/07/deepinto-flutter-layer/">『 深入浅出 Flutter Framework 之 Layer 』</a><br><a href="https://zxfcumtcs.github.io/2020/12/05/deepinto-flutter-pipelineowner/">『 深入浅出 Flutter Framework 之 PipelineOwner 』</a><br>『 深入浅出 Flutter Framework 之 RenderObejct 』<br>『 深入浅出 Flutter Framework 之 Binding 』<br>『 深入浅出 Flutter Framework 之 Rendering Pipeline 』<br>『 深入浅出 Flutter Framework 之 自定义 Widget 』</p>
 <p>其中，前 7 篇属于基础篇，分别介绍 Flutter 中几个最核心的概念。Rendering Pipeline 篇则是在此基础上从 Build、Layout 到 Paint 的流程将它们串起来，分析 Flutter UI 是如何创建的、如何更新的。最后，自定义 Widget 属于回顾、实践篇，分析自定义一个 Render Widget 至少需要哪些步骤。</p>
 <blockquote>
 <p>如<a href="https://flutter.dev/docs/resources/technical-overview#layer-cakes-are-delicious" target="_blank" rel="noopener">下图</a>所示，Flutter 整体分为三层：Framework (dart)、Engine (C/C++)、Embedder (Platform)，上述文章主要集中在 Framework 这一层。<br><img src="/img/flutter-layercake.png" alt=""></p>
