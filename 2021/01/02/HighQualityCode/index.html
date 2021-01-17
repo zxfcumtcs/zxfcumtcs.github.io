@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="架构,代码设计,高质量,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本文从易理解、可维护、可扩展三个维度简要介绍了对高质量代码的理解。同时，提出了一种新的 GUI 模式：MVVS。">
+<meta name="keywords" content="架构,代码设计,高质量">
+<meta property="og:type" content="article">
+<meta property="og:title" content="『码』出高质量">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2021/01/02/HighQualityCode/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本文从易理解、可维护、可扩展三个维度简要介绍了对高质量代码的理解。同时，提出了一种新的 GUI 模式：MVVS。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/Domain_Presentation_Layer.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/Domain_Mutil_Presentation_Layer.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/MVVS_Data_Status.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/MVVS.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/MVVS_1.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ViewState.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/Strategy_Interface.png">
+<meta property="og:updated_time" content="2021-01-17T10:16:58.414Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="『码』出高质量">
+<meta name="twitter:description" content="本文从易理解、可维护、可扩展三个维度简要介绍了对高质量代码的理解。同时，提出了一种新的 GUI 模式：MVVS。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/Domain_Presentation_Layer.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2021/01/02/HighQualityCode/">
+
+
+
+
+
+  <title>『码』出高质量 | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2021/01/02/HighQualityCode/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">『码』出高质量</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-02T11:36:56+08:00">
+                2021-01-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2021/01/02/HighQualityCode/" class="leancloud_visitors" data-flag-title="『码』出高质量">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  4,123
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  14
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文从易理解、可维护、可扩展三个维度简要介绍了对高质量代码的理解。<br>同时，提出了一种新的 GUI 模式：MVVS。</p>
+<a id="more"></a>
+<p>©原创文章，转载请注明出处！</p>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
+<p>个人认为，高质量的代码首先应该是『简单的』。<br>『简单』又可以从以下三个维度去度量：</p>
+<ul>
+<li>易理解</li>
+<li>可维护</li>
+<li>可扩展</li>
+</ul>
+<p>本文将从上述三点展开讨论，谈谈我个人的理解。</p>
+<h1 id="易理解"><a href="#易理解" class="headerlink" title="易理解"></a>易理解</h1><hr>
+<p>高质量的代码一定是易于理解的代码，读起来应该像言情小说，而不是诘诎的文言文。<br>高质量的代码可以是优雅的，但一定不是炫技的。<br>高质量的代码应该是深入浅出的，尽量用简单、朴实的方式去表达。</p>
+<p>易理解面向的是整个团队，而不是写代码的那个人。<br>易理解是团队高效、无缝协作的基础。</p>
+<p>影响代码可理解性的因素有很多，比如：</p>
+<ul>
+<li><h2 id="『良好命名』"><a href="#『良好命名』" class="headerlink" title="『良好命名』"></a><span style="border-bottom:3px double black;"><b>『良好命名』</b></span></h2><p>   好的命名即是成功的一半，也是最具挑战性的事情之一；<br>   总的原则就是体现『做什么』，而不是『怎么做』；<br>   在阅读优秀开源代码以及系统API时多留意、多思考。</p>
+</li>
+<li><h2 id="『清晰结构』"><a href="#『清晰结构』" class="headerlink" title="『清晰结构』"></a><span style="border-bottom:3px double black;">『清晰结构』</span></h2><p>  <i> ( 这里指的是代码的组织结构 ) </i><br>  相关代码组织在一起，如：<code>init</code>与<code>deinit</code>/<code>dealloc</code>、UIViewController 生命周期方法<code>viewDidLoad</code>、<code>viewWillAppear</code>、<code>viewDidAppear</code>等；<br>  不同组织间用空行隔开；<br>  或者通过 Category、Extension 的方式来组织。</p>
+</li>
+<li><h2 id="『合理抽象』"><a href="#『合理抽象』" class="headerlink" title="『合理抽象』"></a><span style="border-bottom:3px double black;">『合理抽象』</span></h2><p>  抽象的关键是隐藏细节(『细节是魔鬼』)；<br>  在我们不关心具体细节时能很容易地忽略细节、抓住重点、抓住主干；<br>  抽象存在于每个层级：变量、方法、类、模块。</p>
+</li>
+<li><h2 id="『线性逻辑』"><a href="#『线性逻辑』" class="headerlink" title="『线性逻辑』"></a><span style="border-bottom:3px double black;">『线性逻辑』</span></h2><p>  每个实体 (变量、方法、类、模块) 在不同的层级上都只围绕一件事展开 –『高内聚』;<br>  模块内部的类、类内部的方法、方法内部的语句尽量都能通过线性的方式串连起来；<br>  而如果它们间形成的是一张网或离散的点都是坏代码的味道 –『低内聚』；<br>  如，类内部存在大量不相关的方法，方法内部存在过多的<code>if</code>、<code>switch</code>语句。一个类动辄几千行、一个方法动辄几百行，此时就值得我们高度警惕；<br>  很明显，线性的逻辑比网状的逻辑更易于理解。</p>
+</li>
+<li><h2 id="『最小依赖』"><a href="#『最小依赖』" class="headerlink" title="『最小依赖』"></a><span style="border-bottom:3px double black;">『最小依赖』</span></h2><p>  <i>( 依赖可以从两个角度来度量：依赖的多少以及强弱 )</i><br>  依赖肯定是越少越好 –『低耦合』；<br>  过多的依赖无疑会增加代码的复杂性，往往也是代码设计出问题的一个信号；<br>  提高内聚、面向接口编程等都是降低依赖的有效方式；<br>  同时，依赖关系越弱越好，继承无疑是最先考虑到的代码复用方式，但是继承也是最强的一种依赖、耦合关系。<br>  代码复用，应优先考虑组合。</p>
+</li>
+<li><h2 id="『精简体积』"><a href="#『精简体积』" class="headerlink" title="『精简体积』"></a><span style="border-bottom:3px double black;">『精简体积』</span></h2><p>  简单讲，就是无用代码及时删除；<br>  在阅读代码时经常会遇到一些莫名其妙的逻辑，经过一番调查，发现已是废弃的代码；<br>  无形中增加了理解成本，并且随着时间推移，后浪们也不敢去删这些代码，最终越积越多。</p>
+</li>
+<li><h2 id="『朴实表述』"><a href="#『朴实表述』" class="headerlink" title="『朴实表述』"></a><span style="border-bottom:3px double black;">『朴实表述』</span></h2><p>  正如名言：代码首先是写给人看的，其次才是让机器执行的；<br>  因此，尽量用平易、朴实的方式去描述、去表达，让大家都能『看得懂』；<br>  总之，好的代码一定是简单的、清晰的。</p>
+</li>
+</ul>
+<p>易理解是高质量代码最基础的要求，上述只是影响代码易理解性的几个小点，更多的需要我们在实际编码过程中不断思考总结。</p>
+<blockquote>
+<p>在<a href="https://zxfcumtcs.github.io/2016/03/26/HighQualityMobileDevelopment/">『 浅谈高质量移动开发 』</a>一文中对类的设计、方法的设计等有更具体的讨论，感兴趣的同学可以看看。</p>
+</blockquote>
+<h1 id="可维护性"><a href="#可维护性" class="headerlink" title="可维护性"></a>可维护性</h1><hr>
+<p>移动端开发最主要的场景就是基于 GUI 的业务开发。<br>因此，本文谈到的可维护性也主要是围绕 GUI 流程展开。</p>
+<p>关于 GUI 的设计模式 (MV*) 在近几年也是老生常谈的话题之一。<br>无论 GUI 模式如何演化，个人认为其核心原则未曾改变：</p>
+<ul>
+<li>单向数据流</li>
+<li>数据完整性</li>
+<li>数据驱动 UI</li>
+</ul>
+<h2 id="『单向数据流』"><a href="#『单向数据流』" class="headerlink" title="『单向数据流』"></a><span style="border-bottom:3px double black;">『单向数据流』</span></h2><p>无论哪种 GUI 模式，从大的方向上都可以分为两层：</p>
+<ul>
+<li>Domain Layer：数据层(业务逻辑)</li>
+<li>Presentation Layer：表现层(UI)</li>
+</ul>
+<p>单向数据流是指『业务数据』一定是从『数据层』流向『表现层』，绝不允许反过来。<br>『表现层』可以响应 UI 事件并传递给『数据层』，<br>至于『数据层』如何处理这些事件纯属其『内政』，『表现层』无权干涉。<br><img src="/img/Domain_Presentation_Layer.png" width="70%" height="70%"></p>
+<p>简单概括，『 单向数据流 』背后有两个『 流 』：</p>
+<ul>
+<li>数据流：从『 数据层 』流向『 表现层 』；</li>
+<li>事件流：从『 表现层 』流向『 数据层 』。</li>
+</ul>
+<blockquote>
+<p>关于事件，很多响应式框架会将其定义为独立的数据结构，如：<a href="https://github.com/reduxjs/redux" target="_blank" rel="noopener">Redux</a>中的<code>Action</code>、<a href="https://github.com/felangel/bloc" target="_blank" rel="noopener">BLoC</a>中的<code>Event</code>。<br>我个人认为这种设计有一个比较严重的问题：不能通过『 command + 单击 』的方式『 链式 』地阅读代码，需要通过全局搜索。<br>这严重影响了开发效率。<br>个人觉得事件可以直接是『 数据层 』暴露给『 表现层 』的接口，即有事件需要处理时，直接调用相应的接口即可。</p>
+</blockquote>
+<h3 id="为什么？"><a href="#为什么？" class="headerlink" title="为什么？"></a><strong>为什么？</strong></h3><p>我相信任何一位移动开发者对于『单向数据流』都耳熟能详，但其背后深层次的原因不见得都能说清楚。<br>首先，数据流不能从『表现层』流向『数据层』，说的到底是什么？<br>其真正的含义是『表现层』不能<strong>直接修改</strong>『数据层』的数据。为什么？</p>
+<p>从设计的角度讲，数据管理是『数据层』的职责，『表现层』不应越俎代庖。<br>否则，『表现层』就违反了『单一职责』原则，也违反了『高内聚』的设计理念。</p>
+<p>从现实的角度讲，『表现层』直接修改数据对于代码维护性来说是一个『灾难』。<br><strong>首先，直接后果就是可能造成『不同步』：</strong></p>
+<ul>
+<li>UI 刷新与数据修改不同步，数据修改后 UI 没有及时刷新；</li>
+<li>多个 UI 场景间不同步，有的数据可能被多个业务模块所使用，如果由其中某一处直接修改，其他模块很可能无法感知到这一修改，造成不同步。<br>  如下图，Scenes1 直接修改了底层数据，但并未通知 Scenes2、Scenes3 (Scenes1 可能根本不知道 Scenes2、Scenes3 的存在)，造成数据不同步：<br><img src="/img/Domain_Mutil_Presentation_Layer.png" width="95%" height="95%"><br>『不同步』常见的后果就是在使用 TableView 时数组越界。<br>对于此类问题，我们经常是对数组访问加个保护，而很少也很难从根源上解决问题。<br>尤其是多业务场景共享数据时。因为你根本不知道是『 谁 』在『 什么时候 』修改了数据源。</li>
+</ul>
+<p><strong>其次，还可能引起多线程问题：</strong><br>『数据层』可能有专职的线程去管理数据，如果『表现层』擅自修改数据，很可能引发多线程问题。</p>
+<h3 id="如何解"><a href="#如何解" class="headerlink" title="如何解"></a><strong>如何解</strong></h3><p><strong>『数据层』一定不能向『表现层』直接暴露可修改 (mutable) 的属性。</strong></p>
+<blockquote>
+<p>对于引用类型来说，情况可能更复杂一些。理想情况下，『数据层』返回给『表现层』的数据应该是<code>final</code>的或是深拷贝的。<br>总之，要做到『表现层』毫无直接修改底层数据的可能性。</p>
+</blockquote>
+<p>此时，大家可能有疑问了，即使是『表现层』通过事件触发『数据层』内部去修改数据，还是可能会引起不同步的问题。<br>对，这就需要通过『数据完整性』、『数据驱动 UI』来解决了。</p>
+<h2 id="『数据完整性』"><a href="#『数据完整性』" class="headerlink" title="『数据完整性』"></a><span style="border-bottom:3px double black;">『数据完整性』</span></h2><p><img src="/img/MVVS_Data_Status.png" width="95%" height="95%"></p>
+<p>数据完整性指的是数据不应该存在中间临时状态。<br>如上图左则所示，可能会导致意想不到的结果。</p>
+<p>在需要修改时，应该对数据作整体替换，这也是我们常说的『数据不可变性』。</p>
+<blockquote>
+<p>在函数式编程中，所有数据都是不可变的，所有操作的结果都是生成新的数据，而不是在原有数据上作修改。</p>
+</blockquote>
+<p><strong>严格遵守『数据完整性』、『数据不可变性』原则，能很好地避免中间状态问题。</strong></p>
+<h2 id="『数据驱动-UI』"><a href="#『数据驱动-UI』" class="headerlink" title="『数据驱动 UI』"></a><span style="border-bottom:3px double black;">『数据驱动 UI』</span></h2><p>底层数据发生变化后，上层 UI 如何感知并刷新？<br>总的原则就是『数据驱动 UI』<br>直白点，就是『数据层』有渠道、有方法在数据变化时能主动通知到所有关注该数据的『表现层』对象。</p>
+<blockquote>
+<p>看似很简单？实则很多项目都没能做到这一点。</p>
+</blockquote>
+<p>有没有闻到『响应式编程』的味道。<br>有同学一听到『响应式编程』就觉得很复杂，难于接受。<br>其实，我个人认为『响应式编程』并非一定要使用诸如<code>Rx*</code>、<code>ReactiveCocoa</code>或 iOS 原生的<code>KVO</code>这样的框架或技术。(它们只是一种实现手段而以)<br>其核心在于：</p>
+<ul>
+<li><strong>『数据层』主动通知，『表现层』被动响应；</strong></li>
+<li><strong>数据的所有使用方都能及时感知到数据的变化。</strong></li>
+</ul>
+<p>因此，像 Delegate、Callback 甚至 Notification 都可以用来实现『响应式编程』。</p>
+<blockquote>
+<p>『响应式编程』其实就是『观察者』设计模式的一种应用场景。</p>
+</blockquote>
+<p>好了，我们来回顾总结一下：</p>
+<ul>
+<li><u><strong>『单向数据流』</strong>：保证数据的修改仅发生在『数据层』内部，这也是『数据完整性』、『数据驱动 UI』得以实现的前提；</u></li>
+<li><u><strong>『数据完整性』</strong>：任何数据的修改都是整体替换，实现『数据不可变』的语义，避免出现数据的中间状态；</u></li>
+<li><u><strong>『数据驱动 UI』</strong>：保证数据修改后能及时通知 UI，避免状态不同步。</u></li>
+</ul>
+<h2 id="MVVS"><a href="#MVVS" class="headerlink" title="MVVS"></a>MVVS</h2><p>基于『单向数据流』、『数据完整性』以及『数据驱动 UI』的原则，我们提出一种新的 GUI 模式：MVVS</p>
+<ul>
+<li>M：Manager，处理业务逻辑，管理业务数据，将数据转换为 ViewState 并通知上层 UI；</li>
+<li>V：View，UIViewController/UIView，面向 ViewState 编程；</li>
+<li>VS：ViewState，当前的 UI 状态，将『数据驱动 UI』进一步拆分：数据驱动状态、状态驱动 UI。</li>
+</ul>
+<blockquote>
+<p>MVVS vs. MVVM，相当于将 MVVM 中的 VIewModel 拆分为 MVVS 中的 Manager 和 ViewState，使得各自的职责更加清晰。</p>
+</blockquote>
+<blockquote>
+<p>MVVS 中的 ViewState 受 Flutter 响应式框架 <a href="https://github.com/felangel/bloc" target="_blank" rel="noopener">flutter_bloc</a> 中 state 启发。</p>
+</blockquote>
+<p>Manager、View、ViewState 间的关系如下图所示：<br><img src="/img/MVVS.png" width="90%" height="90%"> <img src="/img/MVVS_1.png" width="90%" height="90%"></p>
+<h3 id="ViewState"><a href="#ViewState" class="headerlink" title="ViewState"></a>ViewState</h3><p>ViewState 代表当前的 UI 状态，为 UI 提供展示用的数据。<br>原则上，ViewState 与 View 一一对应。<br>对于过于简单的 UI 也可以没有与之对应的 ViewState。</p>
+<p><img src="/img/ViewState.png" alt=""></p>
+<p>如上图，与 ViewController 对应的是 Root ViewState，代表当前该模块的整体状态。<br>根据不同的状态，ViewState 可以是不同的子类型，如：LoadingViewState、ErrorViewState、EmptyViewState、LoadedViewState 等。ViewController 再根据不同的状态作出不同的响应。</p>
+<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><p>上面我们主要讲述了 GUI 架构上会影响代码可维护性的几个关键点<br>影响代码可维护性的因素还有很多，如：</p>
+<ul>
+<li><p><b><u>最少状态:</u></b> 在代码中经常会看到很多的状态变量，如：<code>is***</code>(<code>isFirstLoad</code>、<code>isNewUser</code>)、<code>has***</code>(<code>hasLoaded</code>)、<code>***Count</code>(<code>userCount</code>)等等。<br>  这些状态本身的维护以及其对代码整体的维护都是非常容易出问题的。<br>  是否在所有需要修改的地方都正确的修改了？<br>  修改后使用到这些状态的地方都及时通知到了？<br>  因此，状态要越少越好，能不加就不加。<br>  如，<code>***Count</code>是否可以从数据集上动态计算得到</p>
+</li>
+<li><p><b><u>最小权限:</u></b> 无论是模块还是类暴露的接口都应遵守最小权限原则<br>  在具体开发过程中可以通过『 依赖倒置 』原则，让接口需求方提出接口需求，避免由实现方直接提供接口而无意中暴露过多细节。<br>  具体可以参看<a href="https://zxfcumtcs.github.io/2018/10/04/solid/">『 面向对象设计原则『SOLID』在开发中的应用 』</a></p>
+</li>
+<li><p><b><u>写纯函数:</u></b>  纯函数几乎没有外界依赖，其在可维护性、易理解上有天然优势。<br>  一般类方法都有纯函数特性，因此，能写类方法的时候就不要写实例方法。<br>  在<a href="https://zxfcumtcs.github.io/2019/11/17/functional/">『 函数式思维 』</a>一文中对函数式编程有过简单讨论</p>
+</li>
+</ul>
+<h1 id="可扩展性"><a href="#可扩展性" class="headerlink" title="可扩展性"></a>可扩展性</h1><hr>
+<p>『唯一不变的就是变化』<br>面对变化，我们唯以积极心态对之。<br>因此，代码的可扩展性也是我们需要重点思考的问题之一。<br>『 SOLID 』中的『 O — OCP，开放-封闭原则 』，就是用于指导可扩展性的原则之一。</p>
+<blockquote>
+<p>OCP：『 对扩展开放，对修改封闭 』。</p>
+</blockquote>
+<p>强调『可扩展性』就是要求我们写『活代码』。<br>在平时 Code Review 时，我经常开玩笑地说『你这个代码写的太死』。</p>
+<p>23 种设计模式中的『 策略模式 』、『 模板方法 』都是用于指导提升可扩展性的方法。</p>
+<h2 id="『-策略模式-』"><a href="#『-策略模式-』" class="headerlink" title="『 策略模式 』"></a>『 策略模式 』</h2><p>提高代码可扩展性最有效的方式之一就是面向接口编程。<br>在<a href="https://zxfcumtcs.github.io/2019/12/04/InterfaceBasedProgramming/">『 论面向接口编程 』</a>一文中对此有详细介绍，在此不再赘述。</p>
+<p>在具体开发时如何写出扩展性高的代码呢？<br>『扩展性』面向的是未来，<br>因此，首先要思考的是『 什么是可能会变的 』<br>再将『 可变部分 』隔离出来，并以接口的形式去抽象它。<br><img src="/img/Strategy_Interface.png" width="60%" height="60%"><br>熟悉设计模式的同学可能已经看出来了，这其实就是『策略模式，Strategy 』。</p>
+<p>在之前的文章中，我们也提到过，如：登录模块、多 Tab 页面都是典型的可通过『 策略模式 』来提高扩展性的场景。</p>
+<blockquote>
+<p>登录模块的例子在<a href="https://zxfcumtcs.github.io/2018/10/04/solid/">『 面向对象设计原则『SOLID』在开发中的应用 』</a>一文中有详细介绍<br>多 Tab 页面的例子在<a href="https://zxfcumtcs.github.io/2019/12/04/InterfaceBasedProgramming/">『 论面向接口编程 』</a>一文中有详细介绍</p>
+</blockquote>
+<h2 id="『-模板方法-』"><a href="#『-模板方法-』" class="headerlink" title="『 模板方法 』"></a>『 模板方法 』</h2><p>『 策略模式 』的基础是面向接口编程。<br>而『 模板方法，Template Method 』的基础是继承。<br>同样，在<a href="https://zxfcumtcs.github.io/2018/10/04/solid/">『 面向对象设计原则『SOLID』在开发中的应用 』</a>一文中对『 模板方法 』模式有过简单的介绍。<br>在<a href="https://zxfcumtcs.github.io/2018/12/22/Efficient-Development-Solutions/">『 iOS 高效开发解决方案 』</a>一文中介绍过通过『 模板方法 』模式提高 UI 组件的扩展性。</p>
+<p>提升代码可扩展性的方法绝不仅上述 2 种模式，但其背后的思想非常重要，在平时开发时可灵活应用。</p>
+<h1 id="其他-1"><a href="#其他-1" class="headerlink" title="其他"></a>其他</h1><hr>
+<p>除了上述提到的『 易理解 』、『 可维护 』、『 可扩展 』之外，还有很多点是值得我们去思考和关注的，如：</p>
+<ul>
+<li><strong>错误处理：</strong>如何优雅地处理错误其实非常重要，但往往被忽略。在设计接口时需要关注出错的情况；</li>
+<li><strong>关键路径打 log：</strong>错误是无法避免的，除了在出错时给用户一个较好地提示外，我们也需要去了解出错的原因，此时 log 就显得尤为重要，要养成在关键路径打 log 的习惯。否则，用户反馈问题后，两眼一抹黑，无从下手；</li>
+<li><strong>适时重构：</strong>重构不一定是要对代码做出『 翻天覆地 』的改变，小到对变量重命名、抽取一个方法等『 微小 』的优化都算是重构。总之，在当前代码结构已不再适应新业务需要时，就需要及时重构，切不可在原有基础上打补丁，代码的恶化往往就是从此开始的。<br>对待代码我们同样要有敬畏之心：『 勿以善小而不为，勿以恶小而为之 』。</li>
+</ul>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><hr>
+<p>写出高质量的代码可谓『 功在当时，利在未来 』<br>每一位开发者都应为开发出高质量的代码也努力<br>代码设计能力的提升非一日之功，需要我们长期不断地学习、实践、思考、总结<br>优秀的书籍、优秀的开源代码我们要学习<br>糟糕的代码我们也要去反思，去总结<br>在代码上同样要做到『 勿以善小而不为，勿以恶小而为之 』</p>
+<p>诸君共勉！</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/架构/" rel="tag"># 架构</a>
+          
+            <a href="/tags/代码设计/" rel="tag"># 代码设计</a>
+          
+            <a href="/tags/高质量/" rel="tag"># 高质量</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/12/05/deepinto-flutter-pipelineowner/" rel="next" title="深入浅出 Flutter Framework 之 PipelineOwner">
+                <i class="fa fa-chevron-left"></i> 深入浅出 Flutter Framework 之 PipelineOwner
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#易理解"><span class="nav-number">2.</span> <span class="nav-text">易理解</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#『良好命名』"><span class="nav-number">2.1.</span> <span class="nav-text">『良好命名』</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#『清晰结构』"><span class="nav-number">2.2.</span> <span class="nav-text">『清晰结构』</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#『合理抽象』"><span class="nav-number">2.3.</span> <span class="nav-text">『合理抽象』</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#『线性逻辑』"><span class="nav-number">2.4.</span> <span class="nav-text">『线性逻辑』</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#『最小依赖』"><span class="nav-number">2.5.</span> <span class="nav-text">『最小依赖』</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#『精简体积』"><span class="nav-number">2.6.</span> <span class="nav-text">『精简体积』</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#『朴实表述』"><span class="nav-number">2.7.</span> <span class="nav-text">『朴实表述』</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#可维护性"><span class="nav-number">3.</span> <span class="nav-text">可维护性</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#『单向数据流』"><span class="nav-number">3.1.</span> <span class="nav-text">『单向数据流』</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#为什么？"><span class="nav-number">3.1.1.</span> <span class="nav-text">为什么？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何解"><span class="nav-number">3.1.2.</span> <span class="nav-text">如何解</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#『数据完整性』"><span class="nav-number">3.2.</span> <span class="nav-text">『数据完整性』</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#『数据驱动-UI』"><span class="nav-number">3.3.</span> <span class="nav-text">『数据驱动 UI』</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MVVS"><span class="nav-number">3.4.</span> <span class="nav-text">MVVS</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ViewState"><span class="nav-number">3.4.1.</span> <span class="nav-text">ViewState</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其他"><span class="nav-number">3.5.</span> <span class="nav-text">其他</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#可扩展性"><span class="nav-number">4.</span> <span class="nav-text">可扩展性</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#『-策略模式-』"><span class="nav-number">4.1.</span> <span class="nav-text">『 策略模式 』</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#『-模板方法-』"><span class="nav-number">4.2.</span> <span class="nav-text">『 模板方法 』</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#其他-1"><span class="nav-number">5.</span> <span class="nav-text">其他</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#小结"><span class="nav-number">6.</span> <span class="nav-text">小结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
