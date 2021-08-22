@@ -6,7 +6,7 @@ tags:
 - 移动开发
 - 跨平台
 ---
-本文是『 深入浅出 Flutter Framework 』系列文章的第二篇，对 BuildOwer 相关内容进行简要地分析介绍，为下一篇文章介绍 Element 作准备 (由于篇幅原因将其单独提出来)。
+本文是『 深入浅出 Flutter Framework 』系列文章的第二篇，对 BuildOwner 相关内容进行简要地分析介绍，为下一篇文章介绍 Element 作准备 (由于篇幅原因将其单独提出来)。
 
 <!--more-->
 ©原创文章，转载请注明出处！
@@ -18,21 +18,21 @@ tags:
 [『 深入浅出 Flutter Framework 之 PaintingContext 』](https://zxfcumtcs.github.io/2020/05/23/deepinto-flutter-paintingcontext/)
 [『 深入浅出 Flutter Framework 之 Layer 』](https://zxfcumtcs.github.io/2020/06/07/deepinto-flutter-layer/)
 [『 深入浅出 Flutter Framework 之 PipelineOwner 』](https://zxfcumtcs.github.io/2020/12/05/deepinto-flutter-pipelineowner/)
-『 深入浅出 Flutter Framework 之 RenderObejct 』
+[『 深入浅出 Flutter Framework 之 RenderObejct 』](https://zxfcumtcs.github.io/2021/03/27/deepinto-flutter-renderobject/)
 『 深入浅出 Flutter Framework 之 Binding 』
 『 深入浅出 Flutter Framework 之 Rendering Pipeline 』
 『 深入浅出 Flutter Framework 之 自定义 Widget 』
 
 # Overview
 _________________
-`BuildOwer`在 Element 状态管理上起到重要作用：
+`BuildOwner`在 Element 状态管理上起到重要作用：
 + 在 UI 更新过程中跟踪、管理需要 rebuild 的 Element (「dirty elements」);
 + 在有「dirty elements」时，及时通知引擎，以便在下一帧安排上对「dirty elements」的 rebuild，从而去刷新 UI；
 + 管理处于 "inactive" 状态的 Element。
 
 > 这是我们遇到的第一个 Owner，后面还有`PipeOwner`。
 
-整棵「Element Tree」共享同一个`BuildOwer`实例 (全局的)，在 Element 挂载过程中由 parent 传递给 child element。
+整棵「Element Tree」共享同一个`BuildOwner`实例 (全局的)，在 Element 挂载过程中由 parent 传递给 child element。
 ```dart
 @mustCallSuper
 void mount(Element parent, dynamic newSlot) {
@@ -46,10 +46,10 @@ void mount(Element parent, dynamic newSlot) {
 ```
 以上是`Element`基类的`mount`方法，第 8 行将 parent.owner 赋给了 child。
 
-> `BuildOwer`实例由`WidgetsBinding`负责创建，并赋值给「Element Tree」的根节点`RenderObjectToWidgetElement`，此后随着「Element Tree」的创建逐级传递给子节点。(具体流程后续文章会详细分析)
-一般情况下并不需要我们手动实例化`BuildOwer`，除非需要离屏沉浸 (此时需要构建 off-screen element tree)
+> `BuildOwner`实例由`WidgetsBinding`负责创建，并赋值给「Element Tree」的根节点`RenderObjectToWidgetElement`，此后随着「Element Tree」的创建逐级传递给子节点。(具体流程后续文章会详细分析)
+一般情况下并不需要我们手动实例化`BuildOwner`，除非需要离屏沉浸 (此时需要构建 off-screen element tree)
 
-`BuildOwer`两个关键成员变量：
+`BuildOwner`两个关键成员变量：
 ```dart
 final _InactiveElements _inactiveElements = _InactiveElements();
 final List<Element> _dirtyElements = <Element>[];
@@ -58,7 +58,7 @@ final List<Element> _dirtyElements = <Element>[];
 
 # Dirty Elements
 _________________
-那么`BuildOwer`是如何收集「Dirty Elements」的呢？
+那么`BuildOwner`是如何收集「Dirty Elements」的呢？
 对于需要更新的 element，首先会调用`Element.markNeedsBuild`方法，如[前文](https://zxfcumtcs.github.io/2020/05/01/deepinto-flutter-widget/)讲到的`State.setState`方法：
 ```dart
 void setState(VoidCallback fn) {
@@ -67,7 +67,7 @@ void setState(VoidCallback fn) {
 }
 ```
 
-如下，`Element.markNeedsBuild`调用了`BuildOwer.scheduleBuildFor`方法：
+如下，`Element.markNeedsBuild`调用了`BuildOwner.scheduleBuildFor`方法：
 ```dart
 void markNeedsBuild() {
   if (!_active)
@@ -81,7 +81,7 @@ void markNeedsBuild() {
 }
 ```
 
-`BuildOwer.scheduleBuildFor`方法做了 2 件事：
+`BuildOwner.scheduleBuildFor`方法做了 2 件事：
 + 调用`onBuildScheduled`，该方法(其实是个callback)会通知 Engine 在下一帧需要做更新操作；
 + 将「Dirty Elements」加入到`_dirtyElements`中。
 ```dart
@@ -94,7 +94,7 @@ void scheduleBuildFor(Element element) {
 }
 ```
 
-此后，在新一帧绘制到来时，`WidgetsBinding.drawFrame`会调用`BuildOwer.buildScope`方法：
+此后，在新一帧绘制到来时，`WidgetsBinding.drawFrame`会调用`BuildOwner.buildScope`方法：
 ```dart
 void buildScope(Element context, [ VoidCallback callback ]) {
   if (callback == null && _dirtyElements.isEmpty)
@@ -133,7 +133,7 @@ _________________
 所谓「Inactive Element」，是指 element 从「Element Tree」上被移除到 dispose 或被重新插入「Element Tree」间的一个中间状态。
 **设计 inactive 状态的主要目的是实现『带有「global key」的 element』可以带着『状态』在树上任意移动。**
 
-BuildOwer 负责对「Inactive Element」进行管理，包括添加、删除以及对过期的「Inactive Element」执行 unmount 操作。
+BuildOwner 负责对「Inactive Element」进行管理，包括添加、删除以及对过期的「Inactive Element」执行 unmount 操作。
 关于「Inactive Element」的更多信息将在介绍 Element 时一起介绍。
 
 # 小结

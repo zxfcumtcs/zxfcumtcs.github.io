@@ -81,7 +81,7 @@ sitemap:
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
   type: git
-  repository: https://github.com/zxfcumtcs/zxfcumtcs.github.io.git
+  repository: git@github.com:zxfcumtcs/zxfcumtcs.github.io.git
   branch: master
 
 
