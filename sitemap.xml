@@ -2,9 +2,44 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://zxfcumtcs.github.io/2020/05/01/deepinto-flutter-widget/</loc>
+    
+    <lastmod>2021-08-22T09:16:26.995Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://zxfcumtcs.github.io/2020/12/05/deepinto-flutter-pipelineowner/</loc>
+    
+    <lastmod>2021-08-22T09:16:10.315Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://zxfcumtcs.github.io/2020/05/23/deepinto-flutter-paintingcontext/</loc>
+    
+    <lastmod>2021-08-22T09:15:47.650Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://zxfcumtcs.github.io/2020/06/07/deepinto-flutter-layer/</loc>
+    
+    <lastmod>2021-08-22T09:15:29.708Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://zxfcumtcs.github.io/2020/05/17/deepinto-flutter-element/</loc>
+    
+    <lastmod>2021-08-22T09:15:12.455Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://zxfcumtcs.github.io/2020/05/16/deepinto-flutter-buildowner/</loc>
     
-    <lastmod>2021-08-22T08:53:47.803Z</lastmod>
+    <lastmod>2021-08-22T09:14:53.808Z</lastmod>
     
   </url>
   
@@ -26,41 +61,6 @@
     <loc>http://zxfcumtcs.github.io/2019/12/04/InterfaceBasedProgramming/</loc>
     
     <lastmod>2021-01-09T12:55:39.049Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://zxfcumtcs.github.io/2020/12/05/deepinto-flutter-pipelineowner/</loc>
-    
-    <lastmod>2020-12-06T09:35:45.293Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://zxfcumtcs.github.io/2020/05/01/deepinto-flutter-widget/</loc>
-    
-    <lastmod>2020-12-06T09:35:34.045Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://zxfcumtcs.github.io/2020/05/17/deepinto-flutter-element/</loc>
-    
-    <lastmod>2020-12-06T09:34:59.623Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://zxfcumtcs.github.io/2020/05/23/deepinto-flutter-paintingcontext/</loc>
-    
-    <lastmod>2020-12-06T09:34:26.776Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://zxfcumtcs.github.io/2020/06/07/deepinto-flutter-layer/</loc>
-    
-    <lastmod>2020-12-06T09:34:03.431Z</lastmod>
     
   </url>
   
