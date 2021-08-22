@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="flutter,移动开发,跨平台,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本文是『 深入浅出 Flutter Framework 』系列文章的第七篇。">
+<meta name="keywords" content="flutter,移动开发,跨平台">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入浅出 Flutter Framework 之 RenderObject">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2021/03/27/deepinto-flutter-renderobject/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本文是『 深入浅出 Flutter Framework 』系列文章的第七篇。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RenderObjectClassDiagram.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RenderObject_XMind.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RelayoutBoundary.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/LayputDataFlow.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RepaintBoundary.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RenderObject-Paint-Line.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RenderView-create.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/attachRootWidget.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/RenderObjectToWidgetElement-mount.png">
+<meta property="og:updated_time" content="2021-08-22T08:48:38.542Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入浅出 Flutter Framework 之 RenderObject">
+<meta name="twitter:description" content="本文是『 深入浅出 Flutter Framework 』系列文章的第七篇。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/RenderObjectClassDiagram.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2021/03/27/deepinto-flutter-renderobject/">
+
+
+
+
+
+  <title>深入浅出 Flutter Framework 之 RenderObject | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2021/03/27/deepinto-flutter-renderobject/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深入浅出 Flutter Framework 之 RenderObject</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-03-27T16:14:34+08:00">
+                2021-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2021/03/27/deepinto-flutter-renderobject/" class="leancloud_visitors" data-flag-title="深入浅出 Flutter Framework 之 RenderObject">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  4,130
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  18
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文是『 深入浅出 Flutter Framework 』系列文章的第七篇。</p>
+<a id="more"></a>
+<p>©原创文章，转载请注明出处！</p>
+<p>本系列文章将深入 Flutter Framework 内部逐步去分析其核心概念和流程，主要包括：<br><a href="https://zxfcumtcs.github.io/2020/05/01/deepinto-flutter-widget/">『 深入浅出 Flutter Framework 之 Widget 』</a><br><a href="https://zxfcumtcs.github.io/2020/05/16/deepinto-flutter-buildowner/">『 深入浅出 Flutter Framework 之 BuildOwner 』</a><br><a href="https://zxfcumtcs.github.io/2020/05/17/deepinto-flutter-element/">『 深入浅出 Flutter Framework 之 Element 』</a><br><a href="https://zxfcumtcs.github.io/2020/05/23/deepinto-flutter-paintingcontext/">『 深入浅出 Flutter Framework 之 PaintingContext 』</a><br><a href="https://zxfcumtcs.github.io/2020/06/07/deepinto-flutter-layer/">『 深入浅出 Flutter Framework 之 Layer 』</a><br><a href="https://zxfcumtcs.github.io/2020/12/05/deepinto-flutter-pipelineowner/">『 深入浅出 Flutter Framework 之 PipelineOwner 』</a><br>『 深入浅出 Flutter Framework 之 RenderObejct 』<br>『 深入浅出 Flutter Framework 之 Binding 』<br>『 深入浅出 Flutter Framework 之 Rendering Pipeline 』<br>『 深入浅出 Flutter Framework 之 自定义 Widget 』</p>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
+<p>可以说，RenderObject 在整个 Flutter Framework 中属于核心对象，其职责概括起来主要有三点：<br>『 Layout 』、『 Paint 』、『 Hit Testing 』。<br>然而，RenderObject 是抽象类，具体工作由子类去完成。<br><img src="/img/RenderObjectClassDiagram.png" width="80%" height="80%"><br>如上图，<code>RenderSliver</code>、<code>RenderBox</code>、<code>RenderView</code>以及<code>RenderAbstractViewport</code>是在 Flutter Framework 中定义的4个子类：</p>
+<ul>
+<li><code>RenderSliver</code>，『 Sliver-Widget 』对应的 Base RenderObject；</li>
+<li><code>RenderBox</code>，除『 Sliver-Widget 』外几乎所有常见 Render-Widget 对应的 Base RenderObject；</li>
+<li><code>RenderView</code>，是一种特殊的 Render Object，是『 RenderObect Tree 』的根节点；</li>
+<li><code>RenderAbstractViewport</code>，主要用于『 Scroll-Widget 』。</li>
+</ul>
+<p><img src="/img/RenderObject_XMind.png" alt=""><br>如上图，概括了<code>RenderObject</code>中与 Layout、Paint 相关的主要属性与方法(也是本文将要讨论的主要内容)。<br>其中，用虚线框起来的是<code>RenderObject</code>子类需要重写的方法。<br>正如上面所说，<code>RenderObject</code>是抽象类，它即没有明确使用哪种坐标系 (Cartesian coordinates or Polar coordinates)，也没有指定使用哪种排版算法 (width-in-height-out or constraint-in-size-out)。</p>
+<blockquote>
+<p><code>RenderBox</code>采用笛卡尔坐标系、排版算法是 constraint-in-size-out，即根据父节点传递的排版约束来计算 Size。</p>
+</blockquote>
+<p>下面我们从<code>RenderObject</code>生命周期中几个关键节点展开介绍：创建、布局、渲染。</p>
+<blockquote>
+<p>本文所示代码基于 Flutter 1.12.13，同时对代码做了精简处理，以便突出所要讨论的重点。</p>
+</blockquote>
+<h1 id="创建"><a href="#创建" class="headerlink" title="创建"></a>创建</h1><hr>
+<p>在<a href="https://zxfcumtcs.github.io/2020/05/17/deepinto-flutter-element/">『深入浅出 Flutter Framework 之 Element』</a>一文中我们介绍过，当 RenderObjectElement 被挂载(mount) 到『 Element Tree 』上时，会创建对应的 Render Object 。<br>同时，会将其 attach 到『 RenderObject Tree 』上，也就是在『 Element Tree 』创建过程中『 RenderObject Tree 』也被逐步创建出来：<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RenderObjectElement</span></span><br><span class="line"><span class="keyword">void</span> mount(<span class="built_in">Element</span> parent, <span class="keyword">dynamic</span> newSlot) &#123;</span><br><span class="line">  <span class="keyword">super</span>.mount(parent, newSlot);</span><br><span class="line">  _renderObject = widget.createRenderObject(<span class="keyword">this</span>);</span><br><span class="line">  attachRenderObject(newSlot);</span><br><span class="line">  _dirty = <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="布局"><a href="#布局" class="headerlink" title="布局"></a>布局</h1><hr>
+<p>在<a href="https://zxfcumtcs.github.io/2020/12/05/deepinto-flutter-pipelineowner/">『深入浅出 Flutter Framework 之 PipelineOwner』</a>一文中介绍过，当 RenderObject 需要(重新)布局时调用<code>markNeedsLayout</code>方法，从而被<code>PipelineOwner</code>收集，并在下一帧刷新时触发 Layout 操作。</p>
+<h2 id="markNeedsLayout调用场景"><a href="#markNeedsLayout调用场景" class="headerlink" title="markNeedsLayout调用场景"></a>markNeedsLayout调用场景</h2><ul>
+<li>Render Object 被添加到『 RenderObject Tree 』;</li>
+<li>子节点 adopt、drop、move；</li>
+<li>由子节点的<code>markNeedsLayout</code>方法传递调用；</li>
+<li>Render Object 自身与布局相关的属性发生变化，如<code>RenderFlex</code>的排版方向有变化时：<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> direction(Axis value) &#123;</span><br><span class="line">  <span class="keyword">assert</span>(value != <span class="keyword">null</span>);</span><br><span class="line">  <span class="keyword">if</span> (_direction != value) &#123;</span><br><span class="line">    _direction = value;</span><br><span class="line">    markNeedsLayout();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="Relayout-Boundary"><a href="#Relayout-Boundary" class="headerlink" title="Relayout Boundary"></a>Relayout Boundary</h2><p>若某个 Render Object 的布局变化不会影响到其父节点的布局，则该 Render Object 就是『 Relayout Boundary 』。<br>Relayout Boundary 是一项重要的优化措施，可以避免不必要的 re-layout。</p>
+<p>当某个 Render Object 是 Relayout Boundary 时，会切断 layout dirty 向父节点传播，即下一帧刷新时父节点无需 re-layout。<br><img src="/img/RelayoutBoundary.png" width="50%" height="50%"><br>如上图：</p>
+<ul>
+<li>若<code>RD</code>节点出现 layout dirty，由于其自身、其父节点<code>RA</code>、<code>RRoot</code>都不是 Relayout Boundary，最终 layout dirty 传播到根节点<code>RenderView</code>，导致整颗『 RenderObject Tree 』重新布局；</li>
+<li>若<code>RF</code>节点出现 layout dirty，由于其父节点<code>RB</code>为 Relayout Boundary，layout dirty 传播到<code>RB</code>即结束，最终需要重新布局的只有<code>RB</code>、<code>RF</code>两个节点；</li>
+<li>若<code>RG</code>节点出现 layout dirty，由于其自身就是 Relayout Boundary，最终需要重新布局的只有<code>RG</code>自己。</li>
+</ul>
+<p>那么，具体来说要成为 Relayout Boundary 需要满足什么条件呢？<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> layout(Constraints constraints, &#123; <span class="built_in">bool</span> parentUsesSize = <span class="keyword">false</span> &#125;) &#123;</span><br><span class="line">  RenderObject relayoutBoundary;</span><br><span class="line">  <span class="keyword">if</span> (!parentUsesSize || sizedByParent || constraints.isTight || parent <span class="keyword">is</span>! RenderObject) &#123;</span><br><span class="line">    relayoutBoundary = <span class="keyword">this</span>;</span><br><span class="line">  &#125; </span><br><span class="line">  <span class="keyword">else</span> &#123;</span><br><span class="line">    relayoutBoundary = (parent <span class="keyword">as</span> RenderObject)._relayoutBoundary;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!_needsLayout &amp;&amp; constraints == _constraints &amp;&amp; relayoutBoundary == _relayoutBoundary) &#123;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (_relayoutBoundary != <span class="keyword">null</span> &amp;&amp; relayoutBoundary != _relayoutBoundary) &#123;</span><br><span class="line">    visitChildren(_cleanChildRelayoutBoundary);</span><br><span class="line">  &#125;</span><br><span class="line">  _relayoutBoundary = relayoutBoundary;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>以上是<code>RenderObject#layout</code>中与 Relayout Boundary 有关的代码，<br>可知满足以下 4 个条件之一即可成为 Relayout Boundary：</p>
+<ul>
+<li><code>parentUsesSize</code>为<code>false</code>，即父节点在 layout 时不会使用当前节点的 size 信息(也就是当前节点的排版信息对父节点无影响)；</li>
+<li><code>sizedByParent</code>为<code>true</code>，即当前节点的 size 完全由父节点的 constraints 决定，即若在两次 layout 中传递下来的 constraints 相同，则两次 layout 后当前节点的 size 也相同；</li>
+<li>传给当前节点的 constraints 是紧凑型 (Tight)，其效果与<code>sizedByParent</code>为<code>true</code>是一样的，即当前节点的 layout 不会改变其 size，size 由 constraints 唯一确定；</li>
+<li>父节点不是 RenderObject 类型(主要针对根节点，其父节点为nil)。</li>
+</ul>
+<blockquote>
+<p>每个 Render Object 都有一个<code>relayoutBoundary</code>属性，其值要么等于自己，要么等于父节点的<code>relayoutBoundary</code>。</p>
+</blockquote>
+<h2 id="markNeedsLayout"><a href="#markNeedsLayout" class="headerlink" title="markNeedsLayout"></a>markNeedsLayout</h2><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> markNeedsLayout() &#123;</span><br><span class="line">  <span class="keyword">if</span> (_needsLayout) &#123;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (_relayoutBoundary != <span class="keyword">this</span>) &#123;</span><br><span class="line">    markParentNeedsLayout();</span><br><span class="line">  &#125; </span><br><span class="line">  <span class="keyword">else</span> &#123;</span><br><span class="line">    _needsLayout = <span class="keyword">true</span>;</span><br><span class="line">    <span class="keyword">if</span> (owner != <span class="keyword">null</span>) &#123;</span><br><span class="line">      owner._nodesNeedingLayout.add(<span class="keyword">this</span>);</span><br><span class="line">      owner.requestVisualUpdate();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从上述代码可以看到：</p>
+<ul>
+<li>若当前 Render Object 不是 Relayout Boundary，则 layout 请求向上传播给父节点(即 layout 范围扩大到父节点，这是一个递归过程，直到遇到 Relayout Boundary)；</li>
+<li>若当前 Render Object 是 Relayout Boundary，则 layout 请求到该节点为此，不会传播到其父节点。</li>
+</ul>
+<blockquote>
+<p>通过 PipelineOwner 收集所有 layout dirty 节点，并在下一帧刷新时批量处理，而不是实时更新 dirty layout，从而避免不必要的重复 re-layout。</p>
+</blockquote>
+<h2 id="layout"><a href="#layout" class="headerlink" title="layout"></a>layout</h2><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> layout(Constraints constraints, &#123; <span class="built_in">bool</span> parentUsesSize = <span class="keyword">false</span> &#125;) &#123;</span><br><span class="line">  RenderObject relayoutBoundary;</span><br><span class="line">  <span class="keyword">if</span> (!parentUsesSize || sizedByParent || constraints.isTight || parent <span class="keyword">is</span>! RenderObject) &#123;</span><br><span class="line">    relayoutBoundary = <span class="keyword">this</span>;</span><br><span class="line">  &#125; </span><br><span class="line">  <span class="keyword">else</span> &#123;</span><br><span class="line">    relayoutBoundary = (parent <span class="keyword">as</span> RenderObject)._relayoutBoundary;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!_needsLayout &amp;&amp; constraints == _constraints &amp;&amp; relayoutBoundary == _relayoutBoundary) &#123;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  _constraints = constraints;</span><br><span class="line">  <span class="keyword">if</span> (_relayoutBoundary != <span class="keyword">null</span> &amp;&amp; relayoutBoundary != _relayoutBoundary) &#123;</span><br><span class="line">    visitChildren(_cleanChildRelayoutBoundary);</span><br><span class="line">  &#125;</span><br><span class="line">  _relayoutBoundary = relayoutBoundary;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (sizedByParent) &#123;</span><br><span class="line">    performResize();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  performLayout();</span><br><span class="line">  markNeedsSemanticsUpdate();</span><br><span class="line">  </span><br><span class="line">  _needsLayout = <span class="keyword">false</span>;</span><br><span class="line">  markNeedsPaint();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>layout</code>方法是触发 Render Object 更新布局信息的主要入口点。<br>一般情况下，由父节点调用子节点的<code>layout</code>方法来更新其整体布局。<br><code>RenderObject</code>的子类不应重写该方法，可按需重写<code>performResize</code>或/和<code>performLayout</code>方法。</p>
+<p>当前 Render Object 的布局受到<code>layout</code>方法参数<code>constraints</code>的约束。<br><img src="/img/LayputDataFlow.png" width="60%" height="60%"><br>如上图，『 Render Object Tree 』的 layout 是一次深度优先遍历的过程。<br>优先 layout 子节点，之后 layout 父节点。<br>父节点向子节点传递 layout constraints，子节点在 layout 时需遵守这些约束。<br>作为子节点 layout 的结果，父节点在 layout 时可以使用子节点的 size。</p>
+<p>在上述<code>layout</code>代码第<code>19~21</code>行，若<code>sizedByParent</code>为<code>true</code>，则调用<code>performResize</code>来计算该 Render Object 的 size。</p>
+<p><code>sizedByParent</code>为<code>true</code>的 Render Object 需重写<code>performResize</code>方法，在该方法中仅根据<code>constraints</code>来计算 size。<br>如<code>RenderBox</code>中定义的<code>performResize</code>的默认行为：取<code>constraints</code>约束下的最小 size：<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@override</span></span><br><span class="line"><span class="keyword">void</span> performResize() &#123;</span><br><span class="line">  <span class="comment">// default behavior for subclasses that have sizedByParent = true</span></span><br><span class="line">  size = constraints.smallest;</span><br><span class="line">  <span class="keyword">assert</span>(size.isFinite);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>若父节点 layout 依赖子节点的 size，在调用<code>layout</code>方法时需将<code>parentUsesSize</code>参数设为<code>true</code>。<br>因为，在这种情况下若子节点 re-layout 导致其 size 发生变化，需要及时通知父节点，父节点也需要 re-layout (即 layout dirty 范围需要向上传播)。<br>这一切都是通过上节介绍过的 Relayout Boundary 来实现。</p>
+<h2 id="performLayout"><a href="#performLayout" class="headerlink" title="performLayout"></a>performLayout</h2><p>本质上，<code>layout</code>是一个模板方法，具体的布局工作由<code>performLayout</code>方法完成。<br><code>RenderObject#performLayout</code>是一个抽象方法，子类需重写。</p>
+<p>关于<code>performLayout</code>有几点需要注意：</p>
+<ul>
+<li>该方法由<code>layout</code>方法调用，在需要 re-layout 时应调用<code>layout</code>方法，而不是<code>performLayout</code>；</li>
+<li>若<code>sizedByParent</code>为<code>true</code>，则该方法不应改变当前 Render Object 的 size ( 其 size 由<code>performResize</code>方法计算)；</li>
+<li>若<code>sizedByParent</code>为<code>false</code>，则该方法不仅要执行 layout 操作，还要计算当前 Render Object 的 size；</li>
+<li>在该方法中，需对其所有子节点调用<code>layout</code>方法以执行所有子节点的 layout 操作，如果当前 Render Object 依赖子节点的布局信息，需将<code>parentUsesSize</code>参数设为<code>true</code>。</li>
+</ul>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RenderFlex</span></span><br><span class="line"><span class="keyword">void</span> performLayout() &#123;</span><br><span class="line">  RenderBox child = firstChild;</span><br><span class="line">  <span class="keyword">while</span> (child != <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">final</span> FlexParentData childParentData = child.parentData;</span><br><span class="line">    BoxConstraints innerConstraints = BoxConstraints(minHeight: constraints.maxHeight, maxHeight: constraints.maxHeight);</span><br><span class="line">    child.layout(innerConstraints, parentUsesSize: <span class="keyword">true</span>);</span><br><span class="line">    child = childParentData.nextSibling;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  size = constraints.constrain(Size(idealSize, crossSize));</span><br><span class="line">  </span><br><span class="line">  child = firstChild;</span><br><span class="line">  <span class="keyword">while</span> (child != <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">final</span> FlexParentData childParentData = child.parentData;</span><br><span class="line">    <span class="built_in">double</span> childCrossPosition = crossSize / <span class="number">2.0</span> - _getCrossSize(child) / <span class="number">2.0</span>;</span><br><span class="line">    childParentData.offset = Offset(childMainPosition, childCrossPosition);</span><br><span class="line">    child = childParentData.nextSibling;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上述代码片段截取自<code>RenderFlex</code>，可以看到它大概做了3件事：</p>
+<ul>
+<li>对所有子节点逐个调用<code>layout</code>方法；</li>
+<li>计算当前 Render Object 的 size；</li>
+<li>将与子节点布局有关的信息存储到相应子节点的<code>parentData</code>中。</li>
+</ul>
+<blockquote>
+<p><code>RenderFlex</code>继承自<code>RenderBox</code>，是常用的<code>Row</code>、<code>Column</code>对应的 Render Object。</p>
+</blockquote>
+<h1 id="绘制"><a href="#绘制" class="headerlink" title="绘制"></a>绘制</h1><hr>
+<p>与<code>markNeedsLayout</code>相似，当 Render Object 需要重新绘制 (paint dirty) 时通过<code>markNeedsPaint</code>方法上报给<code>PipelineOwner</code>。</p>
+<h2 id="markNeedsPaint"><a href="#markNeedsPaint" class="headerlink" title="markNeedsPaint"></a>markNeedsPaint</h2><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> markNeedsPaint() &#123;</span><br><span class="line">  <span class="keyword">if</span> (isRepaintBoundary) &#123;</span><br><span class="line">    <span class="keyword">assert</span>(_layer <span class="keyword">is</span> OffsetLayer);</span><br><span class="line">    <span class="keyword">if</span> (owner != <span class="keyword">null</span>) &#123;</span><br><span class="line">      owner._nodesNeedingPaint.add(<span class="keyword">this</span>);</span><br><span class="line">      owner.requestVisualUpdate();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; </span><br><span class="line">  <span class="keyword">else</span> <span class="keyword">if</span> (parent <span class="keyword">is</span> RenderObject) &#123;</span><br><span class="line">    <span class="keyword">final</span> RenderObject parent = <span class="keyword">this</span>.parent;</span><br><span class="line">    parent.markNeedsPaint();</span><br><span class="line">  &#125; </span><br><span class="line">  <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (owner != <span class="keyword">null</span>)</span><br><span class="line">      owner.requestVisualUpdate();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>markNeedsPaint</code>内部逻辑与<code>markNeedsLayout</code>都非常相似：</p>
+<ul>
+<li>若当前 Render Object 是 Repaint Boundary，则将其添加到<code>PipelineOwner#_nodesNeedingPaint</code>中，Paint request 也随之结束；</li>
+<li>否则，Paint request 向父节点传播，即需要 re-paint 的范围扩大到父节点(这是一个递归的过程)；</li>
+<li>有一个特例，那就是『 Render Object Tree 』的根节点，即 RenderView，它的父节点为 nil，此时只需调用<code>PipelineOwner#requestVisualUpdate</code>即可。</li>
+</ul>
+<blockquote>
+<p><code>PipelineOwner#_nodesNeedingPaint</code>收集的所有 Render Object 都是 Repaint Boundary。</p>
+</blockquote>
+<h2 id="Repaint-Boundary"><a href="#Repaint-Boundary" class="headerlink" title="Repaint Boundary"></a>Repaint Boundary</h2><p>对 Repaint Boundary 从上面<code>markNeedsPaint</code>的实现可略知一二，<br>若某 Render Object 是 Repaint Boundary，其会切断 re-Paint request 向父节点传播。</p>
+<p>更直白点，Repaint Boundary 使得 Render Object 可以独立于父节点进行绘制，<br>否则当前 Render Object 会与父节点绘制在同一个 layer 上。<br>总结一下，Repaint Boundary 有以下特点：</p>
+<ul>
+<li>每个 Repaint Boundary 都有一个独属于自己的 OffsetLayer (ContainerLayer)，其自身及子孙节点的绘制结果都将 attach 到以该 layer 为根节点的子树上；</li>
+<li>每个 Repaint Boundary 都有一个独属于自己的 PaintingContext (包括背后的 Canvas)，从而使得其绘制与父节点完全隔离开。</li>
+</ul>
+<p><img src="/img/RepaintBoundary.png" width="100%" height="100%"><br>如上图，由于<code>Root</code>/<code>RA</code>/<code>RC</code>/<code>RG</code>/<code>RI</code>是 Repaint Boundary，所以它们都有对应的 OffsetLayer。<br>同时，由于每个 Repaint Boundary 都有属于自己的 PaintingContext，所以它们都有对应的 PictureLayer，用于呈现具体的绘制结果。<br>对于那些不是 Repaint Boundary 的节点，将会绘制到最近的 Repaint Boundary 祖先节点提供的 PictureLayer 上。</p>
+<blockquote>
+<p>Repaint Boundary 会影响兄弟节点的绘制，如由于<code>RC</code>是 Repaint Boundary，导致<code>RB</code>、<code>RD</code>被绘制到不同的 PictureLayer 上。</p>
+</blockquote>
+<blockquote>
+<p>实现中，『 Layer Tree 』往往会比上图所示更复杂，由于每个 Render Object 在绘制过程中都可以自主引入更多的 layer。</p>
+</blockquote>
+<p>Repaint Boundary 的目标是优化性能，但从上面的讨论我们也可以看出 Repaint Boundary 会增加『 Layer Tree 』的复杂度。<br>因此，Repaint Boundary 并不是越多越好。<br>只适用于那些需要频繁重绘的场景，如视频。</p>
+<blockquote>
+<p>Flutter Framework 为开发者预定义了<code>RepaintBoundary</code> widget，其继承自<code>SingleChildRenderObjectWidget</code>，在有需要时我们可以通过<code>RepaintBoundary</code> widget 来添加 Repaint Boundary。</p>
+</blockquote>
+<h2 id="Paint"><a href="#Paint" class="headerlink" title="Paint"></a>Paint</h2><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> paint(PaintingContext context, Offset offset) &#123; &#125;</span><br></pre></td></tr></table></figure>
+<p>抽象基类<code>RenderObject</code>中的<code>paint</code>是个空方法，需要子类重写。<br><code>paint</code>方法主要有2项任务：</p>
+<ul>
+<li><p>当前 Render Object 本身的绘制，如：<code>RenderImage</code>，其<code>paint</code>方法主要职责就是 image 的渲染</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> paint(PaintingContext context, Offset offset) &#123;</span><br><span class="line">  paintImage(</span><br><span class="line">    canvas: context.canvas,</span><br><span class="line">    rect: offset &amp; size,</span><br><span class="line">    image: _image,</span><br><span class="line">    ...</span><br><span class="line">  );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>绘制子节点，如：<code>RenderTable</code>，其<code>paint</code>方法主要职责是依次对每个子节点调用<code>PaintingContext#paintChild</code>方法进行绘制：</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> paint(PaintingContext context, Offset offset) &#123;</span><br><span class="line">  <span class="keyword">for</span> (<span class="built_in">int</span> index = <span class="number">0</span>; index &lt; _children.length; index += <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">final</span> RenderBox child = _children[index];</span><br><span class="line">    <span class="keyword">if</span> (child != <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">final</span> BoxParentData childParentData = child.parentData;</span><br><span class="line">      context.paintChild(child, childParentData.offset + offset);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="串起来"><a href="#串起来" class="headerlink" title="串起来"></a>串起来</h2><p><img src="/img/RenderObject-Paint-Line.png" alt=""><br>下面我们将整个绘制流程串一串，如上图：</p>
+<h3 id="PipelineOwner-flushPaint"><a href="#PipelineOwner-flushPaint" class="headerlink" title="PipelineOwner#flushPaint"></a>PipelineOwner#flushPaint</h3><p>当新一帧开始时，会触发<code>PipelineOwner#flushPaint</code>方法，进而对收集的所有『 paint-dirty Render Obejcts 』进行 re-paint：<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> flushPaint() &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">final</span> <span class="built_in">List</span>&lt;RenderObject&gt; dirtyNodes = _nodesNeedingPaint;</span><br><span class="line">      _nodesNeedingPaint = &lt;RenderObject&gt;[];</span><br><span class="line">      </span><br><span class="line">      <span class="comment">// Sort the dirty nodes in reverse order (deepest first).</span></span><br><span class="line">      <span class="keyword">for</span> (RenderObject node <span class="keyword">in</span> dirtyNodes..sort((RenderObject a, RenderObject b) =&gt; b.depth - a.depth)) &#123;</span><br><span class="line">        <span class="keyword">assert</span>(node._layer != <span class="keyword">null</span>);</span><br><span class="line">        <span class="keyword">if</span> (node._needsPaint &amp;&amp; node.owner == <span class="keyword">this</span>) &#123;</span><br><span class="line">          PaintingContext.repaintCompositedChild(node);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; </span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="PaintingContext-repaintCompositedChild"><a href="#PaintingContext-repaintCompositedChild" class="headerlink" title="PaintingContext#repaintCompositedChild"></a>PaintingContext#repaintCompositedChild</h3><p><code>PaintingContext#repaintCompositedChild</code>是一个非常重要的方法，一是为『 paint-dirty Render Obejcts 』创建 Layer (若没有)、二是为 RenderObject 的绘制准备<code>context</code>并发起绘制流程：<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> _repaintCompositedChild(</span><br><span class="line">  RenderObject child, &#123;</span><br><span class="line">  <span class="built_in">bool</span> debugAlsoPaintedParent = <span class="keyword">false</span>,</span><br><span class="line">  PaintingContext childContext,</span><br><span class="line">&#125;) &#123;</span><br><span class="line">  <span class="keyword">assert</span>(child.isRepaintBoundary);</span><br><span class="line">  OffsetLayer childLayer = child._layer;</span><br><span class="line">  <span class="keyword">if</span> (childLayer == <span class="keyword">null</span>) &#123;</span><br><span class="line">    child._layer = childLayer = OffsetLayer();</span><br><span class="line">  &#125; </span><br><span class="line">  <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">assert</span>(childLayer <span class="keyword">is</span> OffsetLayer);</span><br><span class="line">    childLayer.removeAllChildren();</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 在正常的绘制流程中通过参数传递过来的 childContext 都是 null</span></span><br><span class="line">  <span class="comment">// 因此，此处总是会创建新的 PaintingContext</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  childContext ??= PaintingContext(child._layer, child.paintBounds);</span><br><span class="line">  child._paintWithContext(childContext, Offset.zero);</span><br><span class="line"></span><br><span class="line">  childContext.stopRecordingIfNeeded();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="RenderObject-paintWithContext"><a href="#RenderObject-paintWithContext" class="headerlink" title="RenderObject#_paintWithContext"></a>RenderObject#_paintWithContext</h3><p><code>RenderObject#_paintWithContext</code>逻辑比较简单，主要就是调用<code>paint</code>方法；<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> _paintWithContext(PaintingContext context, Offset offset) &#123;</span><br><span class="line">  <span class="keyword">if</span> (_needsLayout)</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  _needsPaint = <span class="keyword">false</span>;</span><br><span class="line">  paint(context, offset);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><code>paint</code>方法正如上节所讲，通过<code>Canvas#draw***</code>系列方法进行具体的绘制操作，对于子节点(若有)调用<code>PaintingContext#paintChild</code>方法；</p>
+<h3 id="PaintingContext-paintChild"><a href="#PaintingContext-paintChild" class="headerlink" title="PaintingContext#paintChild"></a>PaintingContext#paintChild</h3><p>对于当前绘制子节点，若是 Repaint Boundary，则需要在独立的 layer 上进行绘制，<br>否则直接调用子节点的<code>_paintWithContext</code>方法在当前上下文(paint context)中绘制：<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> paintChild(RenderObject child, Offset offset) &#123;</span><br><span class="line">  <span class="keyword">if</span> (child.isRepaintBoundary) &#123;</span><br><span class="line">    stopRecordingIfNeeded();</span><br><span class="line">    _compositeChild(child, offset);</span><br><span class="line">  &#125; </span><br><span class="line">  <span class="keyword">else</span> &#123;</span><br><span class="line">    child._paintWithContext(<span class="keyword">this</span>, offset);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>下面重点分析对 Repaint Boundary 的处理，如上<code>paintChild</code>所示，首先会调用<code>PaintingContext#stopRecordingIfNeeded</code>来停止当前的绘制工作：<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> stopRecordingIfNeeded() &#123;</span><br><span class="line">  <span class="keyword">if</span> (!_isRecording)</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  _currentLayer.picture = _recorder.endRecording();</span><br><span class="line">  _currentLayer = <span class="keyword">null</span>;</span><br><span class="line">  _recorder = <span class="keyword">null</span>;</span><br><span class="line">  _canvas = <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><code>stopRecordingIfNeeded</code>首先将当前绘制结果保存到<code>_currentLayer.picture</code>中，之后对上下文做一些清理。<br>将<code>_currentLayer</code>置为 null，初看感觉难于理解，保存在<code>_currentLayer.picture</code>中的绘制结果且不是就丢了？<br>其实，<code>_currentLayer</code>早在<code>_startRecording</code>方法中就被添加到『 Layer Tree 』上，这里只是将<code>PaintingContext</code>中的引用置为 null 而以。<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> _startRecording() &#123;</span><br><span class="line">  <span class="keyword">assert</span>(!_isRecording);</span><br><span class="line">  _currentLayer = PictureLayer(estimatedBounds);</span><br><span class="line">  _recorder = ui.PictureRecorder();</span><br><span class="line">  _canvas = Canvas(_recorder);</span><br><span class="line">  _containerLayer.append(_currentLayer);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>由于已经将<code>_canvas</code>置为 null 了，下次使用时会触发对<code>_startRecording</code>方法的调用：<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Canvas <span class="keyword">get</span> canvas &#123;</span><br><span class="line">  <span class="keyword">if</span> (_canvas == <span class="keyword">null</span>)</span><br><span class="line">    _startRecording();</span><br><span class="line">  <span class="keyword">return</span> _canvas;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="PaintingContext-compositeChild"><a href="#PaintingContext-compositeChild" class="headerlink" title="PaintingContext#_compositeChild"></a>PaintingContext#_compositeChild</h3><p>在<code>_compositeChild</code>中，通过<code>repaintCompositedChild</code>对子节点发起新一轮的绘制，并将绘制结果(<code>child._layer</code>)添加到『 Layer Tree 』中：<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> _compositeChild(RenderObject child, Offset offset) &#123;</span><br><span class="line">  <span class="keyword">assert</span>(!_isRecording);</span><br><span class="line">  <span class="keyword">assert</span>(child.isRepaintBoundary);</span><br><span class="line">  <span class="keyword">assert</span>(_canvas == <span class="keyword">null</span> || _canvas.getSaveCount() == <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">  repaintCompositedChild(child, debugAlsoPaintedParent: <span class="keyword">true</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">final</span> OffsetLayer childOffsetLayer = child._layer;</span><br><span class="line">  childOffsetLayer.offset = offset;</span><br><span class="line">  appendLayer(child._layer);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>整个绘制过程其实就是对『 RenderObject Tree 』进行深度遍历的过程；<br>Repaint Boundary 会独立于父节点进行绘制，因此需要独立的 ContainerLayer(OffsetLayer) 以及 PaintingContext。</p>
+<h1 id="跑起来"><a href="#跑起来" class="headerlink" title="跑起来"></a>跑起来</h1><hr>
+<p>下面我们简单的分析一下，一个 Flutter App 是怎么跑起来的。</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> runApp(Widget app) &#123;</span><br><span class="line">  WidgetsFlutterBinding.ensureInitialized()</span><br><span class="line">    ..scheduleAttachRootWidget(app)</span><br><span class="line">    ..scheduleWarmUpFrame();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>runApp</code>是 Flutter 项目的入口点，完成 Binding 的初始化、attach root widget、安排首帧的调度。</p>
+<p><img src="/img/RenderView-create.png" alt=""><br>如上图，在<code>RendererBinding#initInstances</code>中会创建『 RenderObject Tree 』的根节点：<code>RenderView</code>。</p>
+<p>如下代码，在<code>RenderView</code>初始化过程中为首帧渲染作准备，『 Layer Tree 』根节点也是在此过程中创建的。<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RenderView</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="keyword">void</span> prepareInitialFrame() &#123;</span><br><span class="line">  scheduleInitialLayout();</span><br><span class="line">  scheduleInitialPaint(_updateMatricesAndCreateNewRootLayer());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Layer _updateMatricesAndCreateNewRootLayer() &#123;</span><br><span class="line">  _rootTransform = configuration.toMatrix();</span><br><span class="line">  <span class="keyword">final</span> ContainerLayer rootLayer = TransformLayer(transform: _rootTransform);</span><br><span class="line">  rootLayer.attach(<span class="keyword">this</span>);</span><br><span class="line">  <span class="keyword">return</span> rootLayer;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RenderObject</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="keyword">void</span> scheduleInitialLayout() &#123;</span><br><span class="line">  _relayoutBoundary = <span class="keyword">this</span>;</span><br><span class="line">  owner._nodesNeedingLayout.add(<span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> scheduleInitialPaint(ContainerLayer rootLayer) &#123;</span><br><span class="line">  _layer = rootLayer;</span><br><span class="line">  owner._nodesNeedingPaint.add(<span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如下图，在<code>WidgetsFlutterBinding#scheduleAttachRootWidget</code>-&gt;<code>WidgetsFlutterBinding#attachRootWidget</code>调用链上会创建 Root Widget：<code>RenderObjectToWidgetAdapter</code>。</p>
+<p><img src="/img/attachRootWidget.png" alt=""></p>
+<p>在<code>RenderObjectToWidgetAdapter#attachToRenderTree</code>方法中『 Element Tree 』的根节点<code>RenderObjectToWidgetElement</code>被创建出来。<br>至此：</p>
+<ul>
+<li>Root Widget(<code>RenderObjectToWidgetAdapter</code>)</li>
+<li>『 Element Tree 』的根节点(<code>RenderObjectToWidgetElement</code>)</li>
+<li>『 RenderObject Tree 』的根节点(<code>RenderView</code>)</li>
+<li>『 Layer Tree 』的根节点(<code>TransformLayer</code>)</li>
+</ul>
+<p>创建完成。</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RenderObjectToWidgetAdapter</span></span><br><span class="line">RenderObjectToWidgetElement&lt;T&gt; attachToRenderTree(BuildOwner owner, [ RenderObjectToWidgetElement&lt;T&gt; element ]) &#123;</span><br><span class="line"> owner.lockState(() &#123;</span><br><span class="line">   element = createElement();</span><br><span class="line">   element.assignOwner(owner);</span><br><span class="line"> &#125;);</span><br><span class="line"> </span><br><span class="line"> owner.buildScope(element, () &#123;</span><br><span class="line">   element.mount(<span class="keyword">null</span>, <span class="keyword">null</span>);</span><br><span class="line"> &#125;);</span><br><span class="line"> </span><br><span class="line"> <span class="comment">// This is most likely the first time the framework is ready to produce</span></span><br><span class="line"> <span class="comment">// a frame. Ensure that we are asked for one.</span></span><br><span class="line"> SchedulerBinding.instance.ensureVisualUpdate();</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> element;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">RenderObjectToWidgetElement&lt;T&gt; createElement() =&gt; RenderObjectToWidgetElement&lt;T&gt;(<span class="keyword">this</span>);</span><br></pre></td></tr></table></figure>
+<p>上述代码第<code>9</code>行，对 Root Element 进行挂载(mount)。<br>随之，『 Element Tree 』被逐步创建出来。</p>
+<blockquote>
+<p>关于『 Element Tree 』创建过程更详细的分析可参看<a href="https://zxfcumtcs.github.io/2020/05/17/deepinto-flutter-element/">『深入浅出 Flutter Framework 之 Element』</a>一文</p>
+</blockquote>
+<p><img src="/img/RenderObjectToWidgetElement-mount.png" alt=""><br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RenderObjectToWidgetAdapter</span></span><br><span class="line"><span class="keyword">void</span> _rebuild() &#123;</span><br><span class="line">  _child = updateChild(_child, widget.child, _rootChildSlot);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>随着『 Element Tree 』的构建，『 RenderObject Tree 』也被创建出来。<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RenderObjectElement</span></span><br><span class="line"><span class="keyword">void</span> mount(<span class="built_in">Element</span> parent, <span class="keyword">dynamic</span> newSlot) &#123;</span><br><span class="line">  <span class="keyword">super</span>.mount(parent, newSlot);</span><br><span class="line">  _renderObject = widget.createRenderObject(<span class="keyword">this</span>);</span><br><span class="line">  attachRenderObject(newSlot);</span><br><span class="line">  _dirty = <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="小结-1"><a href="#小结-1" class="headerlink" title="小结"></a>小结</h1><hr>
+<p>本文对 RenderObject 生命周期中几个重要节点：创建、布局、绘制等作了简要介绍。<br>对一些重要概念，如：Relayout Boundary、Repaint Boundary 也进行了较详细的分析。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/flutter/" rel="tag"># flutter</a>
+          
+            <a href="/tags/移动开发/" rel="tag"># 移动开发</a>
+          
+            <a href="/tags/跨平台/" rel="tag"># 跨平台</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/01/02/HighQualityCode/" rel="next" title="『码』出高质量">
+                <i class="fa fa-chevron-left"></i> 『码』出高质量
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">51</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#创建"><span class="nav-number">2.</span> <span class="nav-text">创建</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#布局"><span class="nav-number">3.</span> <span class="nav-text">布局</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#markNeedsLayout调用场景"><span class="nav-number">3.1.</span> <span class="nav-text">markNeedsLayout调用场景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Relayout-Boundary"><span class="nav-number">3.2.</span> <span class="nav-text">Relayout Boundary</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#markNeedsLayout"><span class="nav-number">3.3.</span> <span class="nav-text">markNeedsLayout</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#layout"><span class="nav-number">3.4.</span> <span class="nav-text">layout</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#performLayout"><span class="nav-number">3.5.</span> <span class="nav-text">performLayout</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#绘制"><span class="nav-number">4.</span> <span class="nav-text">绘制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#markNeedsPaint"><span class="nav-number">4.1.</span> <span class="nav-text">markNeedsPaint</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Repaint-Boundary"><span class="nav-number">4.2.</span> <span class="nav-text">Repaint Boundary</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Paint"><span class="nav-number">4.3.</span> <span class="nav-text">Paint</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#串起来"><span class="nav-number">4.4.</span> <span class="nav-text">串起来</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#PipelineOwner-flushPaint"><span class="nav-number">4.4.1.</span> <span class="nav-text">PipelineOwner#flushPaint</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PaintingContext-repaintCompositedChild"><span class="nav-number">4.4.2.</span> <span class="nav-text">PaintingContext#repaintCompositedChild</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RenderObject-paintWithContext"><span class="nav-number">4.4.3.</span> <span class="nav-text">RenderObject#_paintWithContext</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PaintingContext-paintChild"><span class="nav-number">4.4.4.</span> <span class="nav-text">PaintingContext#paintChild</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PaintingContext-compositeChild"><span class="nav-number">4.4.5.</span> <span class="nav-text">PaintingContext#_compositeChild</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小结"><span class="nav-number">4.4.6.</span> <span class="nav-text">小结</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#跑起来"><span class="nav-number">5.</span> <span class="nav-text">跑起来</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#小结-1"><span class="nav-number">6.</span> <span class="nav-text">小结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
