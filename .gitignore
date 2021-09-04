@@ -1,0 +1,12 @@
+.DS_Store
+.deploy_git/
+db.json
+node_modules/
+package-lock.json
+package.json
+public/
+source/.DS_Store
+source/_posts/.DS_Store
+source/img/.DS_Store
+themes/
+
