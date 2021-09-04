@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="flutter,移动开发,跨平台,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本文是『 深入浅出 Flutter Framework 』系列文章的第八篇，也是收官之作。通过自定义渲染型 Widget，我们一步步地实现了一个评分组件。">
+<meta name="keywords" content="flutter,移动开发,跨平台">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入浅出 Flutter Framework 之自定义渲染型 Widget">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2021/08/28/deepinto-flutter-custom-renderobjectwidget/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本文是『 深入浅出 Flutter Framework 』系列文章的第八篇，也是收官之作。通过自定义渲染型 Widget，我们一步步地实现了一个评分组件。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/Score.gif">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/Widget.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/Widget-Element-RenderObject.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/Stars.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/Score_small.gif">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/Score.gif">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/bad_score.gif">
+<meta property="og:updated_time" content="2021-09-04T15:08:01.191Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入浅出 Flutter Framework 之自定义渲染型 Widget">
+<meta name="twitter:description" content="本文是『 深入浅出 Flutter Framework 』系列文章的第八篇，也是收官之作。通过自定义渲染型 Widget，我们一步步地实现了一个评分组件。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/Score.gif">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2021/08/28/deepinto-flutter-custom-renderobjectwidget/">
+
+
+
+
+
+  <title>深入浅出 Flutter Framework 之自定义渲染型 Widget | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2021/08/28/deepinto-flutter-custom-renderobjectwidget/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">深入浅出 Flutter Framework 之自定义渲染型 Widget</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-08-28T11:07:58+08:00">
+                2021-08-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2021/08/28/deepinto-flutter-custom-renderobjectwidget/" class="leancloud_visitors" data-flag-title="深入浅出 Flutter Framework 之自定义渲染型 Widget">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  3,455
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  16
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文是『 深入浅出 Flutter Framework 』系列文章的第八篇，也是收官之作。通过自定义渲染型 Widget，我们一步步地实现了一个评分组件。</p>
+<a id="more"></a>
+<p>©原创文章，转载请注明出处！</p>
+<p>本系列文章将深入 Flutter Framework 内部逐步去分析其核心概念和流程，主要包括：<br><a href="https://zxfcumtcs.github.io/2020/05/01/deepinto-flutter-widget/">『 深入浅出 Flutter Framework 之 Widget 』</a><br><a href="https://zxfcumtcs.github.io/2020/05/16/deepinto-flutter-buildowner/">『 深入浅出 Flutter Framework 之 BuildOwner 』</a><br><a href="https://zxfcumtcs.github.io/2020/05/17/deepinto-flutter-element/">『 深入浅出 Flutter Framework 之 Element 』</a><br><a href="https://zxfcumtcs.github.io/2020/05/23/deepinto-flutter-paintingcontext/">『 深入浅出 Flutter Framework 之 PaintingContext 』</a><br><a href="https://zxfcumtcs.github.io/2020/06/07/deepinto-flutter-layer/">『 深入浅出 Flutter Framework 之 Layer 』</a><br><a href="https://zxfcumtcs.github.io/2020/12/05/deepinto-flutter-pipelineowner/">『 深入浅出 Flutter Framework 之 PipelineOwner 』</a><br><a href="https://zxfcumtcs.github.io/2021/03/27/deepinto-flutter-renderobject/">『 深入浅出 Flutter Framework 之 RenderObejct 』</a><br>『 深入浅出 Flutter Framework 之自定义渲染型 Widget 』</p>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
+<p>本文作为『 深入浅出 Flutter Framework 』系列文章的收官之作，为了对本系列文章所涉重点内容的回顾和总结，动手实现一个渲染型 Widget (Render-Widget)。<br>如下图，最终成品是一个评分组件 (源码已上传 Github: <a href="https://github.com/zxfcumtcs/Score" target="_blank" rel="noopener">Score</a>)：<br><img src="/img/Score.gif" alt=""></p>
+<p>通过前面系列文章的介绍，我们知道 Render-Widget 大致有三类：</p>
+<ul>
+<li>作为『 Widget Tree 』的叶节点，也是最小的 UI 表达单元，一般继承自<code>LeafRenderObjectWidget</code>；</li>
+<li>有一个子节点 ( Single Child )，一般继承自<code>SingleChildRenderObjectWidget</code>；</li>
+<li>有多个子节点 ( Multi Child )，一般继承自<code>MultiChildRenderObjectWidget</code>。</li>
+</ul>
+<p>Widget 间的继承关系如下图：<br><img src="/img/Widget.png" alt=""></p>
+<p>Widget、Element、RenderObject 间的对应关系如下：<br><img src="/img/Widget-Element-RenderObject.png" alt=""></p>
+<blockquote>
+<p>其中，Element 与 RenderObject 间用的是虚线，因为它们间的对应关系是基于 RenderBox 系列下的一种建议 (不是强制)。<br>Sliver 系列就不是基于<code>RenderBox</code>，而是<code>RenderSliver</code>。<br>通过<code>Render-Widget#createRenderObject</code>方法可以返回任意 RenderObject (如果你愿意)。</p>
+</blockquote>
+<p>对于<code>RenderBox</code>系列来说，如果要自定义子类，根据自定义子类子节点模型的不同需要有不同的处理：</p>
+<ul>
+<li>自定义子类本身是『 Render Tree 』的叶子节点，一般直接继承自<code>RenderBox</code>；</li>
+<li>有一个子节点 (Single Child)，且子节点属于<code>RenderBox</code>系列：<ul>
+<li>如果其自身的 size 完全 match 子节点的 size，则可以选择继承自<code>RenderProxyBox</code>(如：<code>RenderOffstage</code>)；</li>
+<li>如果其自身的 size 大于子节点的 size，则可以选择继承自<code>RenderShiftedBox</code>(如：<code>RenderPadding</code>)；</li>
+</ul>
+</li>
+<li>有一个子节点 (Single Child)，但子节点不属于<code>RenderBox</code>系列，自定义子类可以 mixin <code>RenderObjectWithChildMixin</code>，其提供了管理一个子节点的模型；</li>
+<li>有多个子节点 (Multi Child)，自定义子类可以 mixin <code>ContainerRenderObjectMixin</code>、<code>RenderBoxContainerDefaultsMixin</code>，前者提供了管理多个子节点的模型，后者提供了基于<code>ContainerRenderObjectMixin</code>的一些默认实现。</li>
+</ul>
+<p>下面，我们一步步地来实现上面提到的评分组件。</p>
+<h1 id="Custom-Leaf-Render-Widget"><a href="#Custom-Leaf-Render-Widget" class="headerlink" title="Custom Leaf Render Widget"></a>Custom Leaf Render Widget</h1><hr>
+<p>首先，我们来实现评分组件里的五星部分 (ScoreStar Widget)：<br><img src="/img/Stars.png" width="40%" height="40%"></p>
+<h2 id="LeafRenderObjectWidget"><a href="#LeafRenderObjectWidget" class="headerlink" title="LeafRenderObjectWidget"></a>LeafRenderObjectWidget</h2><p><code>ScoreStar</code>作为叶子节点，继承自<code>LeafRenderObjectWidget</code>，并实现了2个重要方法：<code>createRenderObject</code>、<code>updateRenderObject</code>：<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ScoreStar</span> <span class="keyword">extends</span> <span class="title">LeafRenderObjectWidget</span> </span>&#123;</span><br><span class="line">  <span class="keyword">final</span> Color backgroundColor;</span><br><span class="line">  <span class="keyword">final</span> Color foregroundColor;</span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">double</span> score;</span><br><span class="line"></span><br><span class="line">  ScoreStar(<span class="keyword">this</span>.backgroundColor, <span class="keyword">this</span>.foregroundColor, <span class="keyword">this</span>.score);</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  RenderObject createRenderObject(BuildContext context) &#123;</span><br><span class="line">    <span class="keyword">return</span> RenderScoreStar(backgroundColor, foregroundColor, score);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="keyword">void</span> updateRenderObject(BuildContext context, covariant RenderScoreStar renderObject) &#123;</span><br><span class="line">    renderObject</span><br><span class="line">      ..backgroundColor = backgroundColor</span><br><span class="line">      ..foregroundColor = foregroundColor</span><br><span class="line">      ..score = score;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>其中，<code>updateRenderObject</code>方法会在 Widget re-build 时调用，用于更新复用的 Render Object 的属性。<br>在本例中，<code>score</code>会随着用户点击不同的区域而变化，就需要通过<code>updateRenderObject</code>方法来更新<code>RenderScoreStar#score</code>，以便刷新 UI。</p>
+<h2 id="Leaf-Render-Object"><a href="#Leaf-Render-Object" class="headerlink" title="Leaf Render Object"></a>Leaf Render Object</h2><p>从上一小节<code>ScoreStar#createRenderObject</code>可知，<code>ScoreStar</code> 对应的 Render Object 是<code>RenderScoreStar</code>。<br><code>RenderScoreStar</code>继承自<code>RenderBox</code>。</p>
+<p>如下代码：</p>
+<ul>
+<li>在 <code>socre setter</code> 中调用了<code>markNeedsPaint</code>方法，以便在<code>score</code>变化后及时 re-paint (由于 socre 变化不会引起 layout 变化，故此处只需调用<code>markNeedsPaint</code>，若会引起 layout 变化，则需要调用<code>markNeedsLayout</code>)；</li>
+<li>关于<code>sizedByParent</code>，在该例子中设为<code>true</code> or <code>false</code>都可以，因为<code>RenderScoreStar#size</code>完全由<code>constraints</code>决定：<ul>
+<li>从性能角度考虑，<code>sizedByParent</code>应设为<code>true</code>，以便满足<code>RepaintBoundary</code>的条件 (详情请参见[ <a href="https://zxfcumtcs.github.io/2021/03/27/deepinto-flutter-renderobject/">深入浅出 Flutter Framework 之 RenderObject</a> ] )；</li>
+<li>若<code>sizedByParent</code>设为<code>true</code>，需要重写<code>performResize</code>方法来计算 size，由于<code>RenderScoreStar</code>没有 layout 操作需要执行，故不需要重写<code>performLayout</code>；</li>
+<li>若<code>sizedByParent</code>设为<code>false</code>，则需要重写<code>performLayout</code>，并在该方法中完成 size 的计算；</li>
+<li><code>22~30</code>、<code>32~40</code>两个代码片段随便使用哪个都可以。</li>
+</ul>
+</li>
+<li>关于IntrinsicWidth/Height，若重写了<code>performLayout</code>方法，则进而需要重写以下四个方法：<ul>
+<li><code>double computeMaxIntrinsicWidth(double height)</code>：用于计算一个最小宽度(没错，是最小宽度)，在最终 size.width 超过该宽度时，也不会减少 size.height (如，对 text 排版，将 text 排成一行需要的最小宽度就是这里的 MaxIntrinsicWidth，因为再增加宽度也不会减少 text 的高度)；</li>
+<li><code>double computeMinIntrinsicWidth(double height)</code>：排版需要的最小宽度，若小于这个宽度内容就会被裁剪；</li>
+<li><code>computeMinIntrinsicHeight</code>、<code>computeMaxIntrinsicHeight</code>与上面介绍的<code>computeMinIntrinsicWidth</code>、<code>computeMaxIntrinsicWidth</code>类似，不再赘述；</li>
+<li>在一些特殊 RenderObject 排版时才会用到这些方法，在此我们根据 constraints 简单计算了一下。</li>
+</ul>
+</li>
+<li>为了响应点击事件，重写<code>hitTestSelf</code>方法，并返回<code>true</code>，表示该 Render Object 需要响应用户事件； </li>
+<li>关于<code>paint</code>方法中五角星 ★★★★★ 的绘制：<ul>
+<li>对于背景 ★★★★★，设置好 path 后，直接通过<code>context.canvas.drawPath</code>绘制即可；</li>
+<li>对于前景 ★★★★★，先通过<code>context.pushClipRect</code>对画布进行裁剪 ( rect.width 由 score 决定 )，再行绘制。</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br></pre></td><td class="code"><pre><span class="line">// 为了缩减篇幅，精简了部分代码</span><br><span class="line">//</span><br><span class="line">class RenderScoreStar extends RenderBox &#123;</span><br><span class="line">  Color _backgroundColor;</span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  Color _foregroundColor;</span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  double _score;</span><br><span class="line">  double get score =&gt; _score;</span><br><span class="line">  set score(double value) &#123;</span><br><span class="line">    _score = value;</span><br><span class="line">    </span><br><span class="line">    // score 变化时需要re-paint</span><br><span class="line">    //</span><br><span class="line">    markNeedsPaint();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  RenderScoreStar(this._backgroundColor, this._foregroundColor, this._score);</span><br><span class="line"></span><br><span class="line">  @override</span><br><span class="line">  bool get sizedByParent =&gt; false;</span><br><span class="line"></span><br><span class="line">  @override</span><br><span class="line">  void performLayout() &#123;</span><br><span class="line">    double height = min(constraints.biggest.height, constraints.biggest.width / 5);</span><br><span class="line">    height = max(height, constraints.smallest.height);</span><br><span class="line">    size = Size(constraints.biggest.width, height);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  // @override</span><br><span class="line">  // bool get sizedByParent =&gt; true;</span><br><span class="line">  //</span><br><span class="line">  // @override</span><br><span class="line">  // void performResize() &#123;</span><br><span class="line">  //   double height = min(constraints.biggest.height, constraints.biggest.width / 5);</span><br><span class="line">  //   height = max(height, constraints.smallest.height);</span><br><span class="line">  //   size = Size(constraints.biggest.width, height);</span><br><span class="line">  // &#125;</span><br><span class="line"></span><br><span class="line">  @override</span><br><span class="line">  double computeMaxIntrinsicWidth(double height) &#123;</span><br><span class="line">    return constraints.biggest.width;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  @override</span><br><span class="line">  double computeMaxIntrinsicHeight(double width) &#123;</span><br><span class="line">    double height = min(constraints.biggest.height, constraints.biggest.width / 5);</span><br><span class="line">    height = max(height, constraints.smallest.height);</span><br><span class="line"></span><br><span class="line">    return height;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  @override</span><br><span class="line">  bool hitTestSelf(Offset position) &#123;</span><br><span class="line">    return true;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  @override</span><br><span class="line">  void paint(PaintingContext context, Offset offset) &#123;</span><br><span class="line">    void _backgroundStarPainter(PaintingContext context, Offset offset) &#123;</span><br><span class="line">      _starPainter(context, offset, backgroundColor);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    void _foregroundStarPainter(PaintingContext context, Offset offset) &#123;</span><br><span class="line">      _starPainter(context, offset, foregroundColor);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    _backgroundStarPainter(context, offset);</span><br><span class="line">    context.pushClipRect(</span><br><span class="line">        needsCompositing,</span><br><span class="line">        offset,</span><br><span class="line">        Rect.fromLTRB(0, 0, size.width * score / 5, size.height),</span><br><span class="line">        _foregroundStarPainter</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  void _starPainter(PaintingContext context, Offset offset, Color color) &#123;</span><br><span class="line">    Paint paint = Paint();</span><br><span class="line">    paint.color = color;</span><br><span class="line">    paint.style = PaintingStyle.fill;</span><br><span class="line"></span><br><span class="line">    double radius = min(size.height / 2, size.width/ (2 * 5));</span><br><span class="line"></span><br><span class="line">    Path path = Path();</span><br><span class="line">    _addStarLine(radius, path);</span><br><span class="line">    for (int i = 0; i &lt; 4; i++) &#123;</span><br><span class="line">      path = path.shift(Offset(radius * 2, 0.0));</span><br><span class="line">      _addStarLine(radius, path);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    path = path.shift(offset);</span><br><span class="line">    path.close();</span><br><span class="line"></span><br><span class="line">    context.canvas.drawPath(path, paint);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  void _addStarLine(double radius, Path path) &#123;</span><br><span class="line">    ...</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>至此，<code>RenderScoreStar</code>基本完成，完整代码请参见 [ Github：<a href="https://github.com/zxfcumtcs/Score" target="_blank" rel="noopener">Score</a> ]</p>
+<h1 id="动态评分"><a href="#动态评分" class="headerlink" title="动态评分"></a>动态评分</h1><hr>
+<p>如下图，我们希望评分组件不仅能展示分数，还能评分：<br><img src="/img/Score_small.gif" alt=""></p>
+<p>在 Flutter UI 中，一个重要的思想就是：『 组合 』。<br>为了实现上图所示效果，只需组合<code>StatefulWidget</code> +<code>ScoreStar</code>即可：<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> ScoreCallback = <span class="keyword">void</span> <span class="built_in">Function</span>(<span class="built_in">double</span> score);</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Score</span> <span class="keyword">extends</span> <span class="title">StatefulWidget</span> </span>&#123;</span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">double</span> score;</span><br><span class="line">  <span class="keyword">final</span> ScoreCallback callback;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> Score(&#123;Key key, <span class="keyword">this</span>.score = <span class="number">0</span>, <span class="keyword">this</span>.callback&#125;) : <span class="keyword">super</span>(key: key);</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  _ScoreState createState() =&gt; _ScoreState();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">_ScoreState</span> <span class="keyword">extends</span> <span class="title">State</span>&lt;<span class="title">Score</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">double</span> score;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="keyword">void</span> initState() &#123;</span><br><span class="line">    <span class="keyword">super</span>.initState();</span><br><span class="line"></span><br><span class="line">    score = widget.score ?? <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="keyword">void</span> didUpdateWidget(Score oldWidget) &#123;</span><br><span class="line">    <span class="keyword">super</span>.didUpdateWidget(oldWidget);</span><br><span class="line"></span><br><span class="line">    score = widget.score ?? <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  Widget build(BuildContext context) &#123;</span><br><span class="line">    <span class="keyword">void</span> _changeScore(Offset offset) &#123;</span><br><span class="line">      Size _size = context.size;</span><br><span class="line">      <span class="built_in">double</span> offsetX = min(offset.dx, _size.width);</span><br><span class="line">      offsetX = max(<span class="number">0</span>, offsetX);</span><br><span class="line"></span><br><span class="line">      setState(() &#123;</span><br><span class="line">        score = <span class="built_in">double</span>.parse(((offsetX / _size.width) * <span class="number">5</span>).toStringAsFixed(<span class="number">1</span>));</span><br><span class="line">      &#125;);</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (widget.callback != <span class="keyword">null</span>) &#123;</span><br><span class="line">        widget.callback(score);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> GestureDetector(</span><br><span class="line">      child: ScoreStar(Colors.grey, Colors.amber, score),</span><br><span class="line">      onTapDown: (TapDownDetails details) &#123;</span><br><span class="line">        _changeScore(details.localPosition);</span><br><span class="line">      &#125;,</span><br><span class="line">      onLongPressMoveUpdate:(LongPressMoveUpdateDetails details) &#123;</span><br><span class="line">        _changeScore(details.localPosition);</span><br><span class="line">      &#125;,</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>代码比较简单，就不赘述了。<br>其中的关键还是上节介绍的<code>RenderScoreStar#hitTestSelf</code>需要返回<code>true</code>。</p>
+<h1 id="Custom-MultiChild-RenderObject-Widget"><a href="#Custom-MultiChild-RenderObject-Widget" class="headerlink" title="Custom MultiChild RenderObject Widget"></a>Custom MultiChild RenderObject Widget</h1><hr>
+<p><img src="/img/Score.gif" alt=""><br>我们希望通过自定义 MultiChild RenderObject Widget 实现如上图所示的效果。<br>没错，就是加了一个显示分数的 Text。</p>
+<blockquote>
+<p>本来，这完全没必要通过自定义 MultiChild RenderObject Widget 来实现，一般的 Widget 组合即可。<br>我们只是为了实践自定义 MultiChild RenderObject Widget 才这么做的。</p>
+</blockquote>
+<h2 id="MultiChildRenderObjectWidget"><a href="#MultiChildRenderObjectWidget" class="headerlink" title="MultiChildRenderObjectWidget"></a>MultiChildRenderObjectWidget</h2><p><code>RichScore</code>继承自<code>MultiChildRenderObjectWidget</code>。<br>在其初始化方法中，向父类传递了2个 children：<code>Score</code>、<code>Text</code>。<br>重写了<code>createRenderObject</code>方法，以便返回<code>RenderRichScore</code>实例。<br>由于<code>RenderRichScore</code>没有属性，故无需重写<code>updateRenderObject</code>方法。</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RichScore</span> <span class="keyword">extends</span> <span class="title">MultiChildRenderObjectWidget</span> </span>&#123;</span><br><span class="line">  RichScore(&#123;</span><br><span class="line">    Key key,</span><br><span class="line">    <span class="built_in">double</span> score,</span><br><span class="line">    ScoreCallback callback,</span><br><span class="line">  &#125;) : <span class="keyword">super</span>(</span><br><span class="line">    key: key,</span><br><span class="line">    children: [</span><br><span class="line">      Score(score: score, callback: callback),</span><br><span class="line">      Text(<span class="string">'<span class="subst">$score</span>分'</span>, style: TextStyle(fontSize: <span class="number">28</span>)),</span><br><span class="line">    ]</span><br><span class="line">  );</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  RenderObject createRenderObject(BuildContext context) &#123;</span><br><span class="line">    <span class="keyword">return</span> RenderRichScore();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="RichScoreParentData"><a href="#RichScoreParentData" class="headerlink" title="RichScoreParentData"></a>RichScoreParentData</h2><p>还记得 ParentData 吗？</p>
+<blockquote>
+<p>在<a href="https://zxfcumtcs.github.io/2020/05/01/deepinto-flutter-widget/">『 深入浅出 Flutter Framework 之 Widget 』</a>中有过简单介绍。</p>
+</blockquote>
+<p>对于含有子节点的 RenderObject，一般都需要自定义自己的 ParentData 子类，用于辅助 layout。<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RichScoreParentData</span> <span class="keyword">extends</span> <span class="title">ContainerBoxParentData</span>&lt;<span class="title">RenderBox</span>&gt; </span>&#123;</span><br><span class="line">  <span class="built_in">double</span> scoreTextWidth;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><code>RichScoreParentData</code>继承自<code>ContainerBoxParentData</code>：<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/// Abstract ParentData subclass for RenderBox subclasses that want the</span></span><br><span class="line"><span class="comment">/// ContainerRenderObjectMixin.</span></span><br><span class="line"><span class="comment">///</span></span><br><span class="line"><span class="comment">/// This is a convenience class that mixes in the relevant classes with</span></span><br><span class="line"><span class="comment">/// the relevant type arguments.</span></span><br><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">ContainerBoxParentData</span>&lt;<span class="title">ChildType</span> <span class="keyword">extends</span> <span class="title">RenderObject</span>&gt; <span class="keyword">extends</span> <span class="title">BoxParentData</span> <span class="title">with</span> <span class="title">ContainerParentDataMixin</span>&lt;<span class="title">ChildType</span>&gt; </span>&#123; &#125;</span><br></pre></td></tr></table></figure></p>
+<p><code>ContainerBoxParentData</code>是抽象类，但其 mixin<code>ContainerParentDataMixin</code>：<br><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/// Parent data to support a doubly-linked list of children.</span></span><br><span class="line">mixin ContainerParentDataMixin&lt;ChildType <span class="keyword">extends</span> RenderObject&gt; on ParentData &#123;</span><br><span class="line">  <span class="comment">/// The previous sibling in the parent's child list.</span></span><br><span class="line">  ChildType previousSibling;</span><br><span class="line">  <span class="comment">/// The next sibling in the parent's child list.</span></span><br><span class="line">  ChildType nextSibling;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><code>ContainerParentDataMixin</code>在子节点间提供了双向链接的支持。</p>
+<p>在<code>RichScoreParentData</code>中定义了唯一一个属性：<code>scoreTextWidth</code>，其作用在后面再介绍。</p>
+<h2 id="MultiChild-RenderObject"><a href="#MultiChild-RenderObject" class="headerlink" title="MultiChild RenderObject"></a>MultiChild RenderObject</h2><p><code>RenderRichScore</code>继承自<code>RenderBox</code>并 minix 了<code>ContainerRenderObjectMixin</code>以及<code>RenderBoxContainerDefaultsMixin</code>：</p>
+<ul>
+<li>由于<code>RenderRichScore#size</code>受子节点的影响，即不完全由 Constraints 决定，故<code>sizedByParent</code>设为<code>false</code>，同时在调用子节点的<code>layout</code>方法时<code>parentUsesSize</code>参数需设为<code>true</code> (下面代码第<code>40</code>、<code>55</code>行)；</li>
+<li>由于其子节点 (<code>RenderScoreStar</code>)需要响应用户事件，故重写了<code>hitTestChildren</code>方法；</li>
+<li>在<code>performLayout</code>方法中，完成了所有子节点的排版、设置相应的 ParentData 并计算出了 size；</li>
+<li>对于有子节点的 RenderObject 需要重写<code>computeDistanceToActualBaseline</code>方法，这里我们用了<code>RenderBoxContainerDefaultsMixin</code>提供的默认实现；</li>
+<li><code>paint</code>方法的功能很简单，依次绘制每个子节点(<code>defaultPaint</code>由<code>RenderBoxContainerDefaultsMixin</code>提供)；</li>
+<li><code>setupParentData</code>用于给子节点设置<code>parentData</code>。</li>
+</ul>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RenderRichScore</span> <span class="keyword">extends</span> <span class="title">RenderBox</span> <span class="title">with</span> <span class="title">ContainerRenderObjectMixin</span>&lt;<span class="title">RenderBox</span>, <span class="title">RichScoreParentData</span>&gt;,</span></span><br><span class="line"><span class="class">    <span class="title">RenderBoxContainerDefaultsMixin</span>&lt;<span class="title">RenderBox</span>, <span class="title">RichScoreParentData</span>&gt;,</span></span><br><span class="line"><span class="class">    <span class="title">DebugOverflowIndicatorMixin</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  RenderRichScore(&#123;</span><br><span class="line">    <span class="built_in">List</span>&lt;RenderBox&gt; children,</span><br><span class="line">  &#125;) &#123;</span><br><span class="line">    addAll(children);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="built_in">bool</span> <span class="keyword">get</span> sizedByParent =&gt; <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">double</span> horizontalSpace = <span class="number">10</span>;</span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">double</span> scoreTextWidthDifference = <span class="number">10</span>;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="built_in">bool</span> hitTestChildren(BoxHitTestResult result, &#123; Offset position &#125;) &#123;</span><br><span class="line">    <span class="keyword">assert</span>(childCount == <span class="number">2</span>);</span><br><span class="line"></span><br><span class="line">    RenderBox scoreChild = firstChild;</span><br><span class="line">    <span class="keyword">return</span> scoreChild?.hitTest(result, position: position) ?? <span class="keyword">false</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="keyword">void</span> performLayout() &#123;</span><br><span class="line">    <span class="keyword">assert</span>(childCount == <span class="number">2</span>);</span><br><span class="line"></span><br><span class="line">    RenderBox scoreStarChild = firstChild;</span><br><span class="line">    RenderBox scoreTextChild = lastChild;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (scoreStarChild == <span class="keyword">null</span> || scoreTextChild == <span class="keyword">null</span>) &#123;</span><br><span class="line">      size = constraints.smallest;</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// infinity constraints</span></span><br><span class="line">    <span class="comment">//</span></span><br><span class="line">    BoxConstraints descConstraints = BoxConstraints();</span><br><span class="line">    scoreTextChild.layout(descConstraints, parentUsesSize: <span class="keyword">true</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> RichScoreParentData descChildParentData = scoreTextChild.parentData <span class="keyword">as</span> RichScoreParentData;</span><br><span class="line">    <span class="built_in">double</span> descWidth = descChildParentData.scoreTextWidth;</span><br><span class="line">    <span class="keyword">if</span> (descWidth == <span class="keyword">null</span>) &#123;</span><br><span class="line">      descWidth = scoreTextChild.size.width + scoreTextWidthDifference;</span><br><span class="line">      descChildParentData.scoreTextWidth = descWidth;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    BoxConstraints scoreConstraints = BoxConstraints(</span><br><span class="line">      minWidth: <span class="number">0</span>,</span><br><span class="line">      maxWidth: max(constraints.maxWidth - descWidth - horizontalSpace, <span class="number">0</span>),</span><br><span class="line">      minHeight: <span class="number">0</span>,</span><br><span class="line">      maxHeight: constraints.maxHeight</span><br><span class="line">    );</span><br><span class="line">    scoreStarChild.layout(scoreConstraints, parentUsesSize: <span class="keyword">true</span>);</span><br><span class="line"></span><br><span class="line">    descChildParentData.offset = Offset(</span><br><span class="line">      scoreStarChild.size.width + horizontalSpace,</span><br><span class="line">      (scoreStarChild.size.height - scoreTextChild.size.height) / <span class="number">2</span></span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (constraints.isTight) &#123;</span><br><span class="line">      size = constraints.biggest;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="built_in">double</span> width = min(constraints.biggest.width, scoreStarChild.size.width + descWidth + horizontalSpace);</span><br><span class="line">      width = max(constraints.smallest.width, width);</span><br><span class="line"></span><br><span class="line">      <span class="built_in">double</span> height = max(scoreStarChild.size.height, scoreTextChild.size.height);</span><br><span class="line">      height = min(constraints.biggest.height, height);</span><br><span class="line">      height = max(constraints.smallest.height, height);</span><br><span class="line"></span><br><span class="line">      size = Size(width, height);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="built_in">double</span> computeDistanceToActualBaseline(TextBaseline baseline) &#123;</span><br><span class="line">    <span class="keyword">return</span> defaultComputeDistanceToFirstActualBaseline(baseline);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="keyword">void</span> paint(PaintingContext context, Offset offset) &#123;</span><br><span class="line">    <span class="keyword">assert</span>(childCount == <span class="number">2</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (childCount != <span class="number">2</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    defaultPaint(context, offset);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="keyword">void</span> setupParentData(RenderObject child) &#123;</span><br><span class="line">    <span class="keyword">if</span> (child.parentData <span class="keyword">is</span>! RichScoreParentData) &#123;</span><br><span class="line">      child.parentData = RichScoreParentData();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="RichScoreParentData-scoreTextWidth"><a href="#RichScoreParentData-scoreTextWidth" class="headerlink" title="RichScoreParentData#scoreTextWidth"></a>RichScoreParentData#scoreTextWidth</h2><p>上面我们提到<code>RichScoreParentData</code>有唯一一个属性：<code>scoreTextWidth</code>。<br>那么它的作用是啥呢？<br>根据<code>RenderRichScore</code>的排版算法，先计算 text 的宽度，★★★★★ 的宽度等于 constraints.biggest.width - textWidth。<br>这个算法有点小问题：<br><img src="/img/bad_score.gif" alt=""><br>由于 textWidth 会因分数的不同，而有细微的差异，最终导致 ★★★★★ 有点闪烁。<br>为了解决这个问题，我们将 textWidth 的宽度固定为首次计算的 text 宽度+10，并将其存储在<code>RichScoreParentData</code>中(上述代码第<code>42~47</code>行)。</p>
+<blockquote>
+<p>这种解决方法不一定是最好的，这里主要是演示一下 ParentData 的作用。</p>
+</blockquote>
+<p>至此，自定义 MultiChild RenderObject 基本完成了。</p>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><hr>
+<p>本文通过实现评分组件，逐步实践了如何自定义 Leaf Render Widget 以及 MultiChild Render Widget。<br>在这过程中，自定义了 Widget 以及 Render Object，但并没有涉及 Element。<br>原因是 Element 作为 Widget 与 Render Object 间的桥梁，逻辑相对内聚、独立。<br>当自定义 Widget 继承自<code>LeafRenderObjectWidget</code>、<code>SingleChildRenderObjectWidget</code>或<code>MultiChildRenderObjectWidget</code>时，一般不用自定义 Element。</p>
+<p>自定义 Leaf Render Widget，一般需要以下步骤：</p>
+<ul>
+<li>自定义 Widget 继承自<code>LeafRenderObjectWidget</code>，并重写<code>createRenderObject</code>、<code>updateRenderObject</code>方法；</li>
+<li>自定义 Render Object 继承自<code>RenderBox</code>：<ul>
+<li>确定<code>sizedByParent</code>为<code>true</code> or <code>false</code>；</li>
+<li>为<code>false</code>，重写<code>performLayout</code>方法，执行 layout 并计算 size；</li>
+<li>为<code>true</code>，重写<code>performResize</code>方法计算 size、重写<code>performLayout</code>方法执行 layout (若需要)；</li>
+<li>如果重写了<code>performLayout</code>方法，则需进一步重写<code>computeMax/MinIntrinsicWidth/Height</code>系列方法；</li>
+<li>如需处理用户事件，重写<code>hitTestSelf</code>方法；</li>
+<li>重写<code>paint</code>方法，完成最终的绘制。</li>
+</ul>
+</li>
+</ul>
+<p>自定义 MultiChild Render Widget，一般需要以下步骤：</p>
+<ul>
+<li>自定义 Widget 继承自<code>MultiChildRenderObjectWidget</code>，并重写<code>createRenderObject</code>、<code>updateRenderObject</code>方法；</li>
+<li>自定义 Render Object 继承自<code>RenderBox</code>，并 minix <code>ContainerRenderObjectMixin</code>、<code>RenderBoxContainerDefaultsMixin</code>：<ul>
+<li>确定<code>sizedByParent</code>为<code>true</code> or <code>false</code>；</li>
+<li>为<code>false</code>，重写<code>performLayout</code>方法，对子节点逐个执行 layout 操作并计算 size；</li>
+<li>为<code>true</code>，重写<code>performResize</code>方法计算 size、重写<code>performLayout</code>方法执行 layout；</li>
+<li>如果重写了<code>performLayout</code>方法，则需进一步重写<code>computeMax/MinIntrinsicWidth/Height</code>系列方法；</li>
+<li>重写<code>computeDistanceToActualBaseline</code>方法计算 baseline;</li>
+<li>如需处理用户事件，重写<code>hitTestSelf</code>或/和<code>hitTestChildren</code>方法；</li>
+<li>自定义 ContainerBoxParentData 子类，用于存储 layout 过程中需要的辅助信息；</li>
+<li>重写<code>setupParentData</code>方法，为子节点设置 ParentData；</li>
+<li>重写<code>paint</code>方法，对子节点逐个执行 paint 操作。</li>
+</ul>
+</li>
+</ul>
+<p>『 深入浅出 Flutter Framework 』系列文章至此全部完成！<br>这一系列文章围绕 Widget、Element 以及 RenderObject 展开讨论，对 Flutter Framework 有了一个简单的认识。<br>在此过程中对相关的 BuildOwner、PaintingContext、Layer 以及 PipelineOwner 等也进行了一定的讨论。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/flutter/" rel="tag"># flutter</a>
+          
+            <a href="/tags/移动开发/" rel="tag"># 移动开发</a>
+          
+            <a href="/tags/跨平台/" rel="tag"># 跨平台</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/03/27/deepinto-flutter-renderobject/" rel="next" title="深入浅出 Flutter Framework 之 RenderObject">
+                <i class="fa fa-chevron-left"></i> 深入浅出 Flutter Framework 之 RenderObject
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">52</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Custom-Leaf-Render-Widget"><span class="nav-number">2.</span> <span class="nav-text">Custom Leaf Render Widget</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#LeafRenderObjectWidget"><span class="nav-number">2.1.</span> <span class="nav-text">LeafRenderObjectWidget</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Leaf-Render-Object"><span class="nav-number">2.2.</span> <span class="nav-text">Leaf Render Object</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#动态评分"><span class="nav-number">3.</span> <span class="nav-text">动态评分</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Custom-MultiChild-RenderObject-Widget"><span class="nav-number">4.</span> <span class="nav-text">Custom MultiChild RenderObject Widget</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#MultiChildRenderObjectWidget"><span class="nav-number">4.1.</span> <span class="nav-text">MultiChildRenderObjectWidget</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RichScoreParentData"><span class="nav-number">4.2.</span> <span class="nav-text">RichScoreParentData</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MultiChild-RenderObject"><span class="nav-number">4.3.</span> <span class="nav-text">MultiChild RenderObject</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RichScoreParentData-scoreTextWidth"><span class="nav-number">4.4.</span> <span class="nav-text">RichScoreParentData#scoreTextWidth</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#小结"><span class="nav-number">5.</span> <span class="nav-text">小结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
