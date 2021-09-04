@@ -108,7 +108,7 @@
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/RenderObject_PipelineOwner_RendererBinding.png">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/RendererBinding_handleDrawFrame.png">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/PaintingPipeline.png">
-<meta property="og:updated_time" content="2021-08-22T09:16:10.315Z">
+<meta property="og:updated_time" content="2021-09-04T15:20:09.522Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="深入浅出 Flutter Framework 之 PipelineOwner">
 <meta name="twitter:description" content="本文是『 深入浅出 Flutter Framework 』系列文章的第六篇，详细介绍了 PipelineOwner 在整个 Rendering Pipeline 中是如何协助『 RenderObject Tree 』、『 RendererBinding』以及『 Window』完成 UI 刷新。">
@@ -348,7 +348,7 @@
                   <span class="post-meta-item-text">字数统计</span>
                 
                 <span title="字数统计">
-                  1,631
+                  1,617
                 </span>
               
 
@@ -388,7 +388,7 @@
         <p>本文是『 深入浅出 Flutter Framework 』系列文章的第六篇，详细介绍了 PipelineOwner 在整个 Rendering Pipeline 中是如何协助『 RenderObject Tree 』、『 RendererBinding』以及『 Window』完成 UI 刷新。</p>
 <a id="more"></a>
 <p>©原创文章，转载请注明出处！</p>
-<p>本系列文章将深入 Flutter Framework 内部逐步去分析其核心概念和流程，主要包括：<br><a href="https://zxfcumtcs.github.io/2020/05/01/deepinto-flutter-widget/">『 深入浅出 Flutter Framework 之 Widget 』</a><br><a href="https://zxfcumtcs.github.io/2020/05/16/deepinto-flutter-buildowner/">『 深入浅出 Flutter Framework 之 BuildOwner 』</a><br><a href="https://zxfcumtcs.github.io/2020/05/17/deepinto-flutter-element/">『 深入浅出 Flutter Framework 之 Element 』</a><br><a href="https://zxfcumtcs.github.io/2020/05/23/deepinto-flutter-paintingcontext/">『 深入浅出 Flutter Framework 之 PaintingContext 』</a><br><a href="https://zxfcumtcs.github.io/2020/06/07/deepinto-flutter-layer/">『 深入浅出 Flutter Framework 之 Layer 』</a><br>『 深入浅出 Flutter Framework 之 PipelineOwner 』<br><a href="https://zxfcumtcs.github.io/2021/03/27/deepinto-flutter-renderobject/">『 深入浅出 Flutter Framework 之 RenderObejct 』</a><br>『 深入浅出 Flutter Framework 之 Binding 』<br>『 深入浅出 Flutter Framework 之 Rendering Pipeline 』<br>『 深入浅出 Flutter Framework 之 自定义 Widget 』</p>
+<p>本系列文章将深入 Flutter Framework 内部逐步去分析其核心概念和流程，主要包括：<br><a href="https://zxfcumtcs.github.io/2020/05/01/deepinto-flutter-widget/">『 深入浅出 Flutter Framework 之 Widget 』</a><br><a href="https://zxfcumtcs.github.io/2020/05/16/deepinto-flutter-buildowner/">『 深入浅出 Flutter Framework 之 BuildOwner 』</a><br><a href="https://zxfcumtcs.github.io/2020/05/17/deepinto-flutter-element/">『 深入浅出 Flutter Framework 之 Element 』</a><br><a href="https://zxfcumtcs.github.io/2020/05/23/deepinto-flutter-paintingcontext/">『 深入浅出 Flutter Framework 之 PaintingContext 』</a><br><a href="https://zxfcumtcs.github.io/2020/06/07/deepinto-flutter-layer/">『 深入浅出 Flutter Framework 之 Layer 』</a><br>『 深入浅出 Flutter Framework 之 PipelineOwner 』<br><a href="https://zxfcumtcs.github.io/2021/03/27/deepinto-flutter-renderobject/">『 深入浅出 Flutter Framework 之 RenderObejct 』</a><br><a href="https://zxfcumtcs.github.io/2021/08/28/deepinto-flutter-custom-renderobjectwidget/">『 深入浅出 Flutter Framework 之自定义渲染型 Widget 』</a></p>
 <h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
 <p><code>PipelineOwner</code>在 Rendering Pipeline 中起到重要作用：</p>
 <ul>
