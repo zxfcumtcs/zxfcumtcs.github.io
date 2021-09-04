@@ -24,15 +24,12 @@ Flutter 作为一种新兴跨平台解决方案，自 2017 年 Google 在 I/O �
 [『 深入浅出 Flutter Framework 之 Layer 』](https://zxfcumtcs.github.io/2020/06/07/deepinto-flutter-layer/)
 [『 深入浅出 Flutter Framework 之 PipelineOwner 』](https://zxfcumtcs.github.io/2020/12/05/deepinto-flutter-pipelineowner/)
 [『 深入浅出 Flutter Framework 之 RenderObejct 』](https://zxfcumtcs.github.io/2021/03/27/deepinto-flutter-renderobject/)
-『 深入浅出 Flutter Framework 之 Binding 』
-『 深入浅出 Flutter Framework 之 Rendering Pipeline 』
-『 深入浅出 Flutter Framework 之 自定义 Widget 』
+[『 深入浅出 Flutter Framework 之自定义渲染型 Widget 』](https://zxfcumtcs.github.io/2021/08/28/deepinto-flutter-custom-renderobjectwidget/)
 
-其中，前 7 篇属于基础篇，分别介绍 Flutter 中几个最核心的概念。Rendering Pipeline 篇则是在此基础上从 Build、Layout 到 Paint 的流程将它们串起来，分析 Flutter UI 是如何创建的、如何更新的。最后，自定义 Widget 属于回顾、实践篇，分析自定义一个 Render Widget 至少需要哪些步骤。
+其中，前 7 篇属于理论分析篇，分别介绍 Flutter 中几个最核心的概念。最后一篇，自定义 Render Widget 属于回顾、实践篇，分析自定义一个 Render Widget 至少需要哪些步骤。
 
 > 如[下图](https://flutter.dev/docs/resources/technical-overview#layer-cakes-are-delicious)所示，Flutter 整体分为三层：Framework (dart)、Engine (C/C++)、Embedder (Platform)，上述文章主要集中在 Framework 这一层。
 > ![](/img/flutter-layercake.png)
-
 
 
 # Widget
