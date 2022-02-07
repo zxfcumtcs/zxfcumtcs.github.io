@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="iOS,Swift,Protocol,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本文是下篇，主要讨论 Swift Protocol 实现机制。 内容涉及  Type Metadata、Protocol 内存模型 Existential Container、Generics 的实现原理以及泛型特化等。">
+<meta name="keywords" content="iOS,Swift,Protocol">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Swift Protocol 背后的故事(下)">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2022/02/04/SwiftProtocol2/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本文是下篇，主要讨论 Swift Protocol 实现机制。 内容涉及  Type Metadata、Protocol 内存模型 Existential Container、Generics 的实现原理以及泛型特化等。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/MetadataType.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ExistentialContainer.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/ProtocolTypeStoredProperties.png">
+<meta property="og:updated_time" content="2022-02-07T06:38:24.525Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Swift Protocol 背后的故事(下)">
+<meta name="twitter:description" content="本文是下篇，主要讨论 Swift Protocol 实现机制。 内容涉及  Type Metadata、Protocol 内存模型 Existential Container、Generics 的实现原理以及泛型特化等。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/MetadataType.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2022/02/04/SwiftProtocol2/">
+
+
+
+
+
+  <title>Swift Protocol 背后的故事(下) | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2022/02/04/SwiftProtocol2/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Swift Protocol 背后的故事(下)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-02-04T22:16:24+08:00">
+                2022-02-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2022/02/04/SwiftProtocol2/" class="leancloud_visitors" data-flag-title="Swift Protocol 背后的故事(下)">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  3,688
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  17
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文是下篇，主要讨论 Swift Protocol 实现机制。</p>
+<p>内容涉及  Type Metadata、Protocol 内存模型 Existential Container、Generics 的实现原理以及泛型特化等。</p>
+<a id="more"></a>
+<p>©原创文章，转载请注明出处！</p>
+<h1 id="Type-Metadata"><a href="#Type-Metadata" class="headerlink" title="Type Metadata"></a>Type Metadata</h1><hr>
+<p>在 Objective-C 中，通过 MetaClass 模型来表达类的元信息，并通过实例的 <code>isa</code> 指针来引用 MetaClass。这是整个 Objective-C runtime 的核心机制。</p>
+<p>那在 Swift 中类型信息 (Type Metadata) 是如何表达的呢？</p>
+<p>Swift runtime 为每种类型 (Class、Struct、Enum、Protocol、Tuple、Function 等等) 生成了一份元信息记录 (Metadata Record)，几个关键点：</p>
+<ul>
+<li><p>对于常规类型 (nominal types，如：类、结构体、枚举)，其对应的 Metadata Record 在编译期由编译器静态生成；</p>
+</li>
+<li><p>对于内在类型 (intrinsic types) 以及泛型实例，对应的 Metadata Record 则在运行时动态生成，如：元组、函数、协议等；</p>
+</li>
+<li><p>每个类型的 Metadata Record 都是唯一的，相同类型的 Metadata Record 是同一个</p>
+</li>
+</ul>
+<p>不同类型的 Metadata 所包含的信息也不一样 (Metadata Layout)，但它们有一个共同的头部，其包含：</p>
+<ul>
+<li><p>VWT (Value Witness Table) Poniter — 指向 VWT (虚函数表) 的指针，在 VWT 中包含了该类型的实例如何分配内存 (allocating)、copy (copying)、销毁 (destroying) 等基础操作 (函数指针)；</p>
+<blockquote>
+<p>在 VWT 中除了包含上述函数指针外，还有该类型实例的 size、alignment、stride 等基础信息。</p>
+</blockquote>
+</li>
+<li><p>Kind — 标记 Metadata 的类型，如：0 – Class，1 – Struct，2 – Enum，12 – Protocol 等等。</p>
+</li>
+</ul>
+<p><img src="/img/MetadataType.png" alt=""></p>
+<p>与本文讨论相关的是 VWT，关于 Metadata 的更多信息请参考：<a href="https://github.com/apple/swift/blob/main/docs/ABI/TypeMetadata.rst#protocol-metadata" target="_blank" rel="noopener">swift/TypeMetadata.rst at main · apple/swift · GitHub</a>。</p>
+<h1 id="Inside-Protocol"><a href="#Inside-Protocol" class="headerlink" title="Inside Protocol"></a>Inside Protocol</h1><hr>
+<h2 id="Existential-Container"><a href="#Existential-Container" class="headerlink" title="Existential Container"></a>Existential Container</h2><p>Class、Struct 以及 Enum 对应的实例都有确定的『模型』用于指导其内存布局。</p>
+<blockquote>
+<p>『模型』就是 Class、Struct 以及 Enum 本身的定义，它们包含的成员。</p>
+</blockquote>
+<p>而 Protocol 并没有确定的『模型』，因为其背后的真实类型可能千奇百怪，那么 Protocol 类型的变量按什么进行内存布局？</p>
+<p>Swift 用了一种称之为 <strong>Existential Container</strong> 的模型来指导 Protocol 变量布局内存。</p>
+<p>Existential Container 又分为两类：</p>
+<ul>
+<li><p><em>Opaque Existential Container</em> — 用于没有<strong>类</strong>约束的 Protocol (no class constraint on protocol)，也就是说这种协议背后的真实类型可能是类、结构体以及枚举等。因此其存储就非常复杂。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">OpaqueExistentialContainer</span> </span>&#123;</span><br><span class="line">  void *fixedSizeBuffer[<span class="number">3</span>];</span><br><span class="line">  <span class="type">Metadata</span> *type;</span><br><span class="line">  <span class="type">WitnessTable</span> *witnessTables[<span class="type">NUM_WITNESS_TABLES</span>];</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>如上，<code>OpaqueExistentialContainer</code> 包含3个成员：</p>
+<ul>
+<li><p><code>fixedSizeBuffer</code> — 3 个指针大小的 buffer 空间，当真实类型的 size (内存对齐后的大小) 小于 3 个字时则其内容直接存储在 fixedSizeBuffer 中，否则在 heap 上另辟空间存储，并将指针存储在 fixedSizeBuffer 中；</p>
+</li>
+<li><p><code>type</code> — 指向真实类型的 Metadata，最重要的就是引用其中的 VWT 用于完成内存的各种操作；</p>
+</li>
+<li><p><code>witnessTables</code> — 指向协议函数表 (Protocol Witness Table, PWT)，协议函数表中存储的是真实类型中对应函数的地址。</p>
+</li>
+</ul>
+</li>
+<li><p><em>Class Existential Container</em> — 用于有<strong>类</strong>约束的 Protocol，该协议背后真实的类型只能是类，而类的实例都是在 Heap 上分配内存的。</p>
+<p>因此，在 Existential Container 中只需要一个指向堆内存的指针即可。</p>
+<p>同时，由于类的实例含有指向其 Metadata 的指针，故在 Existential Container 中也就没必要再存一份 Metadata 的指针了：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">ClassExistentialContainer</span> </span>&#123;</span><br><span class="line">  <span class="type">HeapObject</span> *value;</span><br><span class="line">  <span class="type">WitnessTable</span> *witnessTables[<span class="type">NUM_WITNESS_TABLES</span>];</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>如上，<code>ClassExistentialContainer</code> 只包含2个成员：</p>
+<ul>
+<li><p><code>value</code> — 指向堆内存的指针；</p>
+</li>
+<li><p><code>witnessTables</code> — PWT 指针。</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>下面我们来看一个例子：</p>
+<p><img src="/img/ExistentialContainer.png" alt=""></p>
+<p>如图，由于  <code>protocol Drawable</code> 没有 class constraint，故其对应的 Existential Container 是 <code>OpaqueExistentialContainer</code>：</p>
+<ul>
+<li><p>由于 <code>Point</code> 实例占用 2 个字的内存空间 (小于 3)，故对于 <code>Drawable</code> 协议类型的变量 <code>point</code> 直接使用 <code>OpaqueExistentialContainer#buffer</code> 来存储其内容(<code>x</code>、<code>y</code>)；</p>
+</li>
+<li><p>而 <code>Line</code> 的实例要占用 4 个字的内存空间，故 <code>line</code> 需要在 heap 上分配内存用于存储其内容(<code>x0</code>、<code>y0</code>、<code>x1</code>、<code>y1</code>)；</p>
+</li>
+<li><p>Existential Container 中的 <code>type</code> 分别指向了其背后真实类型的 Metadata；</p>
+</li>
+<li><p>PWT 中的函数指针则指向真实类型中的函数。</p>
+</li>
+</ul>
+<p>对应编译器生成的(伪)代码如下：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> point: <span class="type">Drawable</span> = <span class="type">Point</span>(x: <span class="number">0</span>, y: <span class="number">0</span>)</span><br><span class="line">point.draw()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 编译器生成的(伪)代码</span></span><br><span class="line"><span class="keyword">let</span> _point: <span class="type">Point</span> = <span class="type">Point</span>(x: <span class="number">0</span>, y: <span class="number">0</span>)</span><br><span class="line"><span class="keyword">var</span> point: <span class="type">OpaqueExistentialContainer</span> = <span class="type">OpaqueExistentialContainer</span>()</span><br><span class="line"><span class="keyword">let</span> metadata = _point.type</span><br><span class="line"><span class="keyword">let</span> vwt = metadata.vwt</span><br><span class="line">vwt.copy(&amp;(point.fixedSizeBuffer), _point)</span><br><span class="line">point.type = metadata</span><br><span class="line">point.witnessTables = <span class="type">PWT</span>(<span class="type">Point</span>.draw)</span><br><span class="line">point.pwt.draw()</span><br><span class="line">vwt.dealloc(point)</span><br></pre></td></tr></table></figure>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> line: <span class="type">Drawable</span> = <span class="type">Line</span>(x0: <span class="number">0</span>, y0: <span class="number">0</span>, x1: <span class="number">1</span>, y1: <span class="number">1</span>)</span><br><span class="line">line.draw()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 编译器生成的(伪)代码</span></span><br><span class="line"><span class="keyword">let</span> _line: <span class="type">Line</span> = <span class="type">Line</span>(x0: <span class="number">0</span>, y0: <span class="number">0</span>, x1: <span class="number">1</span>, y1: <span class="number">1</span>)</span><br><span class="line"><span class="keyword">var</span> line：<span class="type">OpaqueExistentialContainer</span> = <span class="type">OpaqueExistentialContainer</span>()</span><br><span class="line"><span class="keyword">let</span> metadata = _line.type</span><br><span class="line"><span class="keyword">let</span> vwt = metadata.vwt</span><br><span class="line">line.fixedSizeBuffer[<span class="number">0</span>] = vwt.allocate()</span><br><span class="line">vwt.copy(line.fixedSizeBuffer, _line)</span><br><span class="line">line.type = metadata</span><br><span class="line">line.witnessTables = <span class="type">PWT</span>(<span class="type">Line</span>.draw)</span><br><span class="line">line.pwt.draw()</span><br><span class="line">vwt.dealloc(line)</span><br></pre></td></tr></table></figure>
+<p>关于更多 Type Layout 的信息请参考: <a href="https://github.com/apple/swift/blob/main/docs/ABI/TypeLayout.rst" target="_blank" rel="noopener">swift/TypeLayout.rst at main · apple/swift · GitHub</a></p>
+<p>从上面的伪代码可以看到对于协议类型的变量，编译器在背后做了大量的工作。也有一定的性能损耗。</p>
+<h2 id="Protocol-Type-Stored-Properties"><a href="#Protocol-Type-Stored-Properties" class="headerlink" title="Protocol Type Stored Properties"></a>Protocol Type Stored Properties</h2><p>从上一小节可知，协议类型的变量其实质类型是 Existential Container (<code>OpaqueExistentialContainer</code> / <code>ClassExistentialContainer</code>)。</p>
+<p>因此，当协议类型变量作为存储属性时，其在寄主实例中的内存占用就是一个 Existential Container 实例 (下图来自: <a href="https://developer.apple.com/videos/play/wwdc2016/416/" target="_blank" rel="noopener">Understanding Swift Performance · WWDC2016</a>)：</p>
+<p><img src="/img/ProtocolTypeStoredProperties.png" alt=""></p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Protocol 不同于一般类型 (Class、Struct、Enum)，具有以下特点：</p>
+<ul>
+<li><p>使用 Existential Container (<code>OpaqueExistentialContainer</code> / <code>ClassExistentialContainer</code>) 作为内存模型；</p>
+</li>
+<li><p>内存占用 &lt;= 3 的实例，直接存储在 Existential Container buffer 中，否则在 heap 上另行分配内存，并将指针存储在 Existential Container buffer[0] 中；</p>
+</li>
+<li><p>内存管理 (allocating、copying、destroying) 相关的方法保存在 VWT 中；</p>
+</li>
+<li><p>通过 PWT 实现方法动态派发 (Dynamic dispatch)。</p>
+</li>
+</ul>
+<h1 id="Generics"><a href="#Generics" class="headerlink" title="Generics"></a>Generics</h1><hr>
+<p>泛型作为提升代码灵活性、可复用性的重要手段被大多数语言所支持，如：Swift、Java、C++ (模板)。</p>
+<p>Swift 结合 Protocol 赋以泛型更多的灵活性。</p>
+<p>下面我们简单探讨一下泛型在 Swift 中是如何实现的。</p>
+<p>Swift 中泛型可以添加类型约束 (Type Constraints)，约束可以是类，也可以是协议。</p>
+<p>因此，Swift 泛型根据类型约束可以分为 3 类：</p>
+<ul>
+<li><p>No Constraints</p>
+</li>
+<li><p>Class Constraints</p>
+</li>
+<li><p>Protocol Constraints</p>
+</li>
+</ul>
+<p>下面，分别对这 3 类情况进行简要分析。</p>
+<blockquote>
+<p>通过 SIL (<a href="https://github.com/apple/swift/blob/main/docs/SIL.rst" target="_blank" rel="noopener">swift/SIL.rst at main · apple/swift · GitHub</a>) 可以大致了解 Swift 背后的实现原理。</p>
+<p><code>swiftc demo.swift -O -emit-sil -o demo-sil.s</code> </p>
+<p>如上，通过 swiftc 命令可以生成 SIL。</p>
+<p>其中的 <code>-O</code> 是对生成的 SIL 代码进行编译优化，使 SIL 更简洁高效。</p>
+<p>后面要讲到的泛型特化 (Specialization of Generics) 也只有在 <code>-O</code> 优化下会发生。</p>
+</blockquote>
+<h2 id="No-Constraints"><a href="#No-Constraints" class="headerlink" title="No Constraints"></a>No Constraints</h2><p>其实，这类泛型能执行的操作非常少。无法在 heap 上实例化 (创建) 对象，也不能执行任何方法。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">@inline(never)  <span class="comment">// 禁止编译器做 inline 优化</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">swapTwoValues</span>&lt;T&gt;<span class="params">(<span class="number">_</span> a: <span class="keyword">inout</span> T, <span class="number">_</span> b: <span class="keyword">inout</span> T)</span></span> &#123;</span><br><span class="line">    <span class="keyword">let</span> temp = a</span><br><span class="line">    a = b</span><br><span class="line">    b = temp</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，<code>swapTwoValues</code> 用于交换 2 个变量的值，其泛型参数 <code>T</code> 没有任何约束。</p>
+<p>其对应的 SIL 如下，关键点：</p>
+<ul>
+<li><p>第<code>8</code>行，通过 <code>alloc_stack</code> 在栈上为类型 <code>T</code> 分配内存 (<code>temp</code>);</p>
+</li>
+<li><p>第<code>9</code>行，通过 <code>copy_addr</code> 进行内存级拷贝 (不会执行任何 <code>init</code> 方法)；</p>
+</li>
+<li><p>第<code>12</code>行，通过 <code>dealloc_stack</code> 销毁上述开辟的内存；</p>
+</li>
+<li><p>其他就是做一些内存拷贝的操作。</p>
+</li>
+</ul>
+<blockquote>
+<p>需要注意的是，对于引用类型，<code>$T</code>是指针，即在栈上开辟的是存储指针的内存，而非引用类型本身。</p>
+</blockquote>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>   <span class="comment">// swapTwoValues&lt;A&gt;(_:_:)</span></span><br><span class="line"><span class="number">2</span>   sil hidden [noinline] @$s4main13swapTwoValuesyyxz_xztlF : $<span class="meta">@convention</span>(thin) &lt;<span class="type">T</span>&gt; (@<span class="keyword">inout</span> <span class="type">T</span>, @<span class="keyword">inout</span> <span class="type">T</span>) -&gt; () &#123;</span><br><span class="line"><span class="number">3</span>   <span class="comment">// %0 "a"                                         // users: %5, %6, %2</span></span><br><span class="line"><span class="number">4</span>   <span class="comment">// %1 "b"                                         // users: %7, %6, %3</span></span><br><span class="line"><span class="number">5</span>   bb0(%<span class="number">0</span> : $*<span class="type">T</span>, %<span class="number">1</span> : $*<span class="type">T</span>):</span><br><span class="line"><span class="number">6</span>    debug_value_addr %<span class="number">0</span> : $*<span class="type">T</span>, <span class="keyword">var</span>, name <span class="string">"a"</span>, argno <span class="number">1</span> <span class="comment">// id: %2</span></span><br><span class="line"><span class="number">7</span>    debug_value_addr %<span class="number">1</span> : $*<span class="type">T</span>, <span class="keyword">var</span>, name <span class="string">"b"</span>, argno <span class="number">2</span> <span class="comment">// id: %3</span></span><br><span class="line"><span class="number">8</span>    %<span class="number">4</span> = alloc_stack $<span class="type">T</span>, <span class="keyword">let</span>, name <span class="string">"temp"</span>           <span class="comment">// users: %8, %7, %5</span></span><br><span class="line"><span class="number">9</span>    copy_addr %<span class="number">0</span> to [initialization] %<span class="number">4</span> : $*<span class="type">T</span>       <span class="comment">// id: %5</span></span><br><span class="line"><span class="number">10</span>   copy_addr [take] %<span class="number">1</span> to %<span class="number">0</span> : $*<span class="type">T</span>                 <span class="comment">// id: %6</span></span><br><span class="line"><span class="number">11</span>   copy_addr [take] %<span class="number">4</span> to [initialization] %<span class="number">1</span> : $*<span class="type">T</span> <span class="comment">// id: %7</span></span><br><span class="line"><span class="number">12</span>   dealloc_stack %<span class="number">4</span> : $*<span class="type">T</span>                          <span class="comment">// id: %8</span></span><br><span class="line"><span class="number">13</span>   %<span class="number">9</span> = tuple ()                                   <span class="comment">// user: %10</span></span><br><span class="line"><span class="number">14</span>   <span class="keyword">return</span> %<span class="number">9</span> : $()                                 <span class="comment">// id: %10</span></span><br><span class="line"><span class="number">15</span> &#125; <span class="comment">// end sil function '$s4main13swapTwoValuesyyxz_xztlF'</span></span><br></pre></td></tr></table></figure>
+<h2 id="Class-Constraints"><a href="#Class-Constraints" class="headerlink" title="Class Constraints"></a>Class Constraints</h2><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Shape</span> </span>&#123;</span><br><span class="line">  <span class="keyword">required</span></span><br><span class="line">  <span class="keyword">init</span>() &#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">draw</span><span class="params">()</span></span> -&gt; <span class="type">Bool</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Triangle</span>: <span class="title">Shape</span> </span>&#123;</span><br><span class="line">  <span class="keyword">required</span></span><br><span class="line">  <span class="keyword">init</span>() &#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">draw</span><span class="params">()</span></span> -&gt; <span class="type">Bool</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@inline(never)</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">drawShape</span>&lt;T: Shape&gt;<span class="params">(<span class="number">_</span> s: T)</span></span> &#123;</span><br><span class="line">  <span class="keyword">let</span> s0 = <span class="type">T</span>()</span><br><span class="line">  s0.draw()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如例：</p>
+<ul>
+<li><p>将泛型类型 upcast 到约束类型 (第 <code>5~6</code>行)；</p>
+</li>
+<li><p>通过 <code>class_method</code> 指令找到要执行的方法 (<code>init</code>、<code>draw</code> 方法 [第 <code>7~10</code> 行]，在 vtable 中找)；</p>
+</li>
+<li><p>可以在 Heap 上创建泛型类型的实例 (第 <code>8</code> 行)；</p>
+</li>
+<li><p>其实质就是通过虚函数表实现的多态。</p>
+</li>
+</ul>
+<p>总之，由于有基础类作为类型约束，通过虚函数表就可以执行所有基础类公开的方法。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>  <span class="comment">// drawShape&lt;A&gt;(_:)</span></span><br><span class="line"><span class="number">2</span>  sil hidden [noinline] @$s4main9drawShapeyyxAA0C0CRbzlF : $<span class="meta">@convention</span>(thin) &lt;<span class="type">T</span> <span class="keyword">where</span> <span class="type">T</span> : <span class="type">Shape</span>&gt; (@guaranteed <span class="type">T</span>) -&gt; () &#123;</span><br><span class="line"><span class="number">3</span>  <span class="comment">// %0 "s"</span></span><br><span class="line"><span class="number">4</span>  bb0(%<span class="number">0</span> : $<span class="type">T</span>):</span><br><span class="line"><span class="number">5</span>    %<span class="number">1</span> = metatype $@thick <span class="type">T</span>.<span class="type">Type</span>                    <span class="comment">// user: %2</span></span><br><span class="line"><span class="number">6</span>    %<span class="number">2</span> = upcast %<span class="number">1</span> : $@thick <span class="type">T</span>.<span class="type">Type</span> to $@thick <span class="type">Shape</span>.<span class="type">Type</span> <span class="comment">// users: %4, %3</span></span><br><span class="line"><span class="number">7</span>    %<span class="number">3</span> = class_method %<span class="number">2</span> : $@thick <span class="type">Shape</span>.<span class="type">Type</span>, #<span class="type">Shape</span>.<span class="keyword">init</span>!allocator : (<span class="type">Shape</span>.<span class="type">Type</span>) -&gt; () -&gt; <span class="type">Shape</span>, $<span class="meta">@convention</span>(method) (@thick <span class="type">Shape</span>.<span class="type">Type</span>) -&gt; @owned <span class="type">Shape</span> <span class="comment">// user: %4</span></span><br><span class="line"><span class="number">8</span>    %<span class="number">4</span> = apply %<span class="number">3</span>(%<span class="number">2</span>) : $<span class="meta">@convention</span>(method) (@thick <span class="type">Shape</span>.<span class="type">Type</span>) -&gt; @owned <span class="type">Shape</span> <span class="comment">// users: %7, %5, %6</span></span><br><span class="line"><span class="number">9</span>    %<span class="number">5</span> = class_method %<span class="number">4</span> : $<span class="type">Shape</span>, #<span class="type">Shape</span>.draw : (<span class="type">Shape</span>) -&gt; () -&gt; <span class="type">Bool</span>, $<span class="meta">@convention</span>(method) (@guaranteed <span class="type">Shape</span>) -&gt; <span class="type">Bool</span> <span class="comment">// user: %6</span></span><br><span class="line"><span class="number">10</span>   %<span class="number">6</span> = apply %<span class="number">5</span>(%<span class="number">4</span>) : $<span class="meta">@convention</span>(method) (@guaranteed <span class="type">Shape</span>) -&gt; <span class="type">Bool</span></span><br><span class="line"><span class="number">11</span>   strong_release %<span class="number">4</span> : $<span class="type">Shape</span>                      <span class="comment">// id: %7</span></span><br><span class="line"><span class="number">12</span>   %<span class="number">8</span> = tuple ()                                   <span class="comment">// user: %9</span></span><br><span class="line"><span class="number">13</span>   <span class="keyword">return</span> %<span class="number">8</span> : $()                                 <span class="comment">// id: %9</span></span><br><span class="line"><span class="number">14</span> &#125; <span class="comment">// end sil function '$s4main9drawShapeyyxAA0C0CRbzlF'</span></span><br><span class="line"><span class="number">15</span></span><br><span class="line"><span class="number">16</span> sil_vtable <span class="type">Shape</span> &#123;</span><br><span class="line"><span class="number">17</span>   #<span class="type">Shape</span>.<span class="keyword">init</span>!allocator: (<span class="type">Shape</span>.<span class="type">Type</span>) -&gt; () -&gt; <span class="type">Shape</span> : @$s4main5ShapeCACycfC    <span class="comment">// Shape.__allocating_init()</span></span><br><span class="line"><span class="number">18</span>   #<span class="type">Shape</span>.draw: (<span class="type">Shape</span>) -&gt; () -&gt; <span class="type">Bool</span> : @$s4main5ShapeC4drawSbyF    <span class="comment">// Shape.draw()</span></span><br><span class="line"><span class="number">19</span>   #<span class="type">Shape</span>.<span class="keyword">deinit</span>!deallocator: @$s4main5ShapeCfD    <span class="comment">// Shape.__deallocating_deinit</span></span><br><span class="line"><span class="number">20</span> &#125;</span><br><span class="line"><span class="number">21</span></span><br><span class="line"><span class="number">22</span> sil_vtable <span class="type">Triangle</span> &#123;</span><br><span class="line"><span class="number">23</span>   #<span class="type">Shape</span>.<span class="keyword">init</span>!allocator: (<span class="type">Shape</span>.<span class="type">Type</span>) -&gt; () -&gt; <span class="type">Shape</span> : @$s4main8TriangleCACycfC [<span class="keyword">override</span>]    <span class="comment">// Triangle.__allocating_init()</span></span><br><span class="line"><span class="number">24</span>   #<span class="type">Shape</span>.draw: (<span class="type">Shape</span>) -&gt; () -&gt; <span class="type">Bool</span> : @$s4main8TriangleC4drawSbyF [<span class="keyword">override</span>]    <span class="comment">// Triangle.draw()</span></span><br><span class="line"><span class="number">25</span>   #<span class="type">Triangle</span>.<span class="keyword">deinit</span>!deallocator: @$s4main8TriangleCfD    <span class="comment">// Triangle.__deallocating_deinit</span></span><br><span class="line"><span class="number">26</span> &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Protocol-Constraints"><a href="#Protocol-Constraints" class="headerlink" title="Protocol Constraints"></a>Protocol Constraints</h2><blockquote>
+<p>这里讨论的 Protocol 是没有 class constraint 的，对于只能由类实现的协议作为泛型约束时，其效果同上节讨论的 Class Constraints。</p>
+</blockquote>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">@inline(never)</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">equal</span>&lt;T: Equatable&gt;<span class="params">(<span class="number">_</span> a: T, <span class="number">_</span> b: T)</span></span> -&gt; <span class="type">Bool</span> &#123;</span><br><span class="line">  <span class="keyword">let</span> a0 = a</span><br><span class="line">  <span class="keyword">let</span> b0 = b</span><br><span class="line">  <span class="keyword">return</span> a0 == b</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从下列 SIL 可以看到：</p>
+<ul>
+<li><p>通过 <code>alloc_stack</code> 可以为泛型类型在 Stack 上分配内存 (无论泛型类型是值类型还是引用类型)；</p>
+</li>
+<li><p>同样通过 <code>copy_addr</code> 执行内存拷贝；</p>
+</li>
+<li><p>通过 <code>witness_method</code> 指令在泛型类型上查找 Protocol 指定的方法 (查 PWT 表)。</p>
+</li>
+</ul>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// equal&lt;A&gt;(_:_:)</span></span><br><span class="line">sil hidden [noinline] @$s4main5equalySbx_xtSQRzlF : $<span class="meta">@convention</span>(thin) &lt;<span class="type">T</span> <span class="keyword">where</span> <span class="type">T</span> : <span class="type">Equatable</span>&gt; (@in_guaranteed <span class="type">T</span>, @in_guaranteed <span class="type">T</span>) -&gt; <span class="type">Bool</span> &#123;</span><br><span class="line"><span class="comment">// %0 "a"                                         // users: %5, %2</span></span><br><span class="line"><span class="comment">// %1 "b"                                         // users: %8, %3</span></span><br><span class="line">bb0(%<span class="number">0</span> : $*<span class="type">T</span>, %<span class="number">1</span> : $*<span class="type">T</span>):</span><br><span class="line">  debug_value_addr %<span class="number">0</span> : $*<span class="type">T</span>, <span class="keyword">let</span>, name <span class="string">"a"</span>, argno <span class="number">1</span> <span class="comment">// id: %2</span></span><br><span class="line">  debug_value_addr %<span class="number">1</span> : $*<span class="type">T</span>, <span class="keyword">let</span>, name <span class="string">"b"</span>, argno <span class="number">2</span> <span class="comment">// id: %3</span></span><br><span class="line">  %<span class="number">4</span> = alloc_stack $<span class="type">T</span>, <span class="keyword">let</span>, name <span class="string">"a0"</span>             <span class="comment">// users: %9, %10, %8, %5</span></span><br><span class="line">  copy_addr %<span class="number">0</span> to [initialization] %<span class="number">4</span> : $*<span class="type">T</span>       <span class="comment">// id: %5</span></span><br><span class="line">  %<span class="number">6</span> = metatype $@thick <span class="type">T</span>.<span class="type">Type</span>                    <span class="comment">// user: %8</span></span><br><span class="line">  %<span class="number">7</span> = witness_method $<span class="type">T</span>, #<span class="type">Equatable</span>.<span class="string">"=="</span> : &lt;<span class="type">Self</span> <span class="keyword">where</span> <span class="type">Self</span> : <span class="type">Equatable</span>&gt; (<span class="type">Self</span>.<span class="type">Type</span>) -&gt; (<span class="type">Self</span>, <span class="type">Self</span>) -&gt; <span class="type">Bool</span> : $<span class="meta">@convention</span>(witness_method: <span class="type">Equatable</span>) &lt;τ<span class="number">_0_0</span> <span class="keyword">where</span> τ<span class="number">_0_0</span> : <span class="type">Equatable</span>&gt; (@in_guaranteed τ<span class="number">_0_0</span>, @in_guaranteed τ<span class="number">_0_0</span>, @thick τ<span class="number">_0_0</span>.<span class="type">Type</span>) -&gt; <span class="type">Bool</span> <span class="comment">// user: %8</span></span><br><span class="line">  %<span class="number">8</span> = apply %<span class="number">7</span>&lt;<span class="type">T</span>&gt;(%<span class="number">4</span>, %<span class="number">1</span>, %<span class="number">6</span>) : $<span class="meta">@convention</span>(witness_method: <span class="type">Equatable</span>) &lt;τ<span class="number">_0_0</span> <span class="keyword">where</span> τ<span class="number">_0_0</span> : <span class="type">Equatable</span>&gt; (@in_guaranteed τ<span class="number">_0_0</span>, @in_guaranteed τ<span class="number">_0_0</span>, @thick τ<span class="number">_0_0</span>.<span class="type">Type</span>) -&gt; <span class="type">Bool</span> <span class="comment">// user: %11</span></span><br><span class="line">  destroy_addr %<span class="number">4</span> : $*<span class="type">T</span>                           <span class="comment">// id: %9</span></span><br><span class="line">  dealloc_stack %<span class="number">4</span> : $*<span class="type">T</span>                          <span class="comment">// id: %10</span></span><br><span class="line">  <span class="keyword">return</span> %<span class="number">8</span> : $<span class="type">Bool</span>                               <span class="comment">// id: %11</span></span><br><span class="line">&#125; <span class="comment">// end sil function '$s4main5equalySbx_xtSQRzlF'</span></span><br></pre></td></tr></table></figure>
+<p>再看一个例子：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">protocol</span> <span class="title">Drawable</span> </span>&#123;</span><br><span class="line">  <span class="keyword">init</span>()</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">draw</span><span class="params">()</span></span> -&gt; <span class="type">Bool</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@inline(never)</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">drawShape</span>&lt;T: Drawable&gt;<span class="params">(<span class="number">_</span> s: T)</span></span> -&gt; <span class="type">T</span> &#123;</span><br><span class="line">  <span class="keyword">var</span> s0 = <span class="type">T</span>()</span><br><span class="line">  s0.draw()</span><br><span class="line">  <span class="keyword">return</span> s0</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从下列 SIL 可以看出：</p>
+<ul>
+<li>可以在 Heap 上创建泛型类型实例 (无论是值类型还是引用类型)；</li>
+</ul>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// drawShape&lt;A&gt;(_:)</span></span><br><span class="line">sil hidden [noinline] @$s4main9drawShapeyxxAA8DrawableRzlF : $<span class="meta">@convention</span>(thin) &lt;<span class="type">T</span> <span class="keyword">where</span> <span class="type">T</span> : <span class="type">Drawable</span>&gt; (@in_guaranteed <span class="type">T</span>) -&gt; @out <span class="type">T</span> &#123;</span><br><span class="line"><span class="comment">// %0 "$return_value"                             // users: %4, %6</span></span><br><span class="line"><span class="comment">// %1 "s"</span></span><br><span class="line">bb0(%<span class="number">0</span> : $*<span class="type">T</span>, %<span class="number">1</span> : $*<span class="type">T</span>):</span><br><span class="line">  %<span class="number">2</span> = metatype $@thick <span class="type">T</span>.<span class="type">Type</span>                    <span class="comment">// user: %4</span></span><br><span class="line">  %<span class="number">3</span> = witness_method $<span class="type">T</span>, #<span class="type">Drawable</span>.<span class="keyword">init</span>!allocator : &lt;<span class="type">Self</span> <span class="keyword">where</span> <span class="type">Self</span> : <span class="type">Drawable</span>&gt; (<span class="type">Self</span>.<span class="type">Type</span>) -&gt; () -&gt; <span class="type">Self</span> : $<span class="meta">@convention</span>(witness_method: <span class="type">Drawable</span>) &lt;τ<span class="number">_0_0</span> <span class="keyword">where</span> τ<span class="number">_0_0</span> : <span class="type">Drawable</span>&gt; (@thick τ<span class="number">_0_0</span>.<span class="type">Type</span>) -&gt; @out τ<span class="number">_0_0</span> <span class="comment">// user: %4</span></span><br><span class="line">  %<span class="number">4</span> = apply %<span class="number">3</span>&lt;<span class="type">T</span>&gt;(%<span class="number">0</span>, %<span class="number">2</span>) : $<span class="meta">@convention</span>(witness_method: <span class="type">Drawable</span>) &lt;τ<span class="number">_0_0</span> <span class="keyword">where</span> τ<span class="number">_0_0</span> : <span class="type">Drawable</span>&gt; (@thick τ<span class="number">_0_0</span>.<span class="type">Type</span>) -&gt; @out τ<span class="number">_0_0</span></span><br><span class="line">  %<span class="number">5</span> = witness_method $<span class="type">T</span>, #<span class="type">Drawable</span>.draw : &lt;<span class="type">Self</span> <span class="keyword">where</span> <span class="type">Self</span> : <span class="type">Drawable</span>&gt; (<span class="type">Self</span>) -&gt; () -&gt; <span class="type">Bool</span> : $<span class="meta">@convention</span>(witness_method: <span class="type">Drawable</span>) &lt;τ<span class="number">_0_0</span> <span class="keyword">where</span> τ<span class="number">_0_0</span> : <span class="type">Drawable</span>&gt; (@in_guaranteed τ<span class="number">_0_0</span>) -&gt; <span class="type">Bool</span> <span class="comment">// user: %6</span></span><br><span class="line">  %<span class="number">6</span> = apply %<span class="number">5</span>&lt;<span class="type">T</span>&gt;(%<span class="number">0</span>) : $<span class="meta">@convention</span>(witness_method: <span class="type">Drawable</span>) &lt;τ<span class="number">_0_0</span> <span class="keyword">where</span> τ<span class="number">_0_0</span> : <span class="type">Drawable</span>&gt; (@in_guaranteed τ<span class="number">_0_0</span>) -&gt; <span class="type">Bool</span></span><br><span class="line">  %<span class="number">7</span> = tuple ()                                   <span class="comment">// user: %8</span></span><br><span class="line">  <span class="keyword">return</span> %<span class="number">7</span> : $()                                 <span class="comment">// id: %8</span></span><br><span class="line">&#125; <span class="comment">// end sil function '$s4main9drawShapeyxxAA8DrawableRzlF'</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">sil_witness_table hidden <span class="type">Shape</span>: <span class="type">Drawable</span> module main &#123;</span><br><span class="line">  method #<span class="type">Drawable</span>.<span class="keyword">init</span>!allocator: &lt;<span class="type">Self</span> <span class="keyword">where</span> <span class="type">Self</span> : <span class="type">Drawable</span>&gt; (<span class="type">Self</span>.<span class="type">Type</span>) -&gt; () -&gt; <span class="type">Self</span> : @$s4main5ShapeCAA8DrawableA2aDPxycfCTW    <span class="comment">// protocol witness for Drawable.init() in conformance Shape</span></span><br><span class="line">  method #<span class="type">Drawable</span>.draw: &lt;<span class="type">Self</span> <span class="keyword">where</span> <span class="type">Self</span> : <span class="type">Drawable</span>&gt; (<span class="type">Self</span>) -&gt; () -&gt; <span class="type">Bool</span> : @$s4main5ShapeCAA8DrawableA2aDP4drawSbyFTW    <span class="comment">// protocol witness for Drawable.draw() in conformance Shape</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过上面简单的分析可以看出 No Constraints、Class Constraints 以及 Protocol Constraints 的泛型类型在实现上的区别：</p>
+<ul>
+<li><p>No Constraints 泛型能做的事很少，不能执行任何方法，只能 Stack 上为泛型类型分配内存并执行内存拷贝；</p>
+</li>
+<li><p>Class Constraints 泛型可以在 Heap 上创建新实例，方法调用通过虚函数表 (vtable) 实现；</p>
+</li>
+<li><p>Protocol Constraints 泛型可以在 Stack 上也可以在 Heap 上按需创建泛型类型实例，无论泛型是值类型还是引用类型；</p>
+</li>
+<li><p>Protocol Constraints 泛型通过 PWT 实现方法调用；</p>
+</li>
+<li><p>也就是说泛型中的方法调用都是动态派发 (Dynamic dispatch)，通过 vtable 或者 PWT。</p>
+</li>
+</ul>
+<h2 id="Specialization-of-Generics"><a href="#Specialization-of-Generics" class="headerlink" title="Specialization of Generics"></a>Specialization of Generics</h2><p>从上一小节可知，泛型方法调用都是动态派发 (通过 vtable 或 PWT)，有一定的性能损耗。</p>
+<p>为了优化此类损耗，Swift 编译器会对泛型进行特化 (Specialization of Generics)。</p>
+<p>所谓特化就是为具体类型生成相应版本的函数，从而将泛型转成非泛型，实现方法调用的静态派发。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">@inline(never)</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">swapTwoValues</span>&lt;T&gt;<span class="params">(<span class="number">_</span> a: <span class="keyword">inout</span> T, <span class="number">_</span> b: <span class="keyword">inout</span> T)</span></span> &#123;</span><br><span class="line">  <span class="keyword">let</span> temp = a</span><br><span class="line">  a = b</span><br><span class="line">  b = temp</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> a = <span class="number">1</span></span><br><span class="line"><span class="keyword">var</span> b = <span class="number">2</span></span><br><span class="line">swapTwoValues(&amp;a, &amp;b)</span><br></pre></td></tr></table></figure>
+<p>如例，通过 <code>Int</code> 型参数调用 <code>swapTwoValues</code> 时，编译器就会生成该方法的 <code>Int</code> 版本：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// specialized swapTwoValues&lt;A&gt;(_:_:)</span></span><br><span class="line">sil shared [noinline] @$s4main13swapTwoValuesyyxz_xztlFSi_Tg5 : $<span class="meta">@convention</span>(thin) (@<span class="keyword">inout</span> <span class="type">Int</span>, @<span class="keyword">inout</span> <span class="type">Int</span>) -&gt; () &#123;</span><br><span class="line"><span class="comment">// %0 "a"                                         // users: %6, %4, %2</span></span><br><span class="line"><span class="comment">// %1 "b"                                         // users: %7, %5, %3</span></span><br><span class="line">bb0(%<span class="number">0</span> : $*<span class="type">Int</span>, %<span class="number">1</span> : $*<span class="type">Int</span>):</span><br><span class="line">  debug_value_addr %<span class="number">0</span> : $*<span class="type">Int</span>, <span class="keyword">var</span>, name <span class="string">"a"</span>, argno <span class="number">1</span> <span class="comment">// id: %2</span></span><br><span class="line">  debug_value_addr %<span class="number">1</span> : $*<span class="type">Int</span>, <span class="keyword">var</span>, name <span class="string">"b"</span>, argno <span class="number">2</span> <span class="comment">// id: %3</span></span><br><span class="line">  %<span class="number">4</span> = load %<span class="number">0</span> : $*<span class="type">Int</span>                            <span class="comment">// user: %7</span></span><br><span class="line">  %<span class="number">5</span> = load %<span class="number">1</span> : $*<span class="type">Int</span>                            <span class="comment">// user: %6</span></span><br><span class="line">  store %<span class="number">5</span> to %<span class="number">0</span> : $*<span class="type">Int</span>                          <span class="comment">// id: %6</span></span><br><span class="line">  store %<span class="number">4</span> to %<span class="number">1</span> : $*<span class="type">Int</span>                          <span class="comment">// id: %7</span></span><br><span class="line">  %<span class="number">8</span> = tuple ()                                   <span class="comment">// user: %9</span></span><br><span class="line">  <span class="keyword">return</span> %<span class="number">8</span> : $()                                 <span class="comment">// id: %9</span></span><br><span class="line">&#125; <span class="comment">// end sil function '$s4main13swapTwoValuesyyxz_xztlFSi_Tg5'</span></span><br></pre></td></tr></table></figure>
+<p>那么，什么时候会进行泛型特化呢？</p>
+<p>总的原则是在编译泛型方法时知道有哪些调用方，同时调用方的类型是可推演的。</p>
+<p>最简单的情况就是泛型方法与调用方在同一个源文件里，一起进行编译。</p>
+<p>另外在编译时若开启了 Whole-Module Optimization ，同一模块内部的泛型调用也可以被特化。</p>
+<blockquote>
+<p>关于全模块优化请参考<a href="https://www.swift.org/blog/whole-module-optimizations/" target="_blank" rel="noopener">Swift.org - Whole-Module Optimization in Swift 3</a>，在此不再赘述。</p>
+</blockquote>
+<h1 id="小结-1"><a href="#小结-1" class="headerlink" title="小结"></a>小结</h1><ul>
+<li><p>Swift 为每种类型生成了一份 Metadata Record，其中包含了 VWT (Value Witness Table)；</p>
+</li>
+<li><p>Protocol 使用 Existential Container 作为其内存模型，所有 Protocol 类型的变量都是 Existential Container 的实例；</p>
+</li>
+<li><p>Protocol 通过 PWT 实现方法动态派发 (Dynamic dispatch)；</p>
+</li>
+<li><p>泛型调用在满足一定条件时会进行特化，以提升性能。</p>
+</li>
+</ul>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p><a href="https://github.com/apple/swift-evolution/blob/master/proposals/0244-opaque-result-types.md" target="_blank" rel="noopener">swift-evolution · Opaque Result Types</a></p>
+<p><a href="https://docs.swift.org/swift-book/LanguageGuide/OpaqueTypes.html" target="_blank" rel="noopener">OpaqueTypes</a></p>
+<p><a href="https://www.swiftbysundell.com/articles/different-flavors-of-type-erasure-in-swift/#closures-to-the-rescue" target="_blank" rel="noopener">Different flavors of type erasure in Swift</a></p>
+<p><a href="https://www.raywenderlich.com/24942207-opaque-return-types-and-type-erasure" target="_blank" rel="noopener">Opaque Return Types and Type Erasure</a></p>
+<p><a href="https://www.swiftbysundell.com/articles/phantom-types-in-swift/" target="_blank" rel="noopener">Phantom types in Swift</a></p>
+<p><a href="https://www.hackingwithswift.com/plus/advanced-swift/how-to-use-phantom-types-in-swift" target="_blank" rel="noopener">How to use phantom types in Swift</a></p>
+<p><a href="https://github.com/apple/swift/blob/main/docs/ABI/TypeMetadata.rst#protocol-metadata" target="_blank" rel="noopener">swift/TypeMetadata.rst at main · apple/swift · GitHub</a></p>
+<p><a href="https://github.com/apple/swift/blob/main/docs/ABI/TypeLayout.rst" target="_blank" rel="noopener">swift/TypeLayout.rst at main · apple/swift · GitHub</a></p>
+<p><a href="https://speakerdeck.com/kateinoigakukun/swift-type-metadata?slide=48" target="_blank" rel="noopener">Swift Type Metadata</a></p>
+<p><a href="https://developer.apple.com/videos/play/wwdc2016/416/" target="_blank" rel="noopener">Understanding Swift Performance · WWDC2016</a></p>
+<p><a href="https://www.swift.org/blog/whole-module-optimizations/" target="_blank" rel="noopener">Swift.org - Whole-Module Optimization in Swift 3</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag"># iOS</a>
+          
+            <a href="/tags/Swift/" rel="tag"># Swift</a>
+          
+            <a href="/tags/Protocol/" rel="tag"># Protocol</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2022/02/01/SwiftProtocol1/" rel="next" title="Swift Protocol 背后的故事(上)">
+                <i class="fa fa-chevron-left"></i> Swift Protocol 背后的故事(上)
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">54</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Type-Metadata"><span class="nav-number">1.</span> <span class="nav-text">Type Metadata</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Inside-Protocol"><span class="nav-number">2.</span> <span class="nav-text">Inside Protocol</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Existential-Container"><span class="nav-number">2.1.</span> <span class="nav-text">Existential Container</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Protocol-Type-Stored-Properties"><span class="nav-number">2.2.</span> <span class="nav-text">Protocol Type Stored Properties</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小结"><span class="nav-number">2.3.</span> <span class="nav-text">小结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Generics"><span class="nav-number">3.</span> <span class="nav-text">Generics</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#No-Constraints"><span class="nav-number">3.1.</span> <span class="nav-text">No Constraints</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Class-Constraints"><span class="nav-number">3.2.</span> <span class="nav-text">Class Constraints</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Protocol-Constraints"><span class="nav-number">3.3.</span> <span class="nav-text">Protocol Constraints</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Specialization-of-Generics"><span class="nav-number">3.4.</span> <span class="nav-text">Specialization of Generics</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#小结-1"><span class="nav-number">4.</span> <span class="nav-text">小结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考资料"><span class="nav-number">5.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

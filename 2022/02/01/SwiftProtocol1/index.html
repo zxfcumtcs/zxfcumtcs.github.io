@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="iOS,Swift,Protocol,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="我们将从实践技巧、实现原理两个方面对 Swift Protocol 展开深入讨论。 本文作为上篇主要介绍实践技巧，以一个 Protocol 相关的编译错误为引，通过实例对 Type Erasure、Opaque Types 、Generics 以及 Phantom Types 做了较详细的讨论。它们对于写出更优、更雅的 Swift 代码有一定的帮助。">
+<meta name="keywords" content="iOS,Swift,Protocol">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Swift Protocol 背后的故事(上)">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2022/02/01/SwiftProtocol1/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="我们将从实践技巧、实现原理两个方面对 Swift Protocol 展开深入讨论。 本文作为上篇主要介绍实践技巧，以一个 Protocol 相关的编译错误为引，通过实例对 Type Erasure、Opaque Types 、Generics 以及 Phantom Types 做了较详细的讨论。它们对于写出更优、更雅的 Swift 代码有一定的帮助。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/MarkdownDemo.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/Protocols_OpaqueTypes_Generics_TypeErasure.png">
+<meta property="og:updated_time" content="2022-02-07T06:32:43.255Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Swift Protocol 背后的故事(上)">
+<meta name="twitter:description" content="我们将从实践技巧、实现原理两个方面对 Swift Protocol 展开深入讨论。 本文作为上篇主要介绍实践技巧，以一个 Protocol 相关的编译错误为引，通过实例对 Type Erasure、Opaque Types 、Generics 以及 Phantom Types 做了较详细的讨论。它们对于写出更优、更雅的 Swift 代码有一定的帮助。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/MarkdownDemo.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2022/02/01/SwiftProtocol1/">
+
+
+
+
+
+  <title>Swift Protocol 背后的故事(上) | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2022/02/01/SwiftProtocol1/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Swift Protocol 背后的故事(上)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-02-01T10:06:08+08:00">
+                2022-02-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2022/02/01/SwiftProtocol1/" class="leancloud_visitors" data-flag-title="Swift Protocol 背后的故事(上)">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  2,900
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  13
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>我们将从实践技巧、实现原理两个方面对 Swift Protocol 展开深入讨论。</p>
+<p>本文作为上篇主要介绍实践技巧，以一个 Protocol 相关的编译错误为引，通过实例对 Type Erasure、Opaque Types 、Generics 以及 Phantom Types 做了较详细的讨论。它们对于写出更优、更雅的 Swift 代码有一定的帮助。</p>
+<a id="more"></a>
+<p>©原创文章，转载请注明出处！</p>
+<h1 id="引"><a href="#引" class="headerlink" title="引"></a>引</h1><hr>
+<p>Swift 推崇面向协议编程 (POP, Protocol Oriented Programming)，因此 Protocol 在 Swift 中就显得尤为重要。</p>
+<p>但本文要讨论的既不是 Protocol 的使用，也不是 POP。</p>
+<p>我们的讨论从一个编译错误开始：</p>
+<blockquote>
+<p>Protocol ‘Equatable’ can only be used as a generic constraint because it has Self or associated type requirements.</p>
+</blockquote>
+<p>对于 Swift 开发者来说上面这个编译错误应该不陌生。</p>
+<p>其字面意思不难理解：含有 <code>Self</code> 或关联类型的协议只能用作泛型约束，不能单独作为类型使用。</p>
+<p>Why？</p>
+<p><em>因为 Swift 是类型安全的语言 (type-safe language)。</em></p>
+<p>why？</p>
+<p>上面这个解释是句『 正确的废话 』，没有说到点子上。</p>
+<p>下面我们以一个 Demo 为基础展开今天的讨论 (<a href="https://github.com/zxfcumtcs/MarkdownDemo" target="_blank" rel="noopener">GitHub - zxfcumtcs/MarkdownDemo: Swift Protocol Demo</a>)：<br><img src="/img/MarkdownDemo.png" alt=""></p>
+<p>如上图，MarkdownEditor 是一个 Markdown 格式的编辑器。</p>
+<p>为了处理不同的 Markdown 格式，我们定义了协议 <code>MarkdownBuilder</code>， 其作为公开接口曝露给业务方：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">protocol</span> <span class="title">MarkdownBuilder</span>: <span class="title">Equatable</span>, <span class="title">Identifiable</span> </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> style: <span class="type">String</span> &#123; <span class="keyword">get</span> &#125;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">build</span><span class="params">(from text: String)</span></span> -&gt; <span class="type">String</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>由于有判等需求，<code>MarkdownBuilder</code> 继承了 <code>Equatable</code> 协议。</p>
+</blockquote>
+<p>如果我们直接将 <code>MarkdownBuilder</code> 作为类型使用，如：<code>var builder: MarkdownBuilder</code> ，就会报上面的错误。</p>
+<p>因为，Equatable 有 <strong>Self requirements</strong>：要求 <code>==</code> 操作符的两个参数 <code>lhs</code> 与 <code>rhs</code> 的类型必须相同 (注意是准确的类型，而不是说只要遵守 <code>Equatable</code> 即可)。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">protocol</span> <span class="title">Equatable</span> </span>&#123;</span><br><span class="line">  <span class="keyword">static</span> <span class="function"><span class="keyword">func</span> == <span class="params">(lhs: <span class="keyword">Self</span>, rhs: <span class="keyword">Self</span>)</span></span> -&gt; <span class="type">Bool</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>假如，允许有 <code>Self requirements</code> / <code>Associated Type</code> 的 Protocol 作为类型使用，就会出现以下情况，而编译器却无能为力：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> lhs: <span class="type">Equatable</span> = <span class="number">1</span>           <span class="comment">// Int</span></span><br><span class="line"><span class="keyword">let</span> rsh: <span class="type">Equatable</span> = <span class="string">"1"</span>         <span class="comment">// String</span></span><br><span class="line">lhs == rsh                       <span class="comment">// ?!, 不同类型的值可以判等</span></span><br></pre></td></tr></table></figure>
+<p>对于 <code>Associated Type</code> 也是同样的道理：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 用于校验电话号码是否合法</span></span><br><span class="line"><span class="comment">// 由于电话号码可以有多种表达格式</span></span><br><span class="line"><span class="comment">// 抽取了协议，并实现了Int、String两种格式</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="class"><span class="keyword">protocol</span> <span class="title">PhoneNumberVerifier</span> </span>&#123;</span><br><span class="line">  <span class="keyword">associatedtype</span> <span class="type">Phone</span></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">verify</span><span class="params">(<span class="number">_</span> model: Phone)</span></span> -&gt; <span class="type">Bool</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">IntPhoneNumberVerifier</span>: <span class="title">PhoneNumberVerifier</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">verify</span><span class="params">(<span class="number">_</span> model: Int)</span></span> -&gt; <span class="type">Bool</span> &#123;</span><br><span class="line">    <span class="comment">// do some verify</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">StrPhoneNumberVerifier</span>: <span class="title">PhoneNumberVerifier</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">verify</span><span class="params">(<span class="number">_</span> model: String)</span></span> -&gt; <span class="type">Bool</span> &#123;</span><br><span class="line">    <span class="comment">// do some verify</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> verifiers: [<span class="type">PhoneNumberVerifier</span>] = [...]</span><br><span class="line">verifiers.forEach &#123; verifier <span class="keyword">in</span></span><br><span class="line">  verifier.verify(???) <span class="comment">// 这里的参数怎么传？Int? String? 编译器无法保证类型安全</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>说这么多，归根结底是因为 Protocol 是运行时特性，而其附带的 <code>Self requirements</code> / <code>Associated Type</code> 却需要在编译时保证。其结果必定凉凉~</p>
+<blockquote>
+<p>Generics 是编译期特性，在编译时就能明确泛型的具体类型，故有 <code>Self requirements</code>/<code>Associated Type</code> 的 Protocol 只能作为其约束使用。</p>
+</blockquote>
+<h1 id="Type-Erasure"><a href="#Type-Erasure" class="headerlink" title="Type Erasure"></a>Type Erasure</h1><hr>
+<p>回到上节提到的 Markdown 编辑器：MarkdownEditor，我们实现了4种格式的 MarkdownBuilder：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">MarkdownBuilder</span> </span>&#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">var</span> id: <span class="type">String</span> &#123; style &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 斜体</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="keyword">fileprivate</span> <span class="class"><span class="keyword">struct</span> <span class="title">ItalicsBuilder</span>: <span class="title">MarkdownBuilder</span> </span>&#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">var</span> style: <span class="type">String</span> &#123; <span class="string">"*Italics*"</span> &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="function"><span class="keyword">func</span> <span class="title">build</span><span class="params">(from text: String)</span></span> -&gt; <span class="type">String</span> &#123; <span class="string">"*\(text)*"</span> &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 粗体</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="keyword">fileprivate</span> <span class="class"><span class="keyword">struct</span> <span class="title">BoldBuilder</span>: <span class="title">MarkdownBuilder</span> </span>&#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">var</span> style: <span class="type">String</span> &#123; <span class="string">"**Bold**"</span> &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="function"><span class="keyword">func</span> <span class="title">build</span><span class="params">(from text: String)</span></span> -&gt; <span class="type">String</span> &#123; <span class="string">"**\(text)**"</span> &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 删除线</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="keyword">fileprivate</span> <span class="class"><span class="keyword">struct</span> <span class="title">StrikethroughBuilder</span>: <span class="title">MarkdownBuilder</span> </span>&#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">var</span> style: <span class="type">String</span> &#123; <span class="string">"~Strikethrough~"</span> &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="function"><span class="keyword">func</span> <span class="title">build</span><span class="params">(from text: String)</span></span> -&gt; <span class="type">String</span> &#123; <span class="string">"~\(text)~"</span> &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 超链接</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="keyword">fileprivate</span> <span class="class"><span class="keyword">struct</span> <span class="title">LinkBuilder</span>: <span class="title">MarkdownBuilder</span> </span>&#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">var</span> style: <span class="type">String</span> &#123; <span class="string">"[Link](link)"</span> &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="function"><span class="keyword">func</span> <span class="title">build</span><span class="params">(from text: String)</span></span> -&gt; <span class="type">String</span> &#123; <span class="string">"[\(text)](https://github.com)"</span>&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>struct MarkdownView: View</code>是整个 Demo 的主界面，需要在其中存储所有支持的 Markdown Builder，以及当前选中的 Builder。</p>
+<p>所以，我们不加思索地写下了以下代码：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">MarkdownView</span>: <span class="title">View</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">let</span> allBuilders: [<span class="type">MarkdownBuilder</span>]</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">var</span> selectedBuilders: [<span class="type">MarkdownBuilder</span>]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>结果可想而知！</p>
+<p>怎么办？</p>
+<p>Generics？ 在这里似乎行不通！</p>
+<p>将所有支持的 Builder 逐个定义出来？</p>
+<p>太蠢了！且不符合『 OCP 』原则。</p>
+<p>此时，就需要用到本节的主角：Type Erasure (类型擦除)。</p>
+<blockquote>
+<p>Type Erasure 是一项通用技术，并非 Swift 特有，核心思想是在编译期擦除 (转换) 原有类型，使其对业务方不可见。</p>
+<p>有多种方式可以实现 Type Erasure，如：Boxing、Closures 等。</p>
+</blockquote>
+<p>在 MarkdownEditor 中，我们通过 Boxing 实现 Type Erasure，简单讲就是对原有类型做一次封装 (Wrapper)：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">struct</span> <span class="title">AnyBuilder</span>: <span class="title">MarkdownBuilder</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">let</span> style: <span class="type">String</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">var</span> id: <span class="type">String</span> &#123; <span class="string">"AnyBuilder-\(style)"</span> &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">let</span> wrappedApply: (<span class="type">String</span>) -&gt; <span class="type">String</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">init</span>&lt;<span class="type">B</span>: <span class="type">MarkdownBuilder</span>&gt;(<span class="number">_</span> builder: <span class="type">B</span>) &#123;</span><br><span class="line">    style = builder.style</span><br><span class="line">    wrappedApply = builder.build(from:)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="function"><span class="keyword">func</span> <span class="title">build</span><span class="params">(from text: String)</span></span> -&gt; <span class="type">String</span> &#123;</span><br><span class="line">    wrappedApply(text)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">func</span> == <span class="params">(lhs: AnyBuilder, rhs: AnyBuilder)</span></span> -&gt; <span class="type">Bool</span> &#123;</span><br><span class="line">    lhs.id == rhs.id</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>几个关键点：</p>
+<ul>
+<li><code>AnyBuilder</code> 实现了 <code>MarkdownBuilder</code>协议，(一般情况下 Wrapper 都需要实现待封装的协议)；</li>
+<li>其 <code>init</code> 是泛型方法，并将参数传递过来的 <code>style</code>、<code>build(from:)</code> 存储下来；</li>
+<li>在其自身的<code>build(from:)</code>方法中直接调用存储的 <code>wrappedApply</code>，其本身相当于一个转发代理。</li>
+</ul>
+<p>同时，扩展 <code>MarkdownBulider</code>：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">extension</span> <span class="title">MarkdownBuilder</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">asAnyBuilder</span><span class="params">()</span></span> -&gt; <span class="type">AnyBuilder</span> &#123;</span><br><span class="line">    <span class="type">AnyBuilder</span>(<span class="keyword">self</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>现在，我们就可以愉快地在 <code>MarkdownView</code> 中使用 <code>AnyBuilder</code> 了：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">MarkdownView</span>: <span class="title">View</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">let</span> allBuilders: [<span class="type">AnyBuilder</span>]  </span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">var</span> selectedBuilders: [<span class="type">AnyBuilder</span>]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由于有上面的 <code>MarkdownBuilder</code> 扩展，可以通过 2 种方式生成 <code>AnyBuilder</code> 实例：</p>
+<ul>
+<li><code>BoldBuilder().asAnyBuilder()</code></li>
+<li><code>AnyBuilder(BoldBuilder())</code></li>
+</ul>
+<blockquote>
+<p>在 Swift 标准库中有大量通过 Boxing 实现的 Type Erasure ，如： <code>AnySequence</code>、<code>AnyHashable</code>、<code>AnyCancellable</code>等等。</p>
+<p>以 Any 为前缀的几乎都是。</p>
+</blockquote>
+<h1 id="Opaque-Types"><a href="#Opaque-Types" class="headerlink" title="Opaque Types"></a>Opaque Types</h1><hr>
+<p>如果，我们准备将 MarkdownEditor 做成一个独立的三方库，并且除了 <code>MarkdownBuilder</code> 协议，不打算曝露任何其他的实现细节以增加其灵活性。</p>
+<p>即，<code>ItalicsBuilder</code>、<code>BoldBuilder</code>、<code>StrikethroughBuilder</code> 以及 <code>LinkBuilder</code> 都是库私有的。</p>
+<p>如何做？</p>
+<p>又一次不加思索地写下了以下代码：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">func</span> <span class="title">italicsBuilder</span><span class="params">()</span></span> -&gt; <span class="type">MarkdownBuilder</span> &#123;</span><br><span class="line">  <span class="type">ItalicsBuilder</span>()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">func</span> <span class="title">boldBuilder</span><span class="params">()</span></span> -&gt; <span class="type">MarkdownBuilder</span> &#123;</span><br><span class="line">  <span class="type">BoldBuilder</span>()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">func</span> <span class="title">strikethroughBuilder</span><span class="params">()</span></span> -&gt; <span class="type">MarkdownBuilder</span> &#123;</span><br><span class="line">  <span class="type">StrikethroughBuilder</span>()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">func</span> <span class="title">linkBuilder</span><span class="params">()</span></span> -&gt; <span class="type">MarkdownBuilder</span> &#123;</span><br><span class="line">  <span class="type">LinkBuilder</span>()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们希望通过 public func 为业务方创建相应的 Builder 实例，同时以接口的方式返回。</p>
+<p>理想丰满，现实骨感！</p>
+<p>同样的错误在等着你！</p>
+<p>怎么办？</p>
+<p>轮到本节主角 Opaque Types 登场了！</p>
+<p>简单讲，Opaque Types 就是让函数/方法的返回值是协议，而不是具体的类型。</p>
+<blockquote>
+<p>A function or method with an opaque return type hides its return value’s type information.<br>Instead of providing a concrete type as the function’s return type, the return value is described in terms of the protocols it supports.</p>
+</blockquote>
+<p>几个关键点：</p>
+<ul>
+<li><p>关键字 <code>some</code>，需在返回协议类型前添加 <code>some</code> 关键词，如：<br><em><code>public func regularBuilder() -&gt; some MarkdownBuilder</code></em><br>而不是 <code>public func regularBuilder() -&gt; MarkdownBuilder</code></p>
+</li>
+<li><p>Opaque Types 与直接返回协议类型的最大区别是：</p>
+<ul>
+<li><p>Opaque Types 只是对使用方(人)隐藏了具体类型细节，编译器是知道具体类型的；</p>
+</li>
+<li><p>而直接返回协议类型，则是运行时行为，编译器是无法知道的；</p>
+</li>
+<li><p>如下代码，编译器是明确知道 <code>italicsBuilder</code> 方法的返回值类型是 <code>ItalicsBuilder</code>，但方法调用方却只知道返回值遵守了 <code>MarkdownBuilder</code> 协议。从而也就达到了隐藏实现细节的目的；</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">func</span> <span class="title">italicsBuilder</span><span class="params">()</span></span> -&gt; some <span class="type">MarkdownBuilder</span> &#123;</span><br><span class="line">  <span class="type">ItalicsBuilder</span>()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>正是由于编译器需要明确确定 Opaque Types 背后的真实类型，故不能在 Opaque Types 方法中返回不同的类型值，如下面这样是不允许的 (Opaque Types 属于编译期特性)：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">func</span> <span class="title">italicsBuilder</span><span class="params">()</span></span> -&gt; some <span class="type">MarkdownBuilder</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> ... &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="type">ItalicsBuilder</span>()</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="type">BoldBuilder</span>()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
+<p>好了，现在我们知道只需在上述不加思索写出的代码中加入 <code>some</code>  关键字即可，不再赘述。</p>
+<blockquote>
+<p>在 SwiftUI 中，大量使用到  Opaque Types。甚至可以说 Opaque Types 是为 SwiftUI 而生的。</p>
+</blockquote>
+<h1 id="Phantom-Types"><a href="#Phantom-Types" class="headerlink" title="Phantom Types"></a><strong>Phantom Types</strong></h1><hr>
+<p>Phantom Types 本身与本文讨论的内容相关性不大，作为相似的概念，我们简单介绍一下。</p>
+<p>Phantom Types 也非 Swift 特有的，属于一种通用编码技巧。</p>
+<p>Phantom Types 没有严格的定义，一般表述是：出现在泛型参数中，但没有被真正使用。</p>
+<p>如下代码中的 <code>Role</code> (例子来自 <a href="https://www.hackingwithswift.com/plus/advanced-swift/how-to-use-phantom-types-in-swift" target="_blank" rel="noopener">How to use phantom types in Swift</a>)，它只出现在泛型参数中，在 <code>Employee</code> 实现中并未使用：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Employee</span>&lt;<span class="title">Role</span>&gt;: <span class="title">Equatable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> name: <span class="type">String</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>What?</p>
+<p>Phantom Types 有何用？</p>
+<p><em>用于对类型做进一步的强化。</em></p>
+<p>Employee 可能有不同的角色，如：Sales、Programmer 等，我们将其定义为空 enum：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">enum</span> <span class="title">Sales</span> </span>&#123; &#125;</span><br><span class="line"><span class="class"><span class="keyword">enum</span> <span class="title">Programmer</span> </span>&#123; &#125;</span><br></pre></td></tr></table></figure>
+<p>由于 <code>Employee</code> 实现了 <code>Equatable</code>，可以在两个实例间进行判等操作。</p>
+<p>但判等操作明显只有在同一种角色间进行才有意义：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> john = <span class="type">Employee</span>&lt;<span class="type">Sales</span>&gt;.<span class="keyword">init</span>(name: <span class="string">"John"</span>)</span><br><span class="line"><span class="keyword">let</span> sea = <span class="type">Employee</span>&lt;<span class="type">Programmer</span>&gt;.<span class="keyword">init</span>(name: <span class="string">"Sea"</span>)</span><br><span class="line"></span><br><span class="line">john == sea</span><br></pre></td></tr></table></figure>
+<p>正是由于 Phantom Types 在起作用，上述代码中的判等操作编译无法通过：</p>
+<p>Cannot convert value of type ‘Employee<programmer>‘ to expected argument type ‘Employee<sales>‘</sales></programmer></p>
+<blockquote>
+<p>将 Phantom Types 定义成空 enum，使其无法被实例化，从而真正满足 Phantom Types 语义。</p>
+<p>由于 Swift 没有 NameSpacing 这样的关键字，故通常用空 enum 来实现类似的效果，如 Apple Combine Framework 中的 <code>Publishers</code>:<br><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">enum</span> <span class="title">Publishers</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<blockquote>
+<p>然后在 extension 中添加具体 Publisher 类型的定义，如：<br><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">Publishers</span> </span>&#123;</span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">First</span>&lt;<span class="title">Upstream</span>&gt;: <span class="title">Publisher</span> <span class="title">where</span> <span class="title">Upstream</span>: <span class="title">Publisher</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<blockquote>
+<p>从而，可以通过 <code>Publishers.First</code> 的方式引用具体的 Publisher。</p>
+<p>关于适当使用命名空间的好处在：<a href="https://www.swiftbysundell.com/articles/powerful-ways-to-use-swift-enums/" target="_blank" rel="noopener">Five powerful, yet lesser-known ways to use Swift enums</a> 中有一段精彩描述：</p>
+<p>Using the above kind of namespacing can be a great way to add clear semantics to a group of types without having to manually attach a given prefix or suffix to each type’s name.</p>
+<p>So while the above <code>First</code> type <em>could</em> instead have been named <code>FirstPublisher</code> and placed within the global scope, the current implementation makes it publicly available as <code>Publishers.First</code> — which both reads really nicely, and also gives us a hint that <code>First</code> is just one of many publishers available within the <code>Publishers</code> namespace. </p>
+<p>It also lets us type <code>Publishers.</code> within Xcode to see a list of all available publisher variations as autocomplete suggestions.</p>
+</blockquote>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><hr>
+<p>Swift 作为 POP (Protocol Oriented Programming) 的提倡者，Protocol 的地位自然十分重要，Swift 赋于其强大能力。</p>
+<p>同时，Swift 又是类型安全的，因此对于带有 <code>Self requirements</code> / <code>Associated Type</code> 的 Protocol 在使用上又有一定的限制。</p>
+<p>结合实例，本文主要介绍了如何通过 Type Erasure、Opaque Types 以及 Generics 等方式解决上述限制。</p>
+<p>在 <a href="https://www.raywenderlich.com/24942207-opaque-return-types-and-type-erasure" target="_blank" rel="noopener">Opaque Return Types and Type Erasure</a> 这篇文章中作者分别从库的开发者 (Liam)、编译器 (Corrine)、使用方 (Abbie) 的视角分析了他们是否了解 Protocols、Opaque Types、Generics 以及 Type Erasure 背后的私密：</p>
+<p><img src="/img/Protocols_OpaqueTypes_Generics_TypeErasure.png" alt=""></p>
+<p>如上图：</p>
+<ul>
+<li><p>Protocols：</p>
+<ul>
+<li>协议本身具有隐藏实现细节以及运行时实例化的特性，故编译器、使用方无法知道其背后对应的真实类型；</li>
+<li>但，作为库的开发者 (代码是他写的)，明确知道 Protocol 背后可能对应的所有真实类型。</li>
+</ul>
+</li>
+<li><p>Opaque Types：</p>
+<ul>
+<li>同 Protocols，库的开发者肯定是知道的；</li>
+<li>由于 Opaque Types 限制只能对应一种真实类型，并在编译期需明确，故编译器是知道的；</li>
+<li>对于使用方来说，他们看到的还是隐藏了细节的 Protocol。</li>
+</ul>
+</li>
+<li><p>Generics：</p>
+<ul>
+<li>泛型是将类型决定权让给使用方的，故库的开发者是不知道真实类型的，而使用方知道；</li>
+<li>泛型属于编译期行为，故编译器能明确知道泛型对于的真实类型。</li>
+</ul>
+</li>
+<li><p>Type Erasure：</p>
+<ul>
+<li>类型擦除属于使用方行为，用于规避编译错误等，故只有使用方知道。</li>
+</ul>
+</li>
+</ul>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p><a href="https://github.com/apple/swift-evolution/blob/master/proposals/0244-opaque-result-types.md" target="_blank" rel="noopener">swift-evolution · Opaque Result Types</a></p>
+<p><a href="https://docs.swift.org/swift-book/LanguageGuide/OpaqueTypes.html" target="_blank" rel="noopener">OpaqueTypes</a></p>
+<p><a href="https://www.swiftbysundell.com/articles/different-flavors-of-type-erasure-in-swift/#closures-to-the-rescue" target="_blank" rel="noopener">Different flavors of type erasure in Swift</a></p>
+<p><a href="https://www.raywenderlich.com/24942207-opaque-return-types-and-type-erasure" target="_blank" rel="noopener">Opaque Return Types and Type Erasure</a></p>
+<p><a href="https://www.swiftbysundell.com/articles/phantom-types-in-swift/" target="_blank" rel="noopener">Phantom types in Swift</a></p>
+<p><a href="https://www.hackingwithswift.com/plus/advanced-swift/how-to-use-phantom-types-in-swift" target="_blank" rel="noopener">How to use phantom types in Swift</a></p>
+<p><a href="https://github.com/apple/swift/blob/main/docs/ABI/TypeMetadata.rst#protocol-metadata" target="_blank" rel="noopener">swift/TypeMetadata.rst at main · apple/swift · GitHub</a></p>
+<p><a href="https://github.com/apple/swift/blob/main/docs/ABI/TypeLayout.rst" target="_blank" rel="noopener">swift/TypeLayout.rst at main · apple/swift · GitHub</a></p>
+<p><a href="https://speakerdeck.com/kateinoigakukun/swift-type-metadata?slide=48" target="_blank" rel="noopener">Swift Type Metadata</a></p>
+<p><a href="https://developer.apple.com/videos/play/wwdc2016/416/" target="_blank" rel="noopener">Understanding Swift Performance · WWDC2016</a></p>
+<p><a href="https://www.swift.org/blog/whole-module-optimizations/" target="_blank" rel="noopener">Swift.org - Whole-Module Optimization in Swift 3</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag"># iOS</a>
+          
+            <a href="/tags/Swift/" rel="tag"># Swift</a>
+          
+            <a href="/tags/Protocol/" rel="tag"># Protocol</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/08/28/deepinto-flutter-custom-renderobjectwidget/" rel="next" title="深入浅出 Flutter Framework 之自定义渲染型 Widget">
+                <i class="fa fa-chevron-left"></i> 深入浅出 Flutter Framework 之自定义渲染型 Widget
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2022/02/04/SwiftProtocol2/" rel="prev" title="Swift Protocol 背后的故事(下)">
+                Swift Protocol 背后的故事(下) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">54</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#引"><span class="nav-number">1.</span> <span class="nav-text">引</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Type-Erasure"><span class="nav-number">2.</span> <span class="nav-text">Type Erasure</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Opaque-Types"><span class="nav-number">3.</span> <span class="nav-text">Opaque Types</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Phantom-Types"><span class="nav-number">4.</span> <span class="nav-text">Phantom Types</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#小结"><span class="nav-number">5.</span> <span class="nav-text">小结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考资料"><span class="nav-number">6.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
