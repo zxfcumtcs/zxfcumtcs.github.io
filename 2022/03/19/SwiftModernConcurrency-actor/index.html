@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="iOS,Swift,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本文是 『 Swift 新并发框架 』系列文章的第二篇，主要介绍 Swift 5.5 引入的 actor。">
+<meta name="keywords" content="iOS,Swift">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Swift 新并发框架之 actor">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2022/03/19/SwiftModernConcurrency-actor/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本文是 『 Swift 新并发框架 』系列文章的第二篇，主要介绍 Swift 5.5 引入的 actor。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/actor.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/Actorisolation.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/globalactor.png">
+<meta property="og:updated_time" content="2022-03-19T08:20:31.059Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Swift 新并发框架之 actor">
+<meta name="twitter:description" content="本文是 『 Swift 新并发框架 』系列文章的第二篇，主要介绍 Swift 5.5 引入的 actor。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/actor.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2022/03/19/SwiftModernConcurrency-actor/">
+
+
+
+
+
+  <title>Swift 新并发框架之 actor | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2022/03/19/SwiftModernConcurrency-actor/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Swift 新并发框架之 actor</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-03-19T08:48:09+08:00">
+                2022-03-19
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2022/03/19/SwiftModernConcurrency-actor/" class="leancloud_visitors" data-flag-title="Swift 新并发框架之 actor">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  3,550
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  17
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文是 『 Swift 新并发框架 』系列文章的第二篇，主要介绍 Swift 5.5 引入的 actor。</p>
+<a id="more"></a>
+<p>©原创文章，转载请注明出处！</p>
+<p>本系列文章对 Swift 新并发框架中涉及的内容逐个进行介绍，内容如下：</p>
+<ul>
+<li><p>Swift 新并发框架之 async/await</p>
+</li>
+<li><p>Swift 新并发框架之 actor</p>
+</li>
+<li><p>Swift 新并发框架之 Sendable</p>
+</li>
+<li><p>Swift 新并发框架之 Task</p>
+</li>
+</ul>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
+<p>Swift 新并发模型不仅要解决我们在『 <a href="">Swift 新并发框架之 async/await</a> 』一文中提到的异步编程问题，它还致力于解决并发编程中最让人头疼的 Data races 问题。</p>
+<p>为此，Swift 引入了 <a href="https://en.wikipedia.org/wiki/Actor_model" target="_blank" rel="noopener">Actor model</a> ：</p>
+<ul>
+<li><p>Actor 代表一组在并发环境下可以安全访问的(可变)状态；</p>
+</li>
+<li><p>Actor 通过所谓数据隔离 (<strong>Actor isolation</strong>) 的方式确保数据安全，其实现原理是 Actor 内部维护了一个串行队列 (mailbox)，所有涉及数据安全的外部调用都要入队，即它们都是串行执行的。</p>
+</li>
+</ul>
+<p><img src="/img/actor.png" alt=""></p>
+<p>为此，Swift 引入了 <code>actor</code> 关键字，用于声明 Actor 类型，如：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">actor <span class="type">BankAccount</span> &#123;</span><br><span class="line">  <span class="keyword">let</span> accountNumber: <span class="type">Int</span></span><br><span class="line">  <span class="keyword">var</span> balance: <span class="type">Double</span></span><br><span class="line"></span><br><span class="line">  <span class="class"><span class="keyword">enum</span> <span class="title">BankAccountError</span>: <span class="title">Error</span> </span>&#123;</span><br><span class="line">    <span class="keyword">case</span> insufficientBalance(<span class="type">Double</span>)</span><br><span class="line">    <span class="keyword">case</span> authorizeFailed</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">init</span>(accountNumber: <span class="type">Int</span>, initialDeposit: <span class="type">Double</span>) &#123;</span><br><span class="line">    <span class="keyword">self</span>.accountNumber = accountNumber</span><br><span class="line">    <span class="keyword">self</span>.balance = initialDeposit</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">deposit</span><span class="params">(amount: Double)</span></span> &#123;</span><br><span class="line">    <span class="built_in">assert</span>(amount &gt;= <span class="number">0</span>)</span><br><span class="line">    balance = balance + amount</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>除了不支持继承，<code>actor</code> 与 <code>class</code> 非常类似：</p>
+<ul>
+<li><p>引用类型；</p>
+</li>
+<li><p>可以遵守指定的协议；</p>
+</li>
+<li><p>支持 extension 等。</p>
+</li>
+</ul>
+<p>当然了，它们最大的区别在于 actor 内部实现了数据访问的同步机制，如上图所示。</p>
+<h1 id="Actor-isolation"><a href="#Actor-isolation" class="headerlink" title="Actor isolation"></a>Actor isolation</h1><hr>
+<p>所谓 Actor isolation 就是以 actor 实例为单元 (边界)，将其内部与外界隔离开。</p>
+<p>严格限制跨界访问。</p>
+<p>跨越 Actor isolation 的访问称之为 <em>cross-actor reference</em>，如下图所示：<br><img src="/img/Actorisolation.png" alt=""></p>
+<p>cross-actor reference 有 2 种情况：</p>
+<ul>
+<li><p>引用 actor 中的 <strong>『 不可变状态 (immutable state) 』</strong>，如上面例子中的<code>accountNumber</code>，由于其初始化后就不会被修改，也就不存在 Data races，故即使是跨界访问也不会有问题；</p>
+</li>
+<li><p>引用 actor 中的 <strong>『 可变状态 (mutable state)、调用其方法、访问计算属性 』</strong> 等都被认为有潜在的 Data races，故不能像普通访问那样。</p>
+<p>如前所述，Actor 内部有一个<code>mailbox</code>，专门用于接收此类访问，并依次串行执行它们，从而确保在并发下的数据安全。</p>
+<p>从这里我们也可以看出，此类访问具有『 异步 』特征，即不会立即返回结果，需要排队依次执行。</p>
+<p>因此，需要通过 <code>await</code>执行此类访问，如：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AccountManager</span> </span>&#123;</span><br><span class="line">  <span class="keyword">let</span> bankAccount = <span class="type">BankAccount</span>.<span class="keyword">init</span>(accountNumber: <span class="number">123456789</span>, initialDeposit: <span class="number">1_000</span>)</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">depoist</span><span class="params">()</span></span> async &#123;</span><br><span class="line">    <span class="comment">// 下面的 bankAccount.accountNumber、bankAccount.deposit(amount: 1) 都属于cross-actor reference</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 对 let accountNumber 可以像普通属性那样访问</span></span><br><span class="line">    <span class="comment">//</span></span><br><span class="line">    <span class="built_in">print</span>(bankAccount.accountNumber)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 而对于方法，无论是否是异步方法都需通过 await 调用</span></span><br><span class="line">    <span class="comment">//</span></span><br><span class="line">    await bankAccount.deposit(amount: <span class="number">1</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>   当然，更不可能 cross-actor 直接修改 actor state：</p>
+  <figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">depoist</span><span class="params">()</span></span> async &#123;    </span><br><span class="line">  <span class="comment">// ❌ Error: Actor-isolated property 'balance' can not be mutated from a non-isolated context</span></span><br><span class="line">  bankAccount.balance += <span class="number">1</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="nonisolated"><a href="#nonisolated" class="headerlink" title="nonisolated"></a>nonisolated</h1><hr>
+<p>Actor 内部通过 mailbox 机制实现同步访问，必然会有一定的性能损耗。</p>
+<p>然而，actor 内部的方法、计算属性并不一定都会引起 Data races。</p>
+<p>为了解决这一矛盾，Swift 引入了关键字 <code>nonisolated</code> 用于修饰那些不会引起 Data races 的方法、属性，如：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">BankAccount</span> </span>&#123;</span><br><span class="line">  <span class="comment">// 在该方法内部只引用了 let accountNumber，故不存在 Data races</span></span><br><span class="line">  <span class="comment">// 也就可以用 nonisolated 修饰</span></span><br><span class="line">  nonisolated <span class="function"><span class="keyword">func</span> <span class="title">safeAccountNumberDisplayString</span><span class="params">()</span></span> -&gt; <span class="type">String</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> digits = <span class="type">String</span>(accountNumber)</span><br><span class="line">    <span class="keyword">return</span> <span class="type">String</span>(repeating: <span class="string">"X"</span>, <span class="built_in">count</span>: digits.<span class="built_in">count</span> - <span class="number">4</span>) + <span class="type">String</span>(digits.suffix(<span class="number">4</span>))</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 可以像普通方法一样调用，无需 await 入队</span></span><br><span class="line">bankAccount.safeAccountNumberDisplayString()</span><br></pre></td></tr></table></figure>
+<p>当然了，在<code>nonisolated</code>方法中是不能访问 isolated state 的，如：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">BankAccount</span> </span>&#123;</span><br><span class="line">  nonisolated <span class="function"><span class="keyword">func</span> <span class="title">deposit</span><span class="params">(amount: Double)</span></span> &#123;</span><br><span class="line">    <span class="built_in">assert</span>(amount &gt;= <span class="number">0</span>)</span><br><span class="line">    <span class="comment">// Error: Actor-isolated property 'balance' can not be mutated from a non-isolated context</span></span><br><span class="line">    balance = balance + amount</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在 actor 内部，无论是否是 nonisolated，各方法、属性都可以直接访问，如：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">BankAccount</span> </span>&#123;</span><br><span class="line">  <span class="comment">// 在 deposit 方法中可以直接访问、修改 balance</span></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">deposit</span><span class="params">(amount: Double)</span></span> &#123;</span><br><span class="line">    <span class="built_in">assert</span>(amount &gt;= <span class="number">0</span>)</span><br><span class="line">    balance = balance + amount</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>但需要注意的是，正如前面所述，Actor isolation 是以 actor 实例为边界，如下是有问题的：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">BankAccount</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">transfer</span><span class="params">(amount: Double, to other: BankAccount)</span></span> <span class="keyword">throws</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> amount &gt; balance &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="type">BankAccountError</span>.insufficientBalance(balance)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">"Transferring \(amount) from \(accountNumber) to \(other.accountNumber)"</span>)</span><br><span class="line"></span><br><span class="line">    balance = balance - amount</span><br><span class="line">    <span class="comment">// Actor-isolated property 'balance' can not be mutated on a non-isolated actor instance</span></span><br><span class="line">    <span class="comment">// Actor-isolated property 'balance' can not be referenced on a non-isolated actor instance</span></span><br><span class="line">    other.balance = other.balance + amount  <span class="comment">// error: actor-isolated property 'balance' can only be referenced on 'self'</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>other</code>相对于<code>self</code>来说属于另一个 actor 实例，故不能直接跨界访问。</p>
+<h1 id="Actor-reentrancy"><a href="#Actor-reentrancy" class="headerlink" title="Actor reentrancy"></a>Actor reentrancy</h1><hr>
+<p>为了避免死锁、提升性能，Actor-isolated 方法是可重入的：</p>
+<ul>
+<li><p>Actor-isolated 方法在显式声明为异步方法时，其内部可能存在暂停点；</p>
+</li>
+<li><p>当 Actor-isolated 方法因暂停点而被挂起时，该方法是可以重入的，也就是在前一个挂起被恢复前可以再次进入该方法；</p>
+</li>
+</ul>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">BankAccount</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="function"><span class="keyword">func</span> <span class="title">authorize</span><span class="params">()</span></span> async -&gt; <span class="type">Bool</span> &#123;</span><br><span class="line">    <span class="comment">// Simulate the authentication process</span></span><br><span class="line">    <span class="comment">//</span></span><br><span class="line">    <span class="keyword">try</span>? await <span class="type">Task</span>.sleep(nanoseconds: <span class="number">1_000_000_000</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">withdraw</span><span class="params">(amount: Double)</span></span> async <span class="keyword">throws</span> -&gt; <span class="type">Double</span> &#123;</span><br><span class="line">    <span class="keyword">guard</span> balance &gt;= amount <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="type">BankAccountError</span>.insufficientBalance(balance)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// suspension point</span></span><br><span class="line">    <span class="comment">//</span></span><br><span class="line">    <span class="keyword">guard</span> await authorize() <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="type">BankAccountError</span>.authorizeFailed</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    balance -= amount</span><br><span class="line">    <span class="keyword">return</span> balance</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AccountManager</span> </span>&#123;</span><br><span class="line">  <span class="keyword">let</span> bankAccount = <span class="type">BankAccount</span>.<span class="keyword">init</span>(</span><br><span class="line">    accountNumber: <span class="number">123456789</span>, </span><br><span class="line">    initialDeposit: <span class="number">1000</span></span><br><span class="line">  )</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">withdraw</span><span class="params">()</span></span> async &#123;</span><br><span class="line">    <span class="keyword">for</span> <span class="number">_</span> <span class="keyword">in</span> <span class="number">0</span>..&lt;<span class="number">2</span> &#123;</span><br><span class="line">      <span class="type">Task</span> &#123;</span><br><span class="line">        <span class="keyword">let</span> amount = <span class="number">600.0</span></span><br><span class="line">        <span class="keyword">do</span> &#123;</span><br><span class="line">          <span class="keyword">let</span> balance = <span class="keyword">try</span> await bankAccount.withdraw(amount: amount)</span><br><span class="line">          <span class="built_in">print</span>(<span class="string">"Withdrawal succeeded, balance = \(balance)"</span>)</span><br><span class="line">        &#125; <span class="keyword">catch</span> <span class="keyword">let</span> error <span class="keyword">as</span> <span class="type">BankAccount</span>.<span class="type">BankAccountError</span> &#123;</span><br><span class="line">          <span class="keyword">switch</span> error &#123;</span><br><span class="line">          <span class="keyword">case</span> .insufficientBalance(<span class="keyword">let</span> balance):</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">"Insufficient balance, balance = \(balance), withdrawal amount = \(amount)!"</span>)</span><br><span class="line">          <span class="keyword">case</span> .authorizeFailed:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">"Authorize failed!"</span>)</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Withdrawal succeeded, balance = 400.0</span><br><span class="line">Withdrawal succeeded, balance = -200.0</span><br></pre></td></tr></table></figure>
+<p>上述结果显然是不对的。</p>
+<p>一般的，check—reference/change 二步操作不应跨 await suspension point。</p>
+<p>因此，fix 也很简单，在真正 reference/change 前再 check 一次：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">withdraw</span><span class="params">(amount: Double)</span></span> async <span class="keyword">throws</span> -&gt; <span class="type">Double</span> &#123;</span><br><span class="line">  <span class="keyword">guard</span> balance &gt;= amount <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="type">BankAccountError</span>.insufficientBalance(balance)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// suspension point</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  <span class="keyword">guard</span> await authorize() <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="type">BankAccountError</span>.authorizeFailed</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// re-check</span></span><br><span class="line">  <span class="keyword">guard</span> balance &gt;= amount <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="type">BankAccountError</span>.insufficientBalance(balance)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  balance -= amount</span><br><span class="line">  <span class="keyword">return</span> balance</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Withdrawal succeeded, balance = 400.0</span><br><span class="line">Insufficient balance, balance = 400.0, withdrawal amount = 600.0!</span><br></pre></td></tr></table></figure>
+<p>总之，在开发过程中要注意 Actor reentrancy 的问题。</p>
+<h1 id="globalActor-MainActor"><a href="#globalActor-MainActor" class="headerlink" title="globalActor/MainActor"></a>globalActor/MainActor</h1><hr>
+<p>如前文所述，actor 是以其实例为界进行数据保护的。</p>
+<p>但，如下，若需要对全局变量 <code>globalVar</code>、静态属性 <code>currentTimeStampe</code>、以及跨类型 (<code>ClassA1</code>、<code>ClassA2</code>)/跨实例进行数据保护该如何做？</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> globalVar: <span class="type">Int</span> = <span class="number">1</span></span><br><span class="line">actor <span class="type">BankAccount</span> &#123;</span><br><span class="line">  <span class="keyword">static</span> <span class="keyword">var</span> currentTimeStampe: <span class="type">Int64</span> = <span class="number">0</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ClassA1</span> </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> a1 = <span class="number">0</span>;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">testA1</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ClassA2</span> </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> a2 = <span class="number">1</span></span><br><span class="line">  <span class="keyword">var</span> a1: <span class="type">ClassA1</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">init</span>() &#123;</span><br><span class="line">    a1 = <span class="type">ClassA1</span>.<span class="keyword">init</span>()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">testA2</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这正是 <code>globalActor</code> 要解决的问题。</p>
+<blockquote>
+<p><code>currentTimeStampe</code> 虽定义在 actor <code>BankAccount</code> 中，但由于是 <code>static</code> 属性，故不在 actor 的保护范围内。<br>也就是不属于 <code>BankAccount</code> 的 actor-isolated 范围。</p>
+<p>因此，可以在任意地方通过 <code>BankAccount.currentTimeStampe</code> 访问、修改其值。</p>
+</blockquote>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">@globalActor</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">struct</span> <span class="title">MyGlobalActor</span> </span>&#123;</span><br><span class="line">  <span class="keyword">public</span> actor <span class="type">MyActor</span> &#123; &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">let</span> shared = <span class="type">MyActor</span>()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，定义了一个 global actor：<code>MyGlobalActor</code> ，几个关键点：</p>
+<ul>
+<li><p>global actor 的定义需要使用 <code>@globalActor</code>修饰；</p>
+</li>
+<li><p><code>@globalActor</code> 需要实现 <code>GlobalActor</code> 协议：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@available</span>(macOS <span class="number">10.15</span>, iOS <span class="number">13.0</span>, watchOS <span class="number">6.0</span>, tvOS <span class="number">13.0</span>, *)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">protocol</span> <span class="title">GlobalActor</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/// The type of the shared actor instance that will be used to provide</span></span><br><span class="line">    <span class="comment">/// mutually-exclusive access to declarations annotated with the given global</span></span><br><span class="line">    <span class="comment">/// actor type.</span></span><br><span class="line">    <span class="keyword">associatedtype</span> <span class="type">ActorType</span> : <span class="type">Actor</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/// The shared actor instance that will be used to provide mutually-exclusive</span></span><br><span class="line">    <span class="comment">/// access to declarations annotated with the given global actor type.</span></span><br><span class="line">    <span class="comment">///</span></span><br><span class="line">    <span class="comment">/// The value of this property must always evaluate to the same actor</span></span><br><span class="line">    <span class="comment">/// instance.</span></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">var</span> shared: <span class="type">Self</span>.<span class="type">ActorType</span> &#123; <span class="keyword">get</span> &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/// The shared executor instance that will be used to provide</span></span><br><span class="line">    <span class="comment">/// mutually-exclusive access for the global actor.</span></span><br><span class="line">    <span class="comment">///</span></span><br><span class="line">    <span class="comment">/// The value of this property must be equivalent to `shared.unownedExecutor`.</span></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">var</span> sharedUnownedExecutor: <span class="type">UnownedSerialExecutor</span> &#123; <span class="keyword">get</span> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>在 <code>GlobalActor</code> 协议中，一般我们只需实现 <code>shared</code> 属性即可 (<code>sharedUnownedExecutor</code> 在 <code>GlobalActor</code> extension 中有默认实现)；</p>
+</li>
+<li><p>global actor (本例中的<code>MyGlobalActor</code>) 本质上是一个 marker type，其同步功能是借助 <code>shared</code> 属性提供的 actor 实例完成的；</p>
+</li>
+<li><p>global actor 可用于修饰类型定义 (如：class、struct、enum，但不能用于 actor)、方法、属性、Closure等。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 在闭包中的用法如下：</span></span><br><span class="line"><span class="type">Task</span> &#123; @<span class="type">MyGlobalActor</span> <span class="keyword">in</span></span><br><span class="line">  <span class="built_in">print</span>(<span class="string">""</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">@<span class="type">MyGlobalActor</span> <span class="keyword">var</span> globalVar: <span class="type">Int</span> = <span class="number">1</span></span><br><span class="line"></span><br><span class="line">actor <span class="type">BankAccount</span> &#123;</span><br><span class="line">  @<span class="type">MyGlobalActor</span> <span class="keyword">static</span> <span class="keyword">var</span> currentTimeStampe: <span class="type">Int64</span> = <span class="number">0</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@<span class="type">MyGlobalActor</span> <span class="class"><span class="keyword">class</span> <span class="title">ClassA1</span> </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> a1 = <span class="number">0</span>;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">testA1</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@<span class="type">MyGlobalActor</span> <span class="class"><span class="keyword">class</span> <span class="title">ClassA2</span> </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> a2 = <span class="number">1</span></span><br><span class="line">  <span class="keyword">var</span> a1: <span class="type">ClassA1</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">init</span>() &#123;</span><br><span class="line">    a1 = <span class="type">ClassA1</span>.<span class="keyword">init</span>()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">testA2</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// globalVar、ClassA1/ClassA2 的实例、BankAccount.currentTimeStampe</span></span><br><span class="line">    <span class="comment">// 它们同属于 MyGlobalActor 的保护范围内</span></span><br><span class="line">    <span class="comment">// 故它们间的关系属 actor 内部关系，它们间可以正常访问</span></span><br><span class="line">    <span class="comment">//</span></span><br><span class="line">    globalVar += <span class="number">1</span></span><br><span class="line">    a1.testA1()</span><br><span class="line">    <span class="type">BankAccount</span>.currentTimeStampe += <span class="number">1</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">await globalVar</span><br><span class="line">await <span class="type">BankAccount</span>.currentTimeStampe</span><br></pre></td></tr></table></figure>
+<p><img src="/img/globalactor.png" alt=""><br>如上，可以通过 <code>@MyGlobalActor</code> 对它们进行数据保护，并在它们间形成一个以<code>MyGlobalActor</code> 为界的 actor-isolated：</p>
+<ul>
+<li><p>在 <code>MyGlobalActor</code> 内部可以对它们进行正常访问，如 <code>ClassA2.testA2</code> 方法所做；</p>
+</li>
+<li><p>在 <code>MyGlobalActor</code> 以外，需通过同步方式访问，如：<code>await globalVar</code>。</p>
+</li>
+</ul>
+<p>UI 操作都需要在主线程上执行，因此有了 MainAcotr，几个关键点：</p>
+<ul>
+<li><p>MainActor 属于 globalAcotr 的特例；</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">@globalActor <span class="keyword">final</span> <span class="keyword">public</span> actor <span class="type">MainActor</span> : <span class="type">GlobalActor</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>被 MainActor 修饰的方法、属性等都将在主线程上执行。</p>
+</li>
+</ul>
+<blockquote>
+<p>还记得在『 <a href="">Swift 新并发框架之 async/await</a> 』一文中提到的异步方法在暂停点前后可能会切换到不同线程上运行吗？</p>
+<p>被 MainActor 修饰的方法是个例外，它一定是在主线程上执行。</p>
+</blockquote>
+<p>除了用 <code>@MainActor</code> 属性外，我们也可以通过 <code>MainActor.run</code> 在主线程上执行一段代码：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">MainActor</span> </span>&#123;</span><br><span class="line">  <span class="comment">/// Execute the given body closure on the main actor.</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">func</span> <span class="title">run</span>&lt;T&gt;<span class="params">(resultType: T.<span class="keyword">Type</span> = T.<span class="keyword">self</span>, body: @MainActor @Sendable <span class="params">()</span></span></span> <span class="keyword">throws</span> -&gt; <span class="type">T</span>) async <span class="keyword">rethrows</span> -&gt; <span class="type">T</span> <span class="keyword">where</span> <span class="type">T</span> : <span class="type">Sendable</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">await <span class="type">MainActor</span>.run &#123;</span><br><span class="line">  <span class="built_in">print</span>(<span class="string">""</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="谨防内部幺蛾子"><a href="#谨防内部幺蛾子" class="headerlink" title="谨防内部幺蛾子"></a>谨防内部幺蛾子</h1><hr>
+<p>至此，我们知道 actor 是通过 mailbox 机制串行执行外部调用来保障数据安全。</p>
+<p>言外之意就是如果在 actor 方法内部存在 Data races，它是无能为力的，如：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">actor <span class="type">BankAccount</span> &#123;</span><br><span class="line">  <span class="keyword">var</span> balances: [<span class="type">Int</span>: <span class="type">Double</span>] = [<span class="number">1</span>: <span class="number">0.0</span>]</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">deposit</span><span class="params">(amount: Double)</span></span> &#123;</span><br><span class="line">    <span class="built_in">assert</span>(amount &gt;= <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="number">0</span>..&lt;<span class="number">1000</span> &#123;</span><br><span class="line">      <span class="comment">// 在 actor 方法内部手动开启子线程</span></span><br><span class="line">      <span class="comment">//</span></span><br><span class="line">      <span class="type">Thread</span>.detachNewThread &#123;</span><br><span class="line">        <span class="keyword">let</span> b = <span class="keyword">self</span>.balances[<span class="number">1</span>] ?? <span class="number">0.0</span></span><br><span class="line">        <span class="keyword">self</span>.balances[<span class="number">1</span>] = b + <span class="number">1</span></span><br><span class="line">        <span class="built_in">print</span>(<span class="string">"i = \(i), balance = \(self.balances[1])"</span>)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AccountManager</span> </span>&#123;</span><br><span class="line">  <span class="keyword">let</span> bankAccount = <span class="type">BankAccount</span>.<span class="keyword">init</span>(accountNumber: <span class="number">123</span>, initialDeposit: <span class="number">1000</span>, name: <span class="string">"Jike"</span>, age: <span class="number">18</span>)</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">depoist</span><span class="params">()</span></span> async &#123;</span><br><span class="line">    await bankAccount.deposit(amount: <span class="number">1</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上面这段代码(故意捏造的)，由于<code>BankAccount.deposit</code> 内部手动开启了子线程 (第 9 ~ 13 行)，故存在 Data races 问题，会 crash。</p>
+<p><strong>一般地，actor 主要用作 Data Model，不应在其中处理大量业务逻辑。</strong></p>
+<p><strong>尽量避免在其中手动开启子线程、使用GCD等，否则需要使用传统手法 (如 lock) 解决因此引起的多线程问题。</strong></p>
+<h1 id="规避外部陷阱"><a href="#规避外部陷阱" class="headerlink" title="规避外部陷阱"></a>规避外部陷阱</h1><hr>
+<p>说完内忧，再看外患！</p>
+<p>正如前文所讲，Actor 通过 mailbox 机制解决了外部调用引起的多线程问题。</p>
+<p>但是…，对于外部调用就可以高枕无忧了吗？</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">User</span> </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> name: <span class="type">String</span></span><br><span class="line">  <span class="keyword">var</span> age: <span class="type">Int</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">init</span>(name: <span class="type">String</span>, age: <span class="type">Int</span>) &#123;</span><br><span class="line">    <span class="keyword">self</span>.name = name</span><br><span class="line">    <span class="keyword">self</span>.age = age</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">actor <span class="type">BankAccount</span> &#123;</span><br><span class="line">  <span class="keyword">let</span> accountNumber: <span class="type">Int</span></span><br><span class="line">  <span class="keyword">var</span> balance: <span class="type">Double</span></span><br><span class="line">  <span class="keyword">var</span> name: <span class="type">String</span></span><br><span class="line">  <span class="keyword">var</span> age: <span class="type">Int</span></span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">user</span><span class="params">()</span></span> -&gt; <span class="type">User</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="type">User</span>.<span class="keyword">init</span>(name: name, age: age)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AccountManager</span> </span>&#123;</span><br><span class="line">  <span class="keyword">let</span> bankAccount = <span class="type">BankAccount</span>.<span class="keyword">init</span>(accountNumber: <span class="number">123</span>, initialDeposit: <span class="number">1000</span>, name: <span class="string">"Jike"</span>, age: <span class="number">18</span>)</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">user</span><span class="params">()</span></span> async -&gt; <span class="type">User</span> &#123;</span><br><span class="line">    <span class="comment">// Wraning: Non-sendable type 'User' returned by implicitly asynchronous call to actor-isolated instance method 'user()' cannot cross actor boundary</span></span><br><span class="line">    <span class="keyword">return</span> await bankAccount.user()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注意上面这段代码在编译时编译器给的 Warning：</p>
+<p><em>Non-sendable type ‘User’ returned by implicitly asynchronous call to actor-isolated instance method ‘user()’ cannot cross actor boundary</em>.</p>
+<blockquote>
+<p>所有与 Sendable 相关的 warning 都需要 Xcode 13.3 才会报。</p>
+</blockquote>
+<p>先抛开什么是 Sendable 不谈</p>
+<p>这个 warning 还是很好理解的：</p>
+<ul>
+<li><p>User 是引用类型(class)；</p>
+</li>
+<li><p>通过 actor-isolated 方法将 User 实例传递到了 actor 外面；</p>
+</li>
+<li><p>此后，被传递出来的 user 实例自然得不到 actor 的保护，在并发环境下显然就不安全了。</p>
+</li>
+</ul>
+<p>通过参数跨 actor 边界传递类实例也是同样的问题：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">actor</span> <span class="title">BankAccount</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">updateUser</span><span class="params">(<span class="number">_</span> user: User)</span></span> &#123;</span><br><span class="line">    name = user.name</span><br><span class="line">    age = user.age</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">AccountManager</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">updateUser</span><span class="params">()</span></span> async &#123;</span><br><span class="line">    <span class="comment">// Wraning: Non-sendable type 'User' passed in implicitly asynchronous call to actor-isolated instance method 'updateUser' cannot cross actor boundary</span></span><br><span class="line">    await bankAccount.updateUser(<span class="type">User</span>.<span class="keyword">init</span>(name: <span class="string">"Bob"</span>, age: <span class="number">18</span>))</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当然了，跨 actor 传递函数、闭包也是不行的：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">BankAccount</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">addAge</span><span class="params">(amount: Int, completion: <span class="params">(Int)</span></span></span> -&gt; <span class="type">Void</span>) &#123;</span><br><span class="line">    age += amount</span><br><span class="line">    completion(age)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">AccountManager</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">addAge</span><span class="params">()</span></span> async &#123;</span><br><span class="line">    <span class="comment">// Wraning: Non-sendable type '(Int) -&gt; Void' passed in implicitly asynchronous call to actor-isolated instance method 'addAge(amount:completion:)' cannot cross actor boundary</span></span><br><span class="line">    await bankAccount.addAge(amount: <span class="number">1</span>, completion: &#123; age <span class="keyword">in</span></span><br><span class="line">      <span class="built_in">print</span>(age)</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>除了这些 warning，还有货真价实的 crash：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">User</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">testUser</span><span class="params">(callback: @escaping <span class="params">()</span></span></span> -&gt; <span class="type">Void</span>) &#123;</span><br><span class="line">    <span class="keyword">for</span> <span class="number">_</span> <span class="keyword">in</span> <span class="number">0</span>..&lt;<span class="number">1000</span> &#123;</span><br><span class="line">      <span class="type">DispatchQueue</span>.global().async &#123;</span><br><span class="line">        callback()</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">BankAccount</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">test</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">let</span> user = <span class="type">User</span>.<span class="keyword">init</span>(name: <span class="string">"Tom"</span>, age: <span class="number">18</span>)</span><br><span class="line">    user.testUser &#123;</span><br><span class="line">      <span class="keyword">let</span> b = <span class="keyword">self</span>.balances[<span class="number">1</span>] ?? <span class="number">0.0</span></span><br><span class="line">      <span class="keyword">self</span>.balances[<span class="number">1</span>] = b + <span class="number">1</span></span><br><span class="line">      <span class="built_in">print</span>(<span class="string">"i = \(0), \(Thread.current), balance = \(String(describing: self.balances[1]))"</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，虽然 <code>BankAccount</code> 是 <code>actor</code> 类型，且其内部没有开启子线程等『 非法操作 』，</p>
+<p>但在调用 <code>User.testUser(callback: @escaping () -&gt; Void)</code> 后会 crash。</p>
+<p>怎么办？</p>
+<p>这时就要轮到 Sendable 登场了：<a href="">『 Swift 新并发框架之 Sendable 』</a></p>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><ul>
+<li><p>actor 是一种新的引用类型，旨在解决 Data Races；</p>
+</li>
+<li><p>actor 内部通过 mailbox 机制实现所有外部调用的串行执行；</p>
+</li>
+<li><p>对于明确不存在 Data Races 的方法、属性可以使用<code>nonisolated</code>修饰使之成为『 常规 』方法，以提升性能；</p>
+</li>
+<li><p>通过 <code>@globalActor</code> 可以定义全局 actor，用于对全局变量、静态变量、多实例等进行保护；</p>
+</li>
+<li><p>actor 内部尽量避免开启子线程以免引起多线程问题；</p>
+</li>
+<li><p>actor 应作 Data Model 用，不宜在其中处理过多业务逻辑。</p>
+</li>
+</ul>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0296-async-await.md" target="_blank" rel="noopener">swift-evolution/0296-async-await.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0302-concurrent-value-and-concurrent-closures.md" target="_blank" rel="noopener">swift-evolution/0302-concurrent-value-and-concurrent-closures.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0337-support-incremental-migration-to-concurrency-checking.md" target="_blank" rel="noopener">swift-evolution/0337-support-incremental-migration-to-concurrency-checking.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0304-structured-concurrency.md#jobs" target="_blank" rel="noopener">swift-evolution/0304-structured-concurrency.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0306-actors.md" target="_blank" rel="noopener">swift-evolution/0306-actors.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0337-support-incremental-migration-to-concurrency-checking.md" target="_blank" rel="noopener">swift-evolution/0337-support-incremental-migration-to-concurrency-checking.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://www.andyibanez.com/posts/understanding-async-await-in-swift/" target="_blank" rel="noopener">Understanding async/await in Swift • Andy Ibanez</a></p>
+<p><a href="https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html#" target="_blank" rel="noopener">Concurrency — The Swift Programming Language (Swift 5.6)</a></p>
+<p><a href="https://www.swiftbysundell.com/articles/connecting-async-await-with-other-swift-code/" target="_blank" rel="noopener">Connecting async/await to other Swift code | Swift by Sundell</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag"># iOS</a>
+          
+            <a href="/tags/Swift/" rel="tag"># Swift</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2022/03/18/SwiftModernConcurrency-asyncawait/" rel="next" title="Swift 新并发框架之 async/await">
+                <i class="fa fa-chevron-left"></i> Swift 新并发框架之 async/await
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2022/03/19/SwiftModernConcurrency-sendable/" rel="prev" title="Swift 新并发框架之 Sendable">
+                Swift 新并发框架之 Sendable <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">57</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Actor-isolation"><span class="nav-number">2.</span> <span class="nav-text">Actor isolation</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#nonisolated"><span class="nav-number">3.</span> <span class="nav-text">nonisolated</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Actor-reentrancy"><span class="nav-number">4.</span> <span class="nav-text">Actor reentrancy</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#globalActor-MainActor"><span class="nav-number">5.</span> <span class="nav-text">globalActor/MainActor</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#谨防内部幺蛾子"><span class="nav-number">6.</span> <span class="nav-text">谨防内部幺蛾子</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#规避外部陷阱"><span class="nav-number">7.</span> <span class="nav-text">规避外部陷阱</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#小结"><span class="nav-number">8.</span> <span class="nav-text">小结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考资料"><span class="nav-number">9.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

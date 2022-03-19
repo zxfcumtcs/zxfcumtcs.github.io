@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="iOS,Swift,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="即使对于经验丰富的开发者来说，写出健壮性、可维护性高的并发代码也是一项具有挑战性的任务，其挑战主要体现在两个方面：  传统并发模型是基于异步模式，代码维护性不够友好；  并发往往意味着 Data Races，这是一类难复现、难排查的常见问题。   Swift 在 5.5 开始引入的新并发框架主要着力解决这 2 个问题。 本文是 『 Swift 新并发框架 』系列文章的第一篇，主要介绍 Swift">
+<meta name="keywords" content="iOS,Swift">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Swift 新并发框架之 async&#x2F;await">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2022/03/18/SwiftModernConcurrency-asyncawait/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="即使对于经验丰富的开发者来说，写出健壮性、可维护性高的并发代码也是一项具有挑战性的任务，其挑战主要体现在两个方面：  传统并发模型是基于异步模式，代码维护性不够友好；  并发往往意味着 Data Races，这是一类难复现、难排查的常见问题。   Swift 在 5.5 开始引入的新并发框架主要着力解决这 2 个问题。 本文是 『 Swift 新并发框架 』系列文章的第一篇，主要介绍 Swift">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2022-03-19T07:53:15.534Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Swift 新并发框架之 async&#x2F;await">
+<meta name="twitter:description" content="即使对于经验丰富的开发者来说，写出健壮性、可维护性高的并发代码也是一项具有挑战性的任务，其挑战主要体现在两个方面：  传统并发模型是基于异步模式，代码维护性不够友好；  并发往往意味着 Data Races，这是一类难复现、难排查的常见问题。   Swift 在 5.5 开始引入的新并发框架主要着力解决这 2 个问题。 本文是 『 Swift 新并发框架 』系列文章的第一篇，主要介绍 Swift">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2022/03/18/SwiftModernConcurrency-asyncawait/">
+
+
+
+
+
+  <title>Swift 新并发框架之 async/await | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2022/03/18/SwiftModernConcurrency-asyncawait/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Swift 新并发框架之 async/await</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-03-18T22:00:56+08:00">
+                2022-03-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2022/03/18/SwiftModernConcurrency-asyncawait/" class="leancloud_visitors" data-flag-title="Swift 新并发框架之 async/await">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  2,550
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  11
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>即使对于经验丰富的开发者来说，写出健壮性、可维护性高的并发代码也是一项具有挑战性的任务，其挑战主要体现在两个方面：</p>
+<ul>
+<li><p>传统并发模型是基于异步模式，代码维护性不够友好；</p>
+</li>
+<li><p>并发往往意味着 Data Races，这是一类难复现、难排查的常见问题。</p>
+</li>
+</ul>
+<p>Swift 在 5.5 开始引入的新并发框架主要着力解决这 2 个问题。</p>
+<p>本文是 『 Swift 新并发框架 』系列文章的第一篇，主要介绍 Swift 5.5 引入的 async/await。</p>
+<a id="more"></a>
+<p>©原创文章，转载请注明出处！</p>
+<p>本系列文章对 Swift 新并发框架中涉及的内容逐个进行介绍，内容如下：</p>
+<ul>
+<li><p>Swift 新并发框架之 async/await</p>
+</li>
+<li><p>Swift 新并发框架之 actor</p>
+</li>
+<li><p>Swift 新并发框架之 Sendable</p>
+</li>
+<li><p>Swift 新并发框架之 Task</p>
+</li>
+</ul>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
+<p>在正式开始前，简单回顾一下同步/异步、串行/并行的概念：</p>
+<ul>
+<li><p>同步(Synchronous)、异步(Asynchronous) 通常指方法(/函数)，同步方法表示直到任务完成才返回，异步方法则是将任务抛出去，在任务完成前就返回；</p>
+<p>这也就意味着需要通过某种方式获得异步任务的结果，如：Delegate、Closure 等。</p>
+</li>
+<li><p>串行(Serial)、并行(Concurrent) 通常指 App 执行一组任务的模式，串行表示一次只能执行一个任务，只有当前任务完成后才启动下一个任务，而并行指可以同时执行多个任务。最常见的莫过于 GCD 中的串行、并行队列；</p>
+<p> ps. 在此我们不严格区分并发、并行的区别。</p>
+</li>
+<li><p>传统的并发模型都是基于异步模式的，即异步获取并发任务的结果。</p>
+</li>
+</ul>
+<p>同步代码是线性的 (straight-line)，非常适合人脑处理。</p>
+<p>而异步代码是非线性的、跳跃式的 (类似于 <code>goto</code> 语句)，对于单核的人脑来说是一大挑战。</p>
+<p>除了在阅读上对人脑思维模式构成较大挑战外，异步代码在具体实现上常伴有以下问题：</p>
+<ul>
+<li><p>回调地狱 (Callback Hell)；</p>
+</li>
+<li><p>错误处理 (Error Handling)；</p>
+</li>
+<li><p>容易出错。</p>
+</li>
+</ul>
+<h1 id="初探"><a href="#初探" class="headerlink" title="初探"></a>初探</h1><hr>
+<p>我们先通过一个简单的例子对比一下传统并发模型与新的并发模型间的区别。</p>
+<p>该例子通过 token 获取头像，其步骤有：</p>
+<ul>
+<li><p>通过 token 获取头像 URL；</p>
+</li>
+<li><p>通过 URL 下载头像数据(加密)；</p>
+</li>
+<li><p>对头像数据解密；</p>
+</li>
+<li><p>图片解码。</p>
+</li>
+</ul>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AvatarLoader</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">loadAvatar</span><span class="params">(token: String, completion: <span class="params">(Image)</span></span></span> -&gt; <span class="type">Void</span>) &#123;</span><br><span class="line">    fetchAvatarURL(token: token) &#123; url <span class="keyword">in</span></span><br><span class="line">      fetchAvatar(url: url) &#123; data <span class="keyword">in</span></span><br><span class="line">        decryptAvatar(data: data) &#123; data <span class="keyword">in</span></span><br><span class="line">          decodeImage(data: data) &#123; image <span class="keyword">in</span></span><br><span class="line">            completion(image)</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">fetchAvatarURL</span><span class="params">(token: String, completion: <span class="params">(String)</span></span></span> -&gt; <span class="type">Void</span>) &#123;</span><br><span class="line">    <span class="comment">// fetch url from net...</span></span><br><span class="line">    completion(avatarURL)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">fetchAvatar</span><span class="params">(url: String, completion: <span class="params">(Data)</span></span></span> -&gt; <span class="type">Void</span>) &#123;</span><br><span class="line">    <span class="comment">// download avatar data...</span></span><br><span class="line">    completion(avatarData)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">decryptAvatar</span><span class="params">(data: Data, completion: <span class="params">(Data)</span></span></span> -&gt; <span class="type">Void</span>) &#123;</span><br><span class="line">    <span class="comment">// decrypt...</span></span><br><span class="line">    completion(decryptedData)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">decodeImage</span><span class="params">(data: Data, completion: <span class="params">(Image)</span></span></span> -&gt; <span class="type">Void</span>) &#123;</span><br><span class="line">    <span class="comment">// decode...</span></span><br><span class="line">    completion(avatar)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>loadAvatar</code> 方法中回调层级之深不言而喻。</p>
+<p>上述代码还遗漏了一个重要问题：错误处理，其中的网络请求、解密、解码都有可能出错。</p>
+<blockquote>
+<p>优雅地处理错误是一项非常考验基本功的任务。</p>
+</blockquote>
+<p>一般地，错误处理分为 2 种情况：</p>
+<ul>
+<li><p>同步方法：优先考虑通过 <code>throw</code> 抛出<code>error</code>，这样调用方就不得不处理错误，因此带有一定的强制性；</p>
+</li>
+<li><p>异步方法：在回调中传递 error，这种情况下调用方通常会有意无意地忽略错误，使健壮性大打折扣。</p>
+</li>
+</ul>
+<p>为了处理错误，对上述代码进行升级：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AvatarLoader</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">loadAvatar</span><span class="params">(token: String, completion: <span class="params">(Image?, Error?)</span></span></span> -&gt; <span class="type">Void</span>) &#123;</span><br><span class="line">    fetchAvatarURL(token: token) &#123; url, error  <span class="keyword">in</span></span><br><span class="line">      <span class="keyword">guard</span> <span class="keyword">let</span> url = url <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 在这个路径，经常容易漏掉执行 completion 或者 return 语句</span></span><br><span class="line">        completion(<span class="literal">nil</span>, error)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      fetchAvatar(url: url) &#123; data, error <span class="keyword">in</span></span><br><span class="line">        <span class="keyword">guard</span> <span class="keyword">let</span> data = data <span class="keyword">else</span> &#123;</span><br><span class="line">          completion(<span class="literal">nil</span>, error)</span><br><span class="line">          <span class="keyword">return</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        decryptAvatar(data: data) &#123; data, error <span class="keyword">in</span></span><br><span class="line">          <span class="keyword">guard</span> <span class="keyword">let</span> data = data <span class="keyword">else</span> &#123;</span><br><span class="line">            completion(<span class="literal">nil</span>, error)</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">          &#125;</span><br><span class="line"></span><br><span class="line">          decodeImage(data: data) &#123; image, error <span class="keyword">in</span></span><br><span class="line">            completion(image, error)</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">fetchAvatarURL</span><span class="params">(token: String, completion: <span class="params">(String?, Error?)</span></span></span> -&gt; <span class="type">Void</span>) &#123;</span><br><span class="line">    <span class="comment">// fetch url from net...</span></span><br><span class="line">    completion(avatarURL, error)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">fetchAvatar</span><span class="params">(url: String, completion: <span class="params">(Data?, Error?)</span></span></span> -&gt; <span class="type">Void</span>) &#123;</span><br><span class="line">    <span class="comment">// download avatar data...</span></span><br><span class="line">    completion(avatarData, error)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">decryptAvatar</span><span class="params">(data: Data, completion: <span class="params">(Data?, Error?)</span></span></span> -&gt; <span class="type">Void</span>) &#123;</span><br><span class="line">    <span class="comment">// decrypt...</span></span><br><span class="line">    completion(decryptedData, error)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">decodeImage</span><span class="params">(data: Data, completion: <span class="params">(Image?, Error?)</span></span></span> -&gt; <span class="type">Void</span>) &#123;</span><br><span class="line">    <span class="comment">// decode...</span></span><br><span class="line">    completion(avatar, error)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到，为了处理错误，在 <code>completion</code> 中增加了 <code>error</code> 参数，同时需要将 2 个参数都定义成 <code>Optional</code>。</p>
+<p>同时，在 <code>loadAvatar</code> 中添加了大量的 <code>guard</code>，这样的代码无疑非常丑陋。</p>
+<blockquote>
+<p>Optional 无形中增加了代码成本。</p>
+</blockquote>
+<p>为此，Swift 5 引入了 <code>Result</code> 用于优化上述错误处理场景：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AvatarLoader</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">loadAvatar</span><span class="params">(token: String, completion: <span class="params">(Result&lt;Image, Error&gt;)</span></span></span> -&gt; <span class="type">Void</span>) &#123;</span><br><span class="line">    fetchAvatarURL(token: token) &#123; result <span class="keyword">in</span></span><br><span class="line">      <span class="keyword">switch</span> result &#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="keyword">let</span> .success(url):</span><br><span class="line">        fetchAvatar(url: url) &#123; result <span class="keyword">in</span></span><br><span class="line">          <span class="keyword">switch</span> result &#123;</span><br><span class="line">          <span class="keyword">case</span> <span class="keyword">let</span> .success(decryptData):</span><br><span class="line">            decryptAvatar(data: decryptData) &#123; result <span class="keyword">in</span></span><br><span class="line">              <span class="keyword">switch</span> result &#123;</span><br><span class="line">              <span class="keyword">case</span> <span class="keyword">let</span> .success(avaratData):</span><br><span class="line">                decodeImage(data: avaratData) &#123; result <span class="keyword">in</span></span><br><span class="line">                  completion(result)</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">              <span class="keyword">case</span> <span class="keyword">let</span> .failure(error):</span><br><span class="line">                completion(.failure(error))</span><br><span class="line">              &#125;</span><br><span class="line">            &#125;</span><br><span class="line">          <span class="keyword">case</span> <span class="keyword">let</span> .failure(error):</span><br><span class="line">            completion(.failure(error))</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      <span class="keyword">case</span> <span class="keyword">let</span> .failure(error):</span><br><span class="line">        completion(.failure(error))</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">fetchAvatarURL</span><span class="params">(token: String, completion: <span class="params">(Result&lt;String, Error&gt;)</span></span></span> -&gt; <span class="type">Void</span>) &#123;</span><br><span class="line">    <span class="comment">// fetch url from net...</span></span><br><span class="line">    completion(.success(avatarURL))</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">fetchAvatar</span><span class="params">(url: String, completion: <span class="params">(Result&lt;Data, Error&gt;)</span></span></span> -&gt; <span class="type">Void</span>) &#123;</span><br><span class="line">    <span class="comment">// download avatar data...</span></span><br><span class="line">    completion(.success(avatarData))</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">decryptAvatar</span><span class="params">(data: Data, completion: <span class="params">(Result&lt;Data, Error&gt;)</span></span></span> -&gt; <span class="type">Void</span>) &#123;</span><br><span class="line">    <span class="comment">// decrypt...</span></span><br><span class="line">    completion(.success(decryptData))</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">decodeImage</span><span class="params">(data: Data, completion: <span class="params">(Result&lt;Image, Error&gt;)</span></span></span> -&gt; <span class="type">Void</span>) &#123;</span><br><span class="line">    <span class="comment">// decode...</span></span><br><span class="line">    completion(.success(avatar))</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Result 是 enum 类型，含有 <code>success</code>、<code>failure</code> 2 个 case。</p>
+</blockquote>
+<p>可以看到，通过使用 <code>Result</code>，参数不必是 <code>Optional</code>，另外可以通过 <code>switch/case</code> 来处理结果，在一定程度保证了调用方对错误的处理。</p>
+<blockquote>
+<p>在上面这个 Callback Hell 中，直观上， Result 不但没有使代码简洁，反而更加复杂了。</p>
+<p>主要是没有把代码抽离开来，不要对 Result 有什么误解^__^。</p>
+</blockquote>
+<p>通过这个简单的例子，可以看到基于 Callback 的异步模型问题不少。</p>
+<p>因此，将异步代码同步化一直是业界努力的方向。</p>
+<p>如：<a href="https://www.promisejs.org/" target="_blank" rel="noopener">Promise</a>，不过其同步也是建立在 callback 基础上的。</p>
+<p>Swift 5.5 引入了 <code>async/await</code> 用于将异步代码同步化。</p>
+<blockquote>
+<p>很多语言都已支持 <code>async/await</code>，如： JavaScript、Dart 等</p>
+</blockquote>
+<p>先直观感受一下 <code>async/await</code>：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AvatarLoader</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">loadAvatar</span><span class="params">(token: String)</span></span> async <span class="keyword">throws</span> -&gt; <span class="type">Image</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> url = <span class="keyword">try</span> await fetchAvatarURL(token: token)</span><br><span class="line">    <span class="keyword">let</span> encryptedData = <span class="keyword">try</span> await fetchAvatar(url: url)</span><br><span class="line">    <span class="keyword">let</span> decryptedData = <span class="keyword">try</span> await decryptAvatar(data: encryptedData)</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">try</span> await decodeImage(data: decryptedData)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">fetchAvatarURL</span><span class="params">(token: String)</span></span> async <span class="keyword">throws</span> -&gt; <span class="type">String</span> &#123;</span><br><span class="line">    <span class="comment">// fetch url from net...</span></span><br><span class="line">    <span class="keyword">return</span> avatarURL</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">fetchAvatar</span><span class="params">(url: String)</span></span> async <span class="keyword">throws</span> -&gt; <span class="type">Data</span> &#123;</span><br><span class="line">    <span class="comment">// download avatar data...</span></span><br><span class="line">    <span class="keyword">return</span> avatarData</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">decryptAvatar</span><span class="params">(data: Data)</span></span> async <span class="keyword">throws</span> -&gt; <span class="type">Data</span> &#123;</span><br><span class="line">    <span class="comment">// decrypt...</span></span><br><span class="line">    <span class="keyword">return</span> decryptData</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">decodeImage</span><span class="params">(data: Data)</span></span> async <span class="keyword">throws</span> -&gt; <span class="type">Image</span> &#123;</span><br><span class="line">    <span class="comment">// decode...</span></span><br><span class="line">    <span class="keyword">return</span> avatar</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>相比基于 Callback 的异步版本，基于 <code>async/await</code> 的版本是不是清晰多了。</p>
+<p>尤其是 <code>loadAvatar</code> 方法从感观上就是一个同步方法，阅读起来无比顺畅。</p>
+<p>其错误处理也使用了同步式的 throws。</p>
+<p>至此，通过对比，对 <code>async/await</code> 有了一个较直观的认识，下面简单探讨一下其实现机制。</p>
+<h1 id="深究"><a href="#深究" class="headerlink" title="深究"></a>深究</h1><hr>
+<p>首先，还是有必要对 <code>async/await</code> 作一个正式的介绍：</p>
+<ul>
+<li><p><code>async</code> — 用于修饰方法，被修饰的方法则被称为异步方法 (<em>asynchronous method</em>)，异步方法意味着其在执行过程中可能会被暂停 (挂起)；</p>
+</li>
+<li><p><code>await</code> — 对 <em>asynchronous method</em> 的调用需加上 <code>await</code>。同时，<code>await</code>只能出现在异步上下文中 (<em>asynchronous context</em>)；</p>
+<p><code>await</code> 则表示一个潜在暂停点 (<em>potential suspension points</em>)。</p>
+</li>
+</ul>
+<p>什么是 <em>asynchronous context</em> ？其存在于 2 种环境下：</p>
+<ul>
+<li><p>asynchronous method body — 异步方法体属于异步上下文的范畴；</p>
+</li>
+<li><p>Task closure — Task 任务闭包也属于 asynchronous context。</p>
+<blockquote>
+<p>Task 是在 Swift 5.5 中引入的，主要用于创建、执行异步任务，后续文章会介绍。</p>
+</blockquote>
+</li>
+</ul>
+<p>因此，<strong>只能在异步方法或 Task 闭包中通过 <code>await</code> 调用异步方法。</strong></p>
+<p>异步方法执行过程中可能会暂停？</p>
+<p>potential suspension points？</p>
+<p>怎么暂停？</p>
+<p>刚开始接触 <code>async/await</code> 时，下意识地可能会有这些疑问。</p>
+<p>2 个关键点：</p>
+<ul>
+<li><p>暂停的是方法，而不是执行方法的线程；</p>
+</li>
+<li><p>暂停点前后可能会发生线程切换。</p>
+</li>
+</ul>
+<p>在 Swift 新并发模型中进一步弱化了『 线程 』，理想情况下整个 App 的线程数应与内核数一致，线程的创建、管理完全交由并发框架负责。</p>
+<p>Swift 对异步方法 (asynchronous method) 的处理就遵守了上述思想：</p>
+<ul>
+<li><p>异步方法被暂停点 (suspension points) 分割为若干个 <code>Job</code>；</p>
+</li>
+<li><p>在并发框架中 <code>Job</code> 是任务调度的基本单元；</p>
+</li>
+<li><p>并发框架根据实时情况动态决定某个 <code>Job</code> 的执行线程；</p>
+</li>
+<li><p>也就是同一个异步方法中的不同 <code>Job</code> 可能运行在不同线程上。</p>
+</li>
+</ul>
+<p>正是由于异步方法在其暂停点前后可能会变换执行线程，因此在异步方法中要慎用锁、信号量等同步操作。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> lock = <span class="type">NSLock</span>.<span class="keyword">init</span>()</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">test</span><span class="params">()</span></span> async &#123;</span><br><span class="line">  lock.lock()</span><br><span class="line">  <span class="keyword">try</span>? await <span class="type">Task</span>.sleep(nanoseconds: <span class="number">1_000_000_000</span>)</span><br><span class="line">  lock.unlock()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="number">0</span>..&lt;<span class="number">10</span> &#123;</span><br><span class="line">  <span class="type">Task</span> &#123;</span><br><span class="line">    await test()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>像上面这样的代码在 <code>lock.lock()</code> 处会产生死锁，换成信号量也是一样。</p>
+<blockquote>
+<p>await 之所以称为『 潜在 』暂停点，而不是暂停点，是因为并不是所有的 await 都会暂停，只有遇到类似 IO、手动起子线程等情况时才会暂停当前调用栈的运行。</p>
+</blockquote>
+<p>总之，对于异步方法如何切分 <code>Job</code> 等细节可以不关心，<strong>但 <code>await</code> 可能会暂停当前方法的运行，并在时机成熟后在其他线程恢复运行是我们需要明确了解的</strong>。</p>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0296-async-await.md" target="_blank" rel="noopener">swift-evolution/0296-async-await.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0302-concurrent-value-and-concurrent-closures.md" target="_blank" rel="noopener">swift-evolution/0302-concurrent-value-and-concurrent-closures.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0337-support-incremental-migration-to-concurrency-checking.md" target="_blank" rel="noopener">swift-evolution/0337-support-incremental-migration-to-concurrency-checking.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0304-structured-concurrency.md#jobs" target="_blank" rel="noopener">swift-evolution/0304-structured-concurrency.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0306-actors.md" target="_blank" rel="noopener">swift-evolution/0306-actors.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0337-support-incremental-migration-to-concurrency-checking.md" target="_blank" rel="noopener">swift-evolution/0337-support-incremental-migration-to-concurrency-checking.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://www.andyibanez.com/posts/understanding-async-await-in-swift/" target="_blank" rel="noopener">Understanding async/await in Swift • Andy Ibanez</a></p>
+<p><a href="https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html#" target="_blank" rel="noopener">Concurrency — The Swift Programming Language (Swift 5.6)</a></p>
+<p><a href="https://www.swiftbysundell.com/articles/connecting-async-await-with-other-swift-code/" target="_blank" rel="noopener">Connecting async/await to other Swift code | Swift by Sundell</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag"># iOS</a>
+          
+            <a href="/tags/Swift/" rel="tag"># Swift</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2022/02/04/SwiftProtocol2/" rel="next" title="Swift Protocol 背后的故事(下)">
+                <i class="fa fa-chevron-left"></i> Swift Protocol 背后的故事(下)
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2022/03/19/SwiftModernConcurrency-actor/" rel="prev" title="Swift 新并发框架之 actor">
+                Swift 新并发框架之 actor <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">57</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#初探"><span class="nav-number">2.</span> <span class="nav-text">初探</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#深究"><span class="nav-number">3.</span> <span class="nav-text">深究</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考资料"><span class="nav-number">4.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
