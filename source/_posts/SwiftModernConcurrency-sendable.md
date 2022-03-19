@@ -288,7 +288,7 @@ extension BankAccount {
 
 Apple 在 [Protect mutable state with Swift actors - WWDC21](https://developer.apple.com/videos/play/wwdc2021/10133/) 上提到将来 Swift 编译器会禁止共享 (传递) 非 Sendable 类型的实例。
 
-![Compiler error when try to share nonSendable types from actors in Swift](https://i1.wp.com/swiftsenpai.com/wp-content/uploads/2021/10/sendable-data-races-non-sendable-share-error-1024x653.png?resize=1024%2C653&ssl=1)
+![](/img/CompilererrorsharenonSendable.png)
 
 那么，本文提到的所有 Warning 都将变成 Error！
 
