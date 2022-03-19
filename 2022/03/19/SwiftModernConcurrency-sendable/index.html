@@ -105,7 +105,7 @@
 <meta property="og:description" content="本文是 『 Swift 新并发框架 』系列文章的第三篇，主要介绍 Swift 5.6 引入的 Sendable。">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="https://i1.wp.com/swiftsenpai.com/wp-content/uploads/2021/10/sendable-data-races-non-sendable-share-error-1024x653.png?resize=1024%2C653&ssl=1">
-<meta property="og:updated_time" content="2022-03-19T08:17:40.631Z">
+<meta property="og:updated_time" content="2022-03-19T08:42:04.013Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Swift 新并发框架之 Sendable">
 <meta name="twitter:description" content="本文是 『 Swift 新并发框架 』系列文章的第三篇，主要介绍 Swift 5.6 引入的 Sendable。">
@@ -387,9 +387,9 @@
 <p>©原创文章，转载请注明出处！</p>
 <p>本系列文章对 Swift 新并发框架中涉及的内容逐个进行介绍，内容如下：</p>
 <ul>
-<li><p>Swift 新并发框架之 async/await</p>
+<li><p><a href="https://zxfcumtcs.github.io/2022/03/18/SwiftModernConcurrency-asyncawait/">Swift 新并发框架之 async/await</a></p>
 </li>
-<li><p>Swift 新并发框架之 actor</p>
+<li><p><a href="https://zxfcumtcs.github.io/2022/03/19/SwiftModernConcurrency-actor/">Swift 新并发框架之 actor</a></p>
 </li>
 <li><p>Swift 新并发框架之 Sendable</p>
 </li>
@@ -397,7 +397,7 @@
 </li>
 </ul>
 <h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
-<p>书接前文 (<a href="">『 Swift 新并发框架之 actor 』</a>)，本文主要介绍 Sendable 为何物以及如何解决前文提到的那些问题。</p>
+<p>书接前文 (<a href="https://zxfcumtcs.github.io/2022/03/19/SwiftModernConcurrency-actor/">『 Swift 新并发框架之 actor 』</a>)，本文主要介绍 Sendable 为何物以及如何解决前文提到的那些问题。</p>
 <figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/// The Sendable protocol indicates that value of the given type can</span></span><br><span class="line"><span class="comment">/// be safely used in concurrent code.</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">protocol</span> <span class="title">Sendable</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
 <p><code>Sendable</code> 是一个空协议：</p>
 <p><strong>用于向外界声明实现了该协议的类型在并发环境下可以安全使用，更准确的说是可以自由地跨 actor 传递。</strong></p>
@@ -431,8 +431,9 @@
 </ul>
 <p>当然了，所有 actor 类型也是自动遵守 <code>Sendable</code> 协议的。</p>
 <blockquote>
-<p>事实上是所有 actor 都遵守了 <code>Actor</code>协议，而该协议继承自 <code>Sendable</code>：<br><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@available</span>(macOS <span class="number">10.15</span>, iOS <span class="number">13.0</span>, watchOS <span class="number">6.0</span>, tvOS <span class="number">13.0</span>, *)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">protocol</span> <span class="title">Actor</span> : <span class="title">AnyObject</span>, <span class="title">Sendable</span> </span>&#123;</span><br><span class="line">    nonisolated <span class="keyword">var</span> unownedExecutor: <span class="type">UnownedSerialExecutor</span> &#123; <span class="keyword">get</span> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>事实上是所有 actor 都遵守了 <code>Actor</code>协议，而该协议继承自 <code>Sendable</code>：</p>
 </blockquote>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@available</span>(macOS <span class="number">10.15</span>, iOS <span class="number">13.0</span>, watchOS <span class="number">6.0</span>, tvOS <span class="number">13.0</span>, *)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">protocol</span> <span class="title">Actor</span> : <span class="title">AnyObject</span>, <span class="title">Sendable</span> </span>&#123;</span><br><span class="line">    nonisolated <span class="keyword">var</span> unownedExecutor: <span class="type">UnownedSerialExecutor</span> &#123; <span class="keyword">get</span> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>class 需要主动声明遵守 <code>Sendable</code> 协议，并有以下限制：</p>
 <ul>
 <li><p>class 必须是 <code>final</code>，否则有 Warning: Non-final class ‘X’ cannot conform to ‘Sendable’; use ‘ @unchecked Sendable’</p>
@@ -453,8 +454,6 @@
 <li><p>由 class 改成 struct：</p>
 <figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">User</span> </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> name: <span class="type">String</span></span><br><span class="line">  <span class="keyword">var</span> age: <span class="type">Int</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
-</ul>
-<ul>
 <li><p>手动实现 <code>Sendable</code> 协议：</p>
 <figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">User</span>: <span class="title">Sendable</span> </span>&#123;</span><br><span class="line">  <span class="keyword">let</span> name: <span class="type">String</span></span><br><span class="line">  <span class="keyword">let</span> age: <span class="type">Int</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
@@ -493,7 +492,7 @@
 <li><p>所捕获对象必须实现 Sendable 协议，否则 Warning: Capture of ‘x’ with non-sendable type ‘X’ in a <code>@Sendable</code> closure。</p>
 </li>
 </ul>
-<p>还记得 <a href="">Swift 新并发框架之 actor</a> 中最后那个 crash 吗：</p>
+<p>还记得 <a href="https://zxfcumtcs.github.io/2022/03/19/SwiftModernConcurrency-actor/">Swift 新并发框架之 actor</a> 中最后那个 crash 吗：</p>
 <figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">User</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">testUser</span><span class="params">(callback: @escaping <span class="params">()</span></span></span> -&gt; <span class="type">Void</span>) &#123;</span><br><span class="line">    <span class="keyword">for</span> <span class="number">_</span> <span class="keyword">in</span> <span class="number">0</span>..&lt;<span class="number">1000</span> &#123;</span><br><span class="line">      <span class="type">DispatchQueue</span>.global().async &#123;</span><br><span class="line">        callback()</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">BankAccount</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">test</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">let</span> user = <span class="type">User</span>.<span class="keyword">init</span>(name: <span class="string">"Tom"</span>, age: <span class="number">18</span>)</span><br><span class="line">    user.testUser &#123;</span><br><span class="line">      <span class="keyword">let</span> b = <span class="keyword">self</span>.balances[<span class="number">1</span>] ?? <span class="number">0.0</span></span><br><span class="line">      <span class="keyword">self</span>.balances[<span class="number">1</span>] = b + <span class="number">1</span></span><br><span class="line">      <span class="built_in">print</span>(<span class="string">"i = \(0), \(Thread.current), balance = \(String(describing: self.balances[1]))"</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>这个 crash 该如何 fix 呢？</p>
 <p>可以思考一下~</p>

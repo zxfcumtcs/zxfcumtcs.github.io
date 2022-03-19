@@ -107,7 +107,7 @@
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/actor.png">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/Actorisolation.png">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/globalactor.png">
-<meta property="og:updated_time" content="2022-03-19T08:20:31.059Z">
+<meta property="og:updated_time" content="2022-03-19T08:39:51.230Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Swift 新并发框架之 actor">
 <meta name="twitter:description" content="本文是 『 Swift 新并发框架 』系列文章的第二篇，主要介绍 Swift 5.5 引入的 actor。">
@@ -389,17 +389,17 @@
 <p>©原创文章，转载请注明出处！</p>
 <p>本系列文章对 Swift 新并发框架中涉及的内容逐个进行介绍，内容如下：</p>
 <ul>
-<li><p>Swift 新并发框架之 async/await</p>
+<li><p><a href="https://zxfcumtcs.github.io/2022/03/18/SwiftModernConcurrency-asyncawait/">Swift 新并发框架之 async/await</a></p>
 </li>
 <li><p>Swift 新并发框架之 actor</p>
 </li>
-<li><p>Swift 新并发框架之 Sendable</p>
+<li><p><a href="https://zxfcumtcs.github.io/2022/03/19/SwiftModernConcurrency-sendable/">Swift 新并发框架之 Sendable</a></p>
 </li>
 <li><p>Swift 新并发框架之 Task</p>
 </li>
 </ul>
 <h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
-<p>Swift 新并发模型不仅要解决我们在『 <a href="">Swift 新并发框架之 async/await</a> 』一文中提到的异步编程问题，它还致力于解决并发编程中最让人头疼的 Data races 问题。</p>
+<p>Swift 新并发模型不仅要解决我们在『 <a href="https://zxfcumtcs.github.io/2022/03/18/SwiftModernConcurrency-asyncawait/">Swift 新并发框架之 async/await</a> 』一文中提到的异步编程问题，它还致力于解决并发编程中最让人头疼的 Data races 问题。</p>
 <p>为此，Swift 引入了 <a href="https://en.wikipedia.org/wiki/Actor_model" target="_blank" rel="noopener">Actor model</a> ：</p>
 <ul>
 <li><p>Actor 代表一组在并发环境下可以安全访问的(可变)状态；</p>
@@ -508,7 +508,7 @@
 </li>
 </ul>
 <blockquote>
-<p>还记得在『 <a href="">Swift 新并发框架之 async/await</a> 』一文中提到的异步方法在暂停点前后可能会切换到不同线程上运行吗？</p>
+<p>还记得在『 <a href="https://zxfcumtcs.github.io/2022/03/18/SwiftModernConcurrency-asyncawait/">Swift 新并发框架之 async/await</a> 』一文中提到的异步方法在暂停点前后可能会切换到不同线程上运行吗？</p>
 <p>被 MainActor 修饰的方法是个例外，它一定是在主线程上执行。</p>
 </blockquote>
 <p>除了用 <code>@MainActor</code> 属性外，我们也可以通过 <code>MainActor.run</code> 在主线程上执行一段代码：</p>
@@ -552,7 +552,7 @@
 <p>如上，虽然 <code>BankAccount</code> 是 <code>actor</code> 类型，且其内部没有开启子线程等『 非法操作 』，</p>
 <p>但在调用 <code>User.testUser(callback: @escaping () -&gt; Void)</code> 后会 crash。</p>
 <p>怎么办？</p>
-<p>这时就要轮到 Sendable 登场了：<a href="">『 Swift 新并发框架之 Sendable 』</a></p>
+<p>这时就要轮到 Sendable 登场了：<a href="https://zxfcumtcs.github.io/2022/03/19/SwiftModernConcurrency-sendable/">『 Swift 新并发框架之 Sendable 』</a></p>
 <h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><ul>
 <li><p>actor 是一种新的引用类型，旨在解决 Data Races；</p>
 </li>
