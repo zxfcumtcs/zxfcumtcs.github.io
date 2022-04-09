@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="iOS,Swift,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本文是 『 Swift 新并发框架 』系列文章的第四篇，主要介绍基于 Task 的结构化并发 (Structured concurrency) 和 非结构化并发任务 (Unstructured tasks)。">
+<meta name="keywords" content="iOS,Swift">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Swift 新并发框架之 Task">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2022/04/03/SwiftModernConcurrency-task/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本文是 『 Swift 新并发框架 』系列文章的第四篇，主要介绍基于 Task 的结构化并发 (Structured concurrency) 和 非结构化并发任务 (Unstructured tasks)。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/Tasktree.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/Flavorsoftasks.png">
+<meta property="og:updated_time" content="2022-04-09T16:05:54.308Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Swift 新并发框架之 Task">
+<meta name="twitter:description" content="本文是 『 Swift 新并发框架 』系列文章的第四篇，主要介绍基于 Task 的结构化并发 (Structured concurrency) 和 非结构化并发任务 (Unstructured tasks)。">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/Tasktree.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2022/04/03/SwiftModernConcurrency-task/">
+
+
+
+
+
+  <title>Swift 新并发框架之 Task | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2022/04/03/SwiftModernConcurrency-task/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Swift 新并发框架之 Task</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-04-03T22:16:43+08:00">
+                2022-04-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2022/04/03/SwiftModernConcurrency-task/" class="leancloud_visitors" data-flag-title="Swift 新并发框架之 Task">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  3,461
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  15
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文是 『 Swift 新并发框架 』系列文章的第四篇，主要介绍基于 Task 的结构化并发 (Structured concurrency) 和 非结构化并发任务 (Unstructured tasks)。</p>
+<a id="more"></a>
+<p>©原创文章，转载请注明出处！</p>
+<p>本系列文章对 Swift 新并发框架中涉及的内容逐个进行介绍，内容如下：</p>
+<ul>
+<li><p><a href="https://zxfcumtcs.github.io/2022/03/18/SwiftModernConcurrency-asyncawait/">Swift 新并发框架之 async/await</a></p>
+</li>
+<li><p><a href="https://zxfcumtcs.github.io/2022/03/19/SwiftModernConcurrency-actor/">Swift 新并发框架之 actor</a></p>
+</li>
+<li><p><a href="https://zxfcumtcs.github.io/2022/03/19/SwiftModernConcurrency-sendable/">Swift 新并发框架之 Sendable</a></p>
+</li>
+<li><p>Swift 新并发框架之 Task</p>
+</li>
+</ul>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
+<p>前三篇文章分别介绍了用于将异步代码同步化的 <a href="https://zxfcumtcs.github.io/2022/03/18/SwiftModernConcurrency-asyncawait/">async/await</a>、并发安全模型 <a href="https://zxfcumtcs.github.io/2022/03/19/SwiftModernConcurrency-actor/">actor</a> 以及用于约束在并发环境下可以安全传值的 <a href="https://zxfcumtcs.github.io/2022/03/19/SwiftModernConcurrency-sendable/">Sendable</a>。</p>
+<p>严格意义上说，它们并不具备提供「并发」的能力，而是为并发提供若干基础辅助功能。</p>
+<p>本文主角 Task 则能提供「并发执行」的能力。</p>
+<h1 id="Task"><a href="#Task" class="headerlink" title="Task"></a>Task</h1><hr>
+<p> 几个关键点：</p>
+<ul>
+<li><p>并发环境中执行任务的基本单元 (「代码块」)；</p>
+</li>
+<li><p>所有的异步函数 (async) 都运行在 Task 内；</p>
+</li>
+<li><p>Task 属于线程之上的更高级抽象，由系统负责在合适的线程上调度执行 Task。</p>
+</li>
+</ul>
+<p>Task 有 3 种状态：</p>
+<ul>
+<li><p><strong>暂停 (suspended)</strong> — 有 2 种情况会导致 Task 处于暂停状态：</p>
+<ul>
+<li><p>Task 已准备就绪等待系统分配执行线程；</p>
+</li>
+<li><p>等待外部事件，如 Task 遇到 suspension point 后可能会进入暂停状态并等待外部事件来唤醒。</p>
+</li>
+</ul>
+<blockquote>
+<p>ps. 需要注意的是，异步函数 (<code>A</code>) 调用另一个异步函数 (<code>B</code>)时，调用方会暂停，并不意味着整个 Task 会暂停。</p>
+<p>从函数 <code>A</code> 的视角看，其会暂停等待函数 <code>B</code> 返回；</p>
+<p>但从 Task 视角看，其不一定会暂停，可能会继续在其上执行被调用的函数 <code>B</code>；</p>
+<p>当然，Task 也可能会被暂停，如果被调用的函数要在不同的并发上下文中执行。</p>
+</blockquote>
+</li>
+<li><p><strong>运行中 (running)</strong> — Task 当前正在某个线程上运行，直至完成，或遇到 suspension point 而进入暂停状态；</p>
+</li>
+<li><p><strong>已完成 (completed)</strong> — Task 所有工作都已完成。</p>
+</li>
+</ul>
+<p>总之，<strong>Task 是线程的高级抽象，用于执行一项任务。</strong> </p>
+<p>Task 提供了一些高级抽象能力：</p>
+<ul>
+<li><p>Task 可以携带调度信息，如：任务优先级；</p>
+</li>
+<li><p>Task 作为正在执行的任务的句柄 (Handle)，可以用于 cancel 等；</p>
+</li>
+<li><p>Task 可以携带用户提供的 task-local data。</p>
+</li>
+</ul>
+<h1 id="Structured-concurrency"><a href="#Structured-concurrency" class="headerlink" title="Structured concurrency"></a>Structured concurrency</h1><hr>
+<p>Structured concurrency，结构化并发，听起来挺玄乎。</p>
+<p>说白了，就是在 Task 间可以有父子关系，并形成一颗「Task tree」：</p>
+<p><img src="/img/Tasktree.png" alt=""></p>
+<p>通过 Task 间的父子关系可以更好地对一组 Task 进行管理：</p>
+<ul>
+<li><p>子 Task 的生命周期不会超出父 Task 的范围 (这点非常重要)；</p>
+</li>
+<li><p>cancel 更便捷 (cancel 某个 Task 时，其所有子 Task 也会被 cancel)；</p>
+</li>
+<li><p>错误处理更方便了，未处理的 error 会自动从子 Task 传播到父 Task；</p>
+</li>
+<li><p>子 Task 默认会继承父 Task 的优先级；</p>
+</li>
+<li><p>父子 Task 间会共享 Task-local data；</p>
+</li>
+<li><p>父 Task 可以很容易收集子 Task 的结果。</p>
+</li>
+</ul>
+<p>以上就是结构化并发的全部！</p>
+<p>下面，就其中的细节逐一展开讨论。</p>
+<p>目前，实现结构化并发有 2 种方式：</p>
+<ul>
+<li><p><code>async let</code>；</p>
+</li>
+<li><p>Task group。</p>
+</li>
+</ul>
+<h2 id="async-let"><a href="#async-let" class="headerlink" title="async let"></a><code>async let</code></h2><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// given: </span></span><br><span class="line"><span class="comment">//   func chopVegetables() async throws -&gt; [Vegetables]</span></span><br><span class="line"><span class="comment">//   func marinateMeat() async -&gt; Meat</span></span><br><span class="line"><span class="comment">//   func preheatOven(temperature: Int) async -&gt; Oven</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">makeDinner</span><span class="params">()</span></span> async <span class="keyword">throws</span> -&gt; <span class="type">Meal</span> &#123;</span><br><span class="line">  async <span class="keyword">let</span> veggies = chopVegetables()</span><br><span class="line">  async <span class="keyword">let</span> meat = marinateMeat()</span><br><span class="line">  async <span class="keyword">let</span> oven = preheatOven(temperature: <span class="number">350</span>)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">let</span> dish = <span class="type">Dish</span>(ingredients: await [<span class="keyword">try</span> veggies, meat])</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">try</span> await oven.cook(dish, duration: .hours(<span class="number">3</span>))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>先通过一个例子感受一下，几个关键点：</p>
+<ul>
+<li><p>对异步函数的调用不用 <code>await</code>，而是在赋值表达式的最左边加上 <code>async let</code> (第 <code>7~8</code> 行)，称之为 <code>async let binding</code>；</p>
+</li>
+<li><p>在需要使用 <code>async let</code> 表达式的结果时要用 <code>await</code>，如结果可能会抛出错误，还需要处理错误 (第 <code>11~12</code> 行)；</p>
+</li>
+<li><p><code>async let</code> 只能出现在异步上下文中 (Task closure、async function 以及 async closure)。</p>
+</li>
+</ul>
+<blockquote>
+<p>上述例子来自：<a href="https://github.com/apple/swift-evolution/blob/main/proposals/0317-async-let.md" target="_blank" rel="noopener">swift-evolution/0317-async-let.md at main · apple/swift-evolution · GitHub</a></p>
+</blockquote>
+<p>以上是我们的直观感受，其背后的实现机制是：</p>
+<ul>
+<li><p><strong>系统为每个 <code>async let</code> 创建一个并发的子任务；</strong></p>
+</li>
+<li><p>子任务创建后立马开始执行；</p>
+</li>
+<li><p>子任务会继续父任务的优先级以及 task-local datas。</p>
+</li>
+</ul>
+<p>因此，如上例，会创建 3 个并发子任务分别执行 <code>chopVegetables</code>、<code>marinateMeat</code> 以及 <code>preheatOven</code>。</p>
+<h3 id="Implicit-async-let-awaiting"><a href="#Implicit-async-let-awaiting" class="headerlink" title="Implicit async let awaiting"></a>Implicit <code>async let</code> awaiting</h3><p>有个问题：正常流程下，对 <code>async let</code> 需要执行 <code>await</code> 操作，如果不执行 <code>await</code> 会怎样呢？</p>
+<p>会导致子任务溢出吗？(超出父任务的生命周期？)</p>
+<p>答案是否定的。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">makeDinner</span><span class="params">()</span></span> async <span class="keyword">throws</span> -&gt; <span class="type">Meal</span> &#123;</span><br><span class="line">  async <span class="keyword">let</span> veggies = chopVegetables()</span><br><span class="line">  async <span class="keyword">let</span> meat = marinateMeat()</span><br><span class="line">  async <span class="keyword">let</span> oven = preheatOven(temperature: <span class="number">350</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上代码，系统会添加隐式 cancel、await：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">makeDinner</span><span class="params">()</span></span> async <span class="keyword">throws</span> -&gt; <span class="type">Meal</span> &#123;</span><br><span class="line">  async <span class="keyword">let</span> veggies = chopVegetables()</span><br><span class="line">  async <span class="keyword">let</span> meat = marinateMeat()</span><br><span class="line">  async <span class="keyword">let</span> oven = preheatOven(temperature: <span class="number">350</span>)</span><br><span class="line">  <span class="comment">// implicitly: cancel veggies</span></span><br><span class="line">  <span class="comment">// implicitly: cancel meat</span></span><br><span class="line">  <span class="comment">// implicitly: cancel oven</span></span><br><span class="line">  <span class="comment">// implicitly: await veggies</span></span><br><span class="line">  <span class="comment">// implicitly: await meat</span></span><br><span class="line">  <span class="comment">// implicitly: await oven</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们通过一个简单的例子验证一下上述结论：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">noAwaitAsynclet</span><span class="params">()</span></span> async &#123;</span><br><span class="line">  <span class="built_in">print</span>(<span class="string">"begin noAwaitAsynclet"</span>)</span><br><span class="line">  <span class="keyword">try</span>? await <span class="type">Task</span>.sleep(nanoseconds: <span class="number">1_000_000_000</span>)</span><br><span class="line">  <span class="type">Task</span>.isCancelled ? <span class="built_in">print</span>(<span class="string">"noAwaitAsynclet is cancelled"</span>) : <span class="built_in">print</span>(<span class="string">"end noAwaitAsynclet"</span>)</span><br><span class="line">&#125;</span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">testAsynclet</span><span class="params">()</span></span> async &#123;</span><br><span class="line">  <span class="keyword">let</span> parentTask =</span><br><span class="line">  <span class="type">Task</span> &#123;</span><br><span class="line">    async <span class="keyword">let</span> test = noAwaitAsynclet()</span><br><span class="line">  &#125;</span><br><span class="line">    </span><br><span class="line">  await parentTask.value</span><br><span class="line">  <span class="built_in">print</span>(<span class="string">"parentTask finished!"</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>调用 <code>testAsynclet</code> 方法的输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">begin noAwaitAsynclet</span><br><span class="line">noAwaitAsynclet is cancelled</span><br><span class="line">parentTask finished!</span><br></pre></td></tr></table></figure>
+<h3 id="cancel"><a href="#cancel" class="headerlink" title="cancel"></a>cancel</h3><p>正如前文所述，<strong>在结构化并发中 cancel 操作会从父任务传递给所有子任务</strong>。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">noAwaitAsynclet</span><span class="params">()</span></span> async &#123;</span><br><span class="line">  <span class="built_in">print</span>(<span class="string">"begin noAwaitAsynclet"</span>)</span><br><span class="line">  <span class="keyword">try</span>? await <span class="type">Task</span>.sleep(nanoseconds: <span class="number">1_000_000_000</span>)</span><br><span class="line">  <span class="type">Task</span>.isCancelled ? <span class="built_in">print</span>(<span class="string">"noAwaitAsynclet is cancelled"</span>) : <span class="built_in">print</span>(<span class="string">"end noAwaitAsynclet"</span>)</span><br><span class="line">&#125;</span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">testAsynclet</span><span class="params">()</span></span> async &#123;</span><br><span class="line">  <span class="keyword">let</span> parentTask =</span><br><span class="line">  <span class="type">Task</span> &#123;</span><br><span class="line">    async <span class="keyword">let</span> test = noAwaitAsynclet()</span><br><span class="line">    await test</span><br><span class="line">  &#125;</span><br><span class="line">    </span><br><span class="line">  parentTask.cancel()</span><br><span class="line">  await parentTask.value</span><br><span class="line">  <span class="built_in">print</span>(<span class="string">"parentTask finished!"</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对前面那个例子简单改动一下：</p>
+<ul>
+<li><p>第 <code>11</code> 行添加对 <code>test</code> 的 <code>await</code>；</p>
+</li>
+<li><p>第 <code>14</code> 行对 <code>parentTask</code> 执行 <code>cancel</code>。</p>
+</li>
+</ul>
+<p>其输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">begin noAwaitAsynclet</span><br><span class="line">noAwaitAsynclet is cancelled</span><br><span class="line">parentTask finished!</span><br></pre></td></tr></table></figure>
+<p>可以看到，对父任务的 <code>cancel</code> 操作传递到了 <code>async let</code> 子任务。</p>
+<h2 id="Task-group"><a href="#Task-group" class="headerlink" title="Task group"></a>Task group</h2><p>用 Task group 重写 <code>makeDinner</code> 来直观感受一下 Task group：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">makeDinner</span><span class="params">()</span></span> async <span class="keyword">throws</span> -&gt; <span class="type">Meal</span> &#123;</span><br><span class="line">  <span class="comment">// Prepare some variables to receive results from our concurrent child tasks</span></span><br><span class="line">  <span class="keyword">var</span> veggies: [<span class="type">Vegetable</span>]?</span><br><span class="line">  <span class="keyword">var</span> meat: <span class="type">Meat</span>?</span><br><span class="line">  <span class="keyword">var</span> oven: <span class="type">Oven</span>?</span><br><span class="line"></span><br><span class="line">  <span class="class"><span class="keyword">enum</span> <span class="title">CookingStep</span> </span>&#123; </span><br><span class="line">    <span class="keyword">case</span> veggies([<span class="type">Vegetable</span>])</span><br><span class="line">    <span class="keyword">case</span> meat(<span class="type">Meat</span>)</span><br><span class="line">    <span class="keyword">case</span> oven(<span class="type">Oven</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Create a task group to scope the lifetime of our three child tasks</span></span><br><span class="line">  <span class="keyword">try</span> await withThrowingTaskGroup(of: <span class="type">CookingStep</span>.<span class="keyword">self</span>) &#123; group <span class="keyword">in</span></span><br><span class="line">    group.addTask &#123;</span><br><span class="line">      <span class="keyword">try</span> await .veggies(chopVegetables())</span><br><span class="line">    &#125;</span><br><span class="line">    group.addTask &#123;</span><br><span class="line">      await .meat(marinateMeat())</span><br><span class="line">    &#125;</span><br><span class="line">    group.addTask &#123;</span><br><span class="line">      <span class="keyword">try</span> await .oven(preheatOven(temperature: <span class="number">350</span>))</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> <span class="keyword">try</span> await finishedStep <span class="keyword">in</span> group &#123;</span><br><span class="line">      <span class="keyword">switch</span> finishedStep &#123;</span><br><span class="line">        <span class="keyword">case</span> .veggies(<span class="keyword">let</span> v): veggies = v</span><br><span class="line">        <span class="keyword">case</span> .meat(<span class="keyword">let</span> m): meat = m</span><br><span class="line">        <span class="keyword">case</span> .oven(<span class="keyword">let</span> o): oven = o</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">let</span> dish = <span class="type">Dish</span>(ingredients: [veggies!, meat!])</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">try</span> await oven!.cook(dish, duration: .hours(<span class="number">3</span>))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>几个关键点：</p>
+<ul>
+<li><p>Task group 没有公开的 <code>init</code> 方法，只能通过 <code>withTaskGroup</code> 或 <code>withThrowingTaskGroup</code> 方法来获得 Task group 实例；</p>
+</li>
+<li><p>通过 Task group 的 <code>addTask</code> 方法可以创建并发执行的子任务，且子任务的数量可以是动态的；</p>
+</li>
+<li><p>同一 group 中所有子任务的结果类型必须相同；</p>
+<blockquote>
+<p>上例是通过 enum (<code>CookingStep</code>)封装关联值的方式使得所有子任务结果类型相同的。</p>
+</blockquote>
+</li>
+<li><p>子任务的生命周期不会超出 group 生命周期；</p>
+<blockquote>
+<p>因此当 group(<code>withTaskGroup</code>、<code>withThrowingTaskGroup</code>) 方法返回时就意味着所有子任务都已完成或 cancel；</p>
+</blockquote>
+</li>
+<li><p>通过 <code>for await ... in</code> 可以遍历所有子任务的运行结果；</p>
+<blockquote>
+<p>需要注意的是遍历的顺序是子任务完成的顺序，而非子任务添加的顺序；</p>
+</blockquote>
+</li>
+<li><p>当 group 内部抛出错误时 (如某个子任务抛出异常)，所有未完成的子任务都将被 cancel。</p>
+</li>
+</ul>
+<p>如下，如果在 group 内不显式地等待所有子任务完成，会如何？</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> await withThrowingTaskGroup(of: <span class="type">CookingStep</span>.<span class="keyword">self</span>) &#123; group <span class="keyword">in</span></span><br><span class="line">  group.addTask &#123;</span><br><span class="line">    <span class="keyword">try</span> await .veggies(chopVegetables())</span><br><span class="line">  &#125;</span><br><span class="line">  group.addTask &#123;</span><br><span class="line">    await .meat(marinateMeat())</span><br><span class="line">  &#125;</span><br><span class="line">  group.addTask &#123;</span><br><span class="line">    <span class="keyword">try</span> await .oven(preheatOven(temperature: <span class="number">350</span>))</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>group 还是会隐式的等待所有子任务完成才返回</strong>。</p>
+<blockquote>
+<p>注意此处与 <code>async let</code> 的区别，如上文所述，<code>async let</code> 子任务会先被 cancel，再 await。</p>
+</blockquote>
+<h2 id="async-let-vs-Task-group"><a href="#async-let-vs-Task-group" class="headerlink" title="async let vs. Task group"></a><code>async let</code> vs. Task group</h2><p><code>async let</code> 与 Task group 同属结构化并发范畴，在日常开发中如何选择？</p>
+<p>基本原则：<strong>能用 <code>async let</code> 就不用 Task group。</strong></p>
+<p>由两个版本的 <code>makeDinner</code> 方法可以看出：</p>
+<ul>
+<li><p><code>async let</code> 更轻量、更直观；</p>
+</li>
+<li><p>Task group 要求所有子任务的计算结果类型相同，往往需要多一层封装，如 <code>makeDinner</code> 中的 <code>CookingStep</code>枚举。同时，Task group 接口是基于 closure 的，也进一步导致代码变复杂。</p>
+</li>
+</ul>
+<p>那有什么是 Task group 可以做，而 <code>async let</code> 无法做到的？</p>
+<p>主要有 2 点：</p>
+<ul>
+<li><p><strong><code>async let</code> 创建子任务的数量是静态的，而 Task group 可以动态创建子任务；</strong></p>
+<p>如下，<code>loadImages</code> 方法为每个 url 创建一个下载图片的子任务，其数量由参数 <code>urls</code> 动态决定：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">loadImages</span><span class="params">(urls: [String])</span></span> async -&gt; [<span class="type">Image</span>] &#123;</span><br><span class="line">  await withTaskGroup(of: <span class="type">Image</span>.<span class="keyword">self</span>, body: &#123; group <span class="keyword">in</span></span><br><span class="line">    <span class="keyword">for</span> url <span class="keyword">in</span> urls &#123;</span><br><span class="line">      group.addTask &#123;</span><br><span class="line">        <span class="keyword">return</span> await downloadImage(url: url)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">var</span> images: [<span class="type">Image</span>] = []</span><br><span class="line">    <span class="keyword">for</span> await image <span class="keyword">in</span> group &#123;</span><br><span class="line">      images.append(image)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> images</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong><code>async let</code> 等待子任务完成的顺序是固定，无法做到按子任务完成顺序取结果。</strong></p>
+<p>如下，无论 3 个子任务哪个先完成，我们一定是先获得 <code>veggiesValue</code>，再获得 <code>meatValue</code>，最后获取 <code>ovenValue</code>。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">makeDinner</span><span class="params">()</span></span> async <span class="keyword">throws</span> -&gt; <span class="type">Meal</span> &#123;</span><br><span class="line">  async <span class="keyword">let</span> veggies = chopVegetables()</span><br><span class="line">  async <span class="keyword">let</span> meat = marinateMeat()</span><br><span class="line">  async <span class="keyword">let</span> oven = preheatOven(temperature: <span class="number">350</span>)</span><br><span class="line">  <span class="keyword">let</span> veggiesValue = await veggies</span><br><span class="line">  <span class="keyword">let</span> meatValue = await meat</span><br><span class="line">  <span class="keyword">let</span> ovenValue = await oven</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>  <strong>而 Task group 是以子任务完成的顺序拿到结果的。</strong></p>
+<p>  这有什么用吗？</p>
+  <figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">fastestResponse</span><span class="params">()</span></span> async -&gt; <span class="type">Int</span> &#123;</span><br><span class="line">  await withTaskGroup(of: <span class="type">Int</span>.<span class="keyword">self</span>, body: &#123; group <span class="keyword">in</span></span><br><span class="line">    group.addTask &#123;</span><br><span class="line">      <span class="keyword">let</span> <span class="number">_</span> = await requestFromServer1()</span><br><span class="line">      <span class="keyword">return</span> <span class="number">1</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    group.addTask &#123;</span><br><span class="line">      <span class="keyword">let</span> <span class="number">_</span> = await requestFromServer2()</span><br><span class="line">      <span class="keyword">return</span> <span class="number">2</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> await group.next()!</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>  如上，有两台布署了相同服务的服务器，需要确定当前哪台服务器响应速度更快。</p>
+<p>  通过 Task group 按子任务完成顺序返回的特性很容易就能实现。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>通过上文讨论，我们知道结构化并发有很多优势。</p>
+<p>其中，最重要的一条是：<strong>子任务的生命周期不会超出父任务。</strong></p>
+<p>其使得我们可以很容易做到：</p>
+<ul>
+<li><p>控制一组任务，如 cancel，只要对父任务执行 cancel，其中的所有子任务都会被 cancel；</p>
+<blockquote>
+<p>如果子任务的生命周期比父任务长，就很难做到这一点。因为在需要执行 cancel 时，父任务可能已经结束了。</p>
+</blockquote>
+</li>
+<li><p>等待一组任务完成，只要等待父任务完成即可，因为父任务完成就意味着所有子任务都已完成；</p>
+</li>
+<li><p>配合 <code>async/await</code> 可以很容易地实现多组任务间的依赖。</p>
+</li>
+</ul>
+<p>要在传统并发模型中实现以上需求往往需大费周章。</p>
+<h1 id="Unstructured-tasks"><a href="#Unstructured-tasks" class="headerlink" title="Unstructured tasks"></a>Unstructured tasks</h1><hr>
+<p>非结构化任务，简单讲，就是任务间没有父子关系，不存在 「 Task tree 」。</p>
+<p>通过上文我们知道，<strong>结构化并发最重要的特性就是子任务的生命周期不会超出父任务。</strong></p>
+<p>而非结构化任务就不存在这个约束。</p>
+<p>有时只需要创建一个并发任务，或在同步上下文中为了调用异步方法而创建异步环境。</p>
+<p>以上是非结构化任务的 2 个主要应用场景。</p>
+<p>创建非结构化任务有 2 种方式：</p>
+<ul>
+<li><p><code>Task.init</code></p>
+</li>
+<li><p><code>Task.detached</code></p>
+</li>
+</ul>
+<h2 id="Task-init"><a href="#Task-init" class="headerlink" title="Task.init"></a><code>Task.init</code></h2><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">@frozen <span class="keyword">public</span> <span class="class"><span class="keyword">struct</span> <span class="title">Task</span>&lt;<span class="title">Success</span>, <span class="title">Failure</span>&gt; : <span class="title">Sendable</span> <span class="title">where</span> <span class="title">Success</span> : <span class="title">Sendable</span>, <span class="title">Failure</span> : <span class="title">Error</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">Task</span> <span class="title">where</span> <span class="title">Failure</span> == <span class="title">Error</span> </span>&#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">init</span>(priority: <span class="type">TaskPriority</span>? = <span class="literal">nil</span>, operation: @escaping @<span class="type">Sendable</span> () async <span class="keyword">throws</span> -&gt; <span class="type">Success</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> dinnerHandle = <span class="type">Task</span> &#123;</span><br><span class="line">  <span class="keyword">try</span> await makeDinner()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">await dinnerHandle.value</span><br><span class="line">dinnerHandle.cancel()</span><br></pre></td></tr></table></figure>
+<p>如上，<code>Task.init</code> 返回一个 task 句柄 (<code>dinnerHandle</code>)，通过该句柄可以获取任务执行的结果，也可以取消任务。</p>
+<h3 id="Context-inheritance"><a href="#Context-inheritance" class="headerlink" title="Context inheritance"></a>Context inheritance</h3><p>通过 <code>Task.init</code> 创建的任务会从当前上下文中继承重要的元信息，如：</p>
+<ul>
+<li><p>任务优先级；</p>
+</li>
+<li><p>task-local data；</p>
+</li>
+<li><p>actor isolation。</p>
+</li>
+</ul>
+<p>如果 <code>Task.init</code> 是在异步上下文中调用的 (意味着调用链上存在 Task)：</p>
+<ul>
+<li><p>新创建的任务会继承当前任务的优先级；</p>
+</li>
+<li><p>通过拷贝的方式继承当前任务的所有 task-local data；</p>
+</li>
+<li><p>如果是在 actor 方法中调用 <code>Task.init</code> 的，则 Task closure 将成为 actor-isolated。</p>
+<p>从上面 <code>Task.init</code> 定义可以知道，Task closure 是用 <code>Sendable</code> 修饰的。</p>
+<p>在「<a href="https://zxfcumtcs.github.io/2022/03/19/SwiftModernConcurrency-sendable/">Swift 新并发框架之 Sendable</a>」中介绍过，<code>Sendable closure</code> 是不能捕获 actor-isolated 属性，否则报错: Actor-isolated property ‘x’ can not be referenced from a Sendable closure。</p>
+<p>但 Task closure 是个例外，因为它本身也是 actor-isolated，所以下面的代码不会报错：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> actor <span class="type">TestActor</span> &#123;</span><br><span class="line">  <span class="keyword">var</span> value: <span class="type">Int</span> = <span class="number">0</span></span><br><span class="line">    </span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">testTask</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="type">Task</span> &#123;</span><br><span class="line">      value = <span class="number">1</span></span><br><span class="line">    &#125;</span><br><span class="line"> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>如果 <code>Task.init</code> 是在同步上下文中调用的 (调用链上没有 Task)：</p>
+<ul>
+<li>运行时推断合理的优先级；</li>
+</ul>
+<h2 id="Task-detached"><a href="#Task-detached" class="headerlink" title="Task.detached"></a><code>Task.detached</code></h2><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">Task</span> <span class="title">where</span> <span class="title">Failure</span> == <span class="title">Never</span> </span>&#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">func</span> <span class="title">detached</span><span class="params">(priority: TaskPriority? = <span class="literal">nil</span>, operation: @escaping @Sendable <span class="params">()</span></span></span> async -&gt; <span class="type">Success</span>) -&gt; <span class="type">Task</span>&lt;<span class="type">Success</span>, <span class="type">Failure</span>&gt;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> dinnerHandle = <span class="type">Task</span>.detached &#123;</span><br><span class="line">  <span class="keyword">try</span> await makeDinner()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过 <code>Task.detached</code> 创建的任务完全独立于当前上下文，也就是不会继承当前上下文的优先级、task-local data 以及 actor isolation。</p>
+<h1 id="小结-1"><a href="#小结-1" class="headerlink" title="小结"></a>小结</h1><hr>
+<p>至此，基于 Task 创建任务的四种形态全部介绍完了。</p>
+<p>在 <a href="https://developer.apple.com/videos/play/wwdc2021/10134" target="_blank" rel="noopener">Explore structured concurrency in Swift - WWDC21</a> 中对它们有一个总结：</p>
+<p><img src="/img/Flavorsoftasks.png" alt=""></p>
+<p>结构化并发可以说是一次重大进步，今后编码并发相关的代码会更加容易！</p>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0296-async-await.md" target="_blank" rel="noopener">swift-evolution/0296-async-await.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0317-async-let.md" target="_blank" rel="noopener">swift-evolution/0317-async-let.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0302-concurrent-value-and-concurrent-closures.md" target="_blank" rel="noopener">swift-evolution/0302-concurrent-value-and-concurrent-closures.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0337-support-incremental-migration-to-concurrency-checking.md" target="_blank" rel="noopener">swift-evolution/0337-support-incremental-migration-to-concurrency-checking.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0304-structured-concurrency.md" target="_blank" rel="noopener">swift-evolution/0304-structured-concurrency.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0306-actors.md" target="_blank" rel="noopener">swift-evolution/0306-actors.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0337-support-incremental-migration-to-concurrency-checking.md" target="_blank" rel="noopener">swift-evolution/0337-support-incremental-migration-to-concurrency-checking.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://www.andyibanez.com/posts/understanding-async-await-in-swift/" target="_blank" rel="noopener">Understanding async/await in Swift • Andy Ibanez</a></p>
+<p><a href="https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html" target="_blank" rel="noopener">Concurrency — The Swift Programming Language (Swift 5.6)</a></p>
+<p><a href="https://www.swiftbysundell.com/articles/connecting-async-await-with-other-swift-code/" target="_blank" rel="noopener">Connecting async/await to other Swift code | Swift by Sundell</a></p>
+<p><a href="https://developer.apple.com/videos/play/wwdc2021/10134/" target="_blank" rel="noopener">Explore structured concurrency in Swift - WWDC21 - Videos - Apple Developer</a></p>
+<p><a href="https://developer.apple.com/videos/play/wwdc2021/10254" target="_blank" rel="noopener">Swift concurrency: Behind the scenes - WWDC21 - Videos - Apple Developer</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag"># iOS</a>
+          
+            <a href="/tags/Swift/" rel="tag"># Swift</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2022/03/19/SwiftModernConcurrency-sendable/" rel="next" title="Swift 新并发框架之 Sendable">
+                <i class="fa fa-chevron-left"></i> Swift 新并发框架之 Sendable
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">58</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Task"><span class="nav-number">2.</span> <span class="nav-text">Task</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Structured-concurrency"><span class="nav-number">3.</span> <span class="nav-text">Structured concurrency</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#async-let"><span class="nav-number">3.1.</span> <span class="nav-text">async let</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Implicit-async-let-awaiting"><span class="nav-number">3.1.1.</span> <span class="nav-text">Implicit async let awaiting</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cancel"><span class="nav-number">3.1.2.</span> <span class="nav-text">cancel</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Task-group"><span class="nav-number">3.2.</span> <span class="nav-text">Task group</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#async-let-vs-Task-group"><span class="nav-number">3.3.</span> <span class="nav-text">async let vs. Task group</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小结"><span class="nav-number">3.4.</span> <span class="nav-text">小结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Unstructured-tasks"><span class="nav-number">4.</span> <span class="nav-text">Unstructured tasks</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Task-init"><span class="nav-number">4.1.</span> <span class="nav-text">Task.init</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Context-inheritance"><span class="nav-number">4.1.1.</span> <span class="nav-text">Context inheritance</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Task-detached"><span class="nav-number">4.2.</span> <span class="nav-text">Task.detached</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#小结-1"><span class="nav-number">5.</span> <span class="nav-text">小结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考资料"><span class="nav-number">6.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
