@@ -29,7 +29,7 @@ Swift 在 5.5 开始引入的新并发框架主要着力解决这 2 个问题。
 
 - [Swift 新并发框架之 Sendable](https://zxfcumtcs.github.io/2022/03/19/SwiftModernConcurrency-sendable/)
 
-- Swift 新并发框架之 Task
+- [Swift 新并发框架之 Task](https://zxfcumtcs.github.io/2022/04/03/SwiftModernConcurrency-task/)
 
 # Overview
 
