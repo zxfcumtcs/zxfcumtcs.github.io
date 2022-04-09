@@ -2,30 +2,30 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://zxfcumtcs.github.io/2022/04/03/SwiftModernConcurrency-task/</loc>
-    
-    <lastmod>2022-04-09T16:05:54.308Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://zxfcumtcs.github.io/2022/03/19/SwiftModernConcurrency-sendable/</loc>
     
-    <lastmod>2022-03-19T09:43:30.781Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://zxfcumtcs.github.io/2022/03/19/SwiftModernConcurrency-actor/</loc>
-    
-    <lastmod>2022-03-19T08:39:51.230Z</lastmod>
+    <lastmod>2022-04-09T16:10:09.424Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://zxfcumtcs.github.io/2022/03/18/SwiftModernConcurrency-asyncawait/</loc>
     
-    <lastmod>2022-03-19T08:38:34.633Z</lastmod>
+    <lastmod>2022-04-09T16:09:55.067Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://zxfcumtcs.github.io/2022/03/19/SwiftModernConcurrency-actor/</loc>
+    
+    <lastmod>2022-04-09T16:09:36.543Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://zxfcumtcs.github.io/2022/04/03/SwiftModernConcurrency-task/</loc>
+    
+    <lastmod>2022-04-09T16:05:54.308Z</lastmod>
     
   </url>
   
