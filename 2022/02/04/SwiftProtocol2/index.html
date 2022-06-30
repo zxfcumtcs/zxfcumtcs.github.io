@@ -96,21 +96,21 @@
 
 
 
-<meta name="description" content="本文是下篇，主要讨论 Swift Protocol 实现机制。 内容涉及  Type Metadata、Protocol 内存模型 Existential Container、Generics 的实现原理以及泛型特化等。">
+<meta name="description" content="本系列文章将从实践技巧、实现原理以及追踪语言更新等方面对 Swift Protocol 展开深入讨论。主要内容有： Swift Protocol 背后的故事(实践)Swift Protocol 背后的故事(理论)Swift Protocol 背后的故事(Swift 5.6/5.7)… 本文是系列文章第二篇，主要讨论 Swift Protocol 实现机制。 内容涉及 Type Metadata、P">
 <meta name="keywords" content="iOS,Swift,Protocol">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Swift Protocol 背后的故事(下)">
+<meta property="og:title" content="Swift Protocol 背后的故事(理论)">
 <meta property="og:url" content="http://zxfcumtcs.github.io/2022/02/04/SwiftProtocol2/index.html">
 <meta property="og:site_name" content="雪峰的blog">
-<meta property="og:description" content="本文是下篇，主要讨论 Swift Protocol 实现机制。 内容涉及  Type Metadata、Protocol 内存模型 Existential Container、Generics 的实现原理以及泛型特化等。">
+<meta property="og:description" content="本系列文章将从实践技巧、实现原理以及追踪语言更新等方面对 Swift Protocol 展开深入讨论。主要内容有： Swift Protocol 背后的故事(实践)Swift Protocol 背后的故事(理论)Swift Protocol 背后的故事(Swift 5.6/5.7)… 本文是系列文章第二篇，主要讨论 Swift Protocol 实现机制。 内容涉及 Type Metadata、P">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/MetadataType.png">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/ExistentialContainer.png">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/ProtocolTypeStoredProperties.png">
-<meta property="og:updated_time" content="2022-02-07T06:38:24.525Z">
+<meta property="og:updated_time" content="2022-06-30T14:54:58.584Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Swift Protocol 背后的故事(下)">
-<meta name="twitter:description" content="本文是下篇，主要讨论 Swift Protocol 实现机制。 内容涉及  Type Metadata、Protocol 内存模型 Existential Container、Generics 的实现原理以及泛型特化等。">
+<meta name="twitter:title" content="Swift Protocol 背后的故事(理论)">
+<meta name="twitter:description" content="本系列文章将从实践技巧、实现原理以及追踪语言更新等方面对 Swift Protocol 展开深入讨论。主要内容有： Swift Protocol 背后的故事(实践)Swift Protocol 背后的故事(理论)Swift Protocol 背后的故事(Swift 5.6/5.7)… 本文是系列文章第二篇，主要讨论 Swift Protocol 实现机制。 内容涉及 Type Metadata、P">
 <meta name="twitter:image" content="http://zxfcumtcs.github.io/img/MetadataType.png">
 
 
@@ -146,7 +146,7 @@
 
 
 
-  <title>Swift Protocol 背后的故事(下) | 雪峰的blog</title>
+  <title>Swift Protocol 背后的故事(理论) | 雪峰的blog</title>
   
 
 
@@ -296,7 +296,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Swift Protocol 背后的故事(下)</h1>
+          <h1 class="post-title" itemprop="name headline">Swift Protocol 背后的故事(理论)</h1>
         
 
         <div class="post-meta">
@@ -326,7 +326,7 @@
 
           
           
-             <span id="/2022/02/04/SwiftProtocol2/" class="leancloud_visitors" data-flag-title="Swift Protocol 背后的故事(下)">
+             <span id="/2022/02/04/SwiftProtocol2/" class="leancloud_visitors" data-flag-title="Swift Protocol 背后的故事(理论)">
                
              </span>
           
@@ -347,7 +347,7 @@
                   <span class="post-meta-item-text">字数统计</span>
                 
                 <span title="字数统计">
-                  3,688
+                  3,763
                 </span>
               
 
@@ -384,8 +384,10 @@
       
 
       
-        <p>本文是下篇，主要讨论 Swift Protocol 实现机制。</p>
-<p>内容涉及  Type Metadata、Protocol 内存模型 Existential Container、Generics 的实现原理以及泛型特化等。</p>
+        <p>本系列文章将从实践技巧、实现原理以及追踪语言更新等方面对 Swift Protocol 展开深入讨论。主要内容有：</p>
+<p><a href="https://zxfcumtcs.github.io/2022/02/01/SwiftProtocol1/">Swift Protocol 背后的故事(实践)</a><br>Swift Protocol 背后的故事(理论)<br><a href="https://zxfcumtcs.github.io/2022/06/30/SwiftProtocol3/">Swift Protocol 背后的故事(Swift 5.6/5.7)</a><br>…</p>
+<p>本文是系列文章第二篇，主要讨论 Swift Protocol 实现机制。</p>
+<p>内容涉及 Type Metadata、Protocol 内存模型 Existential Container、Generics 的实现原理以及泛型特化等。</p>
 <a id="more"></a>
 <p>©原创文章，转载请注明出处！</p>
 <h1 id="Type-Metadata"><a href="#Type-Metadata" class="headerlink" title="Type Metadata"></a>Type Metadata</h1><hr>
@@ -634,8 +636,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2022/02/01/SwiftProtocol1/" rel="next" title="Swift Protocol 背后的故事(上)">
-                <i class="fa fa-chevron-left"></i> Swift Protocol 背后的故事(上)
+              <a href="/2022/02/01/SwiftProtocol1/" rel="next" title="Swift Protocol 背后的故事(实践)">
+                <i class="fa fa-chevron-left"></i> Swift Protocol 背后的故事(实践)
               </a>
             
           </div>
@@ -723,7 +725,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">58</span>
+                <span class="site-state-item-count">59</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>

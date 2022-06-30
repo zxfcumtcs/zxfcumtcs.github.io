@@ -275,6 +275,170 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2022/06/30/SwiftProtocol3/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2022/06/30/SwiftProtocol3/" itemprop="url">Swift Protocol 背后的故事(Swift 5.6/5.7)</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-06-30T22:21:10+08:00">
+                2022-06-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2022/06/30/SwiftProtocol3/" class="leancloud_visitors" data-flag-title="Swift Protocol 背后的故事(Swift 5.6/5.7)">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  3,112
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  14
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>本系列文章将从实践技巧、实现原理以及追踪语言更新等方面对 Swift Protocol 展开深入讨论。主要内容有：</p>
+<p><a href="https://zxfcumtcs.github.io/2022/02/01/SwiftProtocol1/">Swift Protocol 背后的故事(实践)</a><br><a href="https://zxfcumtcs.github.io/2022/02/04/SwiftProtocol2/">Swift Protocol 背后的故事(理论)</a><br>Swift Protocol 背后的故事(Swift 5.6/5.7)<br>…</p>
+<p>本文是系列文章第三篇，简要介绍 Swift 5.6/5.7 在 Protocol 上的相关扩展和优化，主要包括：<code>any</code>、Opaque Parameter、Unlock existentials for all protocols 以及 Primary Associated Types。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2022/06/30/SwiftProtocol3/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2022/04/03/SwiftModernConcurrency-task/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -950,7 +1114,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2022/02/04/SwiftProtocol2/" itemprop="url">Swift Protocol 背后的故事(下)</a></h1>
+                <a class="post-title-link" href="/2022/02/04/SwiftProtocol2/" itemprop="url">Swift Protocol 背后的故事(理论)</a></h1>
         
 
         <div class="post-meta">
@@ -980,7 +1144,7 @@
 
           
           
-             <span id="/2022/02/04/SwiftProtocol2/" class="leancloud_visitors" data-flag-title="Swift Protocol 背后的故事(下)">
+             <span id="/2022/02/04/SwiftProtocol2/" class="leancloud_visitors" data-flag-title="Swift Protocol 背后的故事(理论)">
                
              </span>
           
@@ -1001,7 +1165,7 @@
                   <span class="post-meta-item-text">字数统计</span>
                 
                 <span title="字数统计">
-                  3,688
+                  3,763
                 </span>
               
 
@@ -1039,8 +1203,10 @@
 
       
         
-          <p>本文是下篇，主要讨论 Swift Protocol 实现机制。</p>
-<p>内容涉及  Type Metadata、Protocol 内存模型 Existential Container、Generics 的实现原理以及泛型特化等。</p>
+          <p>本系列文章将从实践技巧、实现原理以及追踪语言更新等方面对 Swift Protocol 展开深入讨论。主要内容有：</p>
+<p><a href="https://zxfcumtcs.github.io/2022/02/01/SwiftProtocol1/">Swift Protocol 背后的故事(实践)</a><br>Swift Protocol 背后的故事(理论)<br><a href="https://zxfcumtcs.github.io/2022/06/30/SwiftProtocol3/">Swift Protocol 背后的故事(Swift 5.6/5.7)</a><br>…</p>
+<p>本文是系列文章第二篇，主要讨论 Swift Protocol 实现机制。</p>
+<p>内容涉及 Type Metadata、Protocol 内存模型 Existential Container、Generics 的实现原理以及泛型特化等。</p>
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2022/02/04/SwiftProtocol2/#more" rel="contents">
@@ -1113,7 +1279,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2022/02/01/SwiftProtocol1/" itemprop="url">Swift Protocol 背后的故事(上)</a></h1>
+                <a class="post-title-link" href="/2022/02/01/SwiftProtocol1/" itemprop="url">Swift Protocol 背后的故事(实践)</a></h1>
         
 
         <div class="post-meta">
@@ -1143,7 +1309,7 @@
 
           
           
-             <span id="/2022/02/01/SwiftProtocol1/" class="leancloud_visitors" data-flag-title="Swift Protocol 背后的故事(上)">
+             <span id="/2022/02/01/SwiftProtocol1/" class="leancloud_visitors" data-flag-title="Swift Protocol 背后的故事(实践)">
                
              </span>
           
@@ -1164,7 +1330,7 @@
                   <span class="post-meta-item-text">字数统计</span>
                 
                 <span title="字数统计">
-                  2,900
+                  2,949
                 </span>
               
 
@@ -1202,8 +1368,9 @@
 
       
         
-          <p>我们将从实践技巧、实现原理两个方面对 Swift Protocol 展开深入讨论。</p>
-<p>本文作为上篇主要介绍实践技巧，以一个 Protocol 相关的编译错误为引，通过实例对 Type Erasure、Opaque Types 、Generics 以及 Phantom Types 做了较详细的讨论。它们对于写出更优、更雅的 Swift 代码有一定的帮助。</p>
+          <p>本系列文章将从实践技巧、实现原理以及追踪语言更新等方面对 Swift Protocol 展开深入讨论。主要内容有：</p>
+<p>Swift Protocol 背后的故事(实践)<br><a href="https://zxfcumtcs.github.io/2022/02/04/SwiftProtocol2/">Swift Protocol 背后的故事(理论)</a><br><a href="https://zxfcumtcs.github.io/2022/06/30/SwiftProtocol3/">Swift Protocol 背后的故事(Swift 5.6/5.7)</a><br>…</p>
+<p>本文是系列文章第一篇，主要介绍实践技巧，以一个 Protocol 相关的编译错误为引，通过实例对 Type Erasure、Opaque Types 、Generics 以及 Phantom Types 做了较详细的讨论。它们对于写出更优、更雅的 Swift 代码有一定的帮助。</p>
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2022/02/01/SwiftProtocol1/#more" rel="contents">
@@ -1730,168 +1897,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2020/12/05/deepinto-flutter-pipelineowner/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="赵雪峰">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/img/author.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="雪峰的blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2020/12/05/deepinto-flutter-pipelineowner/" itemprop="url">深入浅出 Flutter Framework 之 PipelineOwner</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-12-05T21:10:51+08:00">
-                2020-12-05
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-             <span id="/2020/12/05/deepinto-flutter-pipelineowner/" class="leancloud_visitors" data-flag-title="深入浅出 Flutter Framework 之 PipelineOwner">
-               
-             </span>
-          
-          
-
-          
-
-          
-            <div class="post-wordcount">
-              
-                
-                  <span class="post-meta-divider">|</span>
-                
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-file-word-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">字数统计</span>
-                
-                <span title="字数统计">
-                  1,617
-                </span>
-              
-
-              
-                <span class="post-meta-divider">|</span>
-              
-
-              
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-clock-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">阅读时长</span>
-                
-                <span title="阅读时长">
-                  7
-                </span>
-              
-            </div>
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>本文是『 深入浅出 Flutter Framework 』系列文章的第六篇，详细介绍了 PipelineOwner 在整个 Rendering Pipeline 中是如何协助『 RenderObject Tree 』、『 RendererBinding』以及『 Window』完成 UI 刷新。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2020/12/05/deepinto-flutter-pipelineowner/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1940,7 +1945,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">58</span>
+                <span class="site-state-item-count">59</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>

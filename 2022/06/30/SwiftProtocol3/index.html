@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="iOS,Swift,Protocol,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="雪峰的blog" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="本系列文章将从实践技巧、实现原理以及追踪语言更新等方面对 Swift Protocol 展开深入讨论。主要内容有： Swift Protocol 背后的故事(实践)Swift Protocol 背后的故事(理论)Swift Protocol 背后的故事(Swift 5.6/5.7)… 本文是系列文章第三篇，简要介绍 Swift 5.6/5.7 在 Protocol 上的相关扩展和优化，主要包括：a">
+<meta name="keywords" content="iOS,Swift,Protocol">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Swift Protocol 背后的故事(Swift 5.6&#x2F;5.7)">
+<meta property="og:url" content="http://zxfcumtcs.github.io/2022/06/30/SwiftProtocol3/index.html">
+<meta property="og:site_name" content="雪峰的blog">
+<meta property="og:description" content="本系列文章将从实践技巧、实现原理以及追踪语言更新等方面对 Swift Protocol 展开深入讨论。主要内容有： Swift Protocol 背后的故事(实践)Swift Protocol 背后的故事(理论)Swift Protocol 背后的故事(Swift 5.6/5.7)… 本文是系列文章第三篇，简要介绍 Swift 5.6/5.7 在 Protocol 上的相关扩展和优化，主要包括：a">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/some-existentialtype.png">
+<meta property="og:image" content="http://zxfcumtcs.github.io/img/animals-error.png">
+<meta property="og:updated_time" content="2022-06-30T14:51:53.471Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Swift Protocol 背后的故事(Swift 5.6&#x2F;5.7)">
+<meta name="twitter:description" content="本系列文章将从实践技巧、实现原理以及追踪语言更新等方面对 Swift Protocol 展开深入讨论。主要内容有： Swift Protocol 背后的故事(实践)Swift Protocol 背后的故事(理论)Swift Protocol 背后的故事(Swift 5.6/5.7)… 本文是系列文章第三篇，简要介绍 Swift 5.6/5.7 在 Protocol 上的相关扩展和优化，主要包括：a">
+<meta name="twitter:image" content="http://zxfcumtcs.github.io/img/some-existentialtype.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zxfcumtcs.github.io/2022/06/30/SwiftProtocol3/">
+
+
+
+
+
+  <title>Swift Protocol 背后的故事(Swift 5.6/5.7) | 雪峰的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">雪峰的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">善于总结, 乐于分享</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://zxfcumtcs.github.io/2022/06/30/SwiftProtocol3/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="赵雪峰">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/author.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="雪峰的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Swift Protocol 背后的故事(Swift 5.6/5.7)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-06-30T22:21:10+08:00">
+                2022-06-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2022/06/30/SwiftProtocol3/" class="leancloud_visitors" data-flag-title="Swift Protocol 背后的故事(Swift 5.6/5.7)">
+               
+             </span>
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                  <span class="post-meta-divider">|</span>
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  3,112
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  14
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本系列文章将从实践技巧、实现原理以及追踪语言更新等方面对 Swift Protocol 展开深入讨论。主要内容有：</p>
+<p><a href="https://zxfcumtcs.github.io/2022/02/01/SwiftProtocol1/">Swift Protocol 背后的故事(实践)</a><br><a href="https://zxfcumtcs.github.io/2022/02/04/SwiftProtocol2/">Swift Protocol 背后的故事(理论)</a><br>Swift Protocol 背后的故事(Swift 5.6/5.7)<br>…</p>
+<p>本文是系列文章第三篇，简要介绍 Swift 5.6/5.7 在 Protocol 上的相关扩展和优化，主要包括：<code>any</code>、Opaque Parameter、Unlock existentials for all protocols 以及 Primary Associated Types。</p>
+<a id="more"></a>
+<p>©原创文章，转载请注明出处！</p>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><hr>
+<p>含有 <code>Self requirements</code> 、<code>Associated Type</code> 的协议不能作为类型。</p>
+<blockquote>
+<p>Protocol ‘Equatable’ can only be used as a generic constraint because it has Self or associated type requirements.</p>
+</blockquote>
+<p>在『 <a href="https://zxfcumtcs.github.io/2022/02/01/SwiftProtocol1/">Swift Protocol 背后的故事(实践)</a> 』中介绍了相关的解决方案：</p>
+<ul>
+<li>Type Erasure；</li>
+<li>Opaque Types，并由此引入了 <code>some</code> 关键字。</li>
+</ul>
+<p>在『<a href="https://zxfcumtcs.github.io/2022/02/04/SwiftProtocol2/">Swift Protocol 背后的故事(理论)</a> 』中详细分析了直接将协议作为类型使用时(Existential Types)，编译器是如何处理的，并得出结论：<strong>对性能有较大影响。</strong></p>
+<p>在 Swift 5.6、5.7 中对上述问题做了不少改进和优化，本文主要对这些改进优化做一个简要介绍：</p>
+<ul>
+<li><p><code>any</code></p>
+</li>
+<li><p>Opaque Parameter</p>
+</li>
+<li><p>Unlock existentials for all protocols</p>
+</li>
+<li><p>Primary Associated Types</p>
+</li>
+</ul>
+<h1 id="any"><a href="#any" class="headerlink" title="any"></a><code>any</code></h1><hr>
+<p>通过前两篇文章的介绍，我们知道对于没有 <code>Self requirements</code> 和关联类型的协议，可以单独作为类型使用，并称之为『 Existential Type 』。</p>
+<p>应该说，『 Existential Type 』用起来还是挺香的~</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">protocol</span> <span class="title">Animal</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">eat</span><span class="params">()</span></span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Farm</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">genericsFeed</span>&lt;T&gt;<span class="params">(<span class="number">_</span> animal: T)</span></span> <span class="keyword">where</span> <span class="type">T</span>: <span class="type">Animal</span> &#123;</span><br><span class="line">    animal.eat()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">existentialFeed</span><span class="params">(<span class="number">_</span> animal: Animal)</span></span> &#123;</span><br><span class="line">    animal.eat()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，从『 功能使用 』角度看，<code>genericsFeed</code>、<code>existentialFeed</code>没有任何区别，都能达到泛型效果。</p>
+<p>但从『 代码实现 』角度看，显然 <code>existentialFeed</code> 更简洁明了。</p>
+<p>作为开发人员，无意识中更容易写出 <code>existentialFeed</code>，毕竟简单。</p>
+<p>这显然不是好现象，毕竟『 Existential Type 』有性能问题。</p>
+<p>Swift 团队也意识到这个问题，故在 Swift 5.6 引入了 <code>any</code> 关键字 (<a href="https://github.com/apple/swift-evolution/blob/main/proposals/0335-existential-any.md" target="_blank" rel="noopener">swift-evolution/0335-existential-any</a>)：</p>
+<ul>
+<li><p><code>any</code> 本身没有任何功能，只是一个标记；</p>
+</li>
+<li><p>当把协议作类型用时，在其前添加 <code>any</code> 来显式表明开发人员要使用『 Existential Type 』的意图；</p>
+</li>
+<li><p>目前 <code>any</code> 还不是强制的，但从 Swift 6.0 开始将强制使用 <code>any</code>，否则编译报错。因此，尽早用上 <code>any</code>，以免后期升级成本过高。</p>
+</li>
+</ul>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Farm</span> </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> animals: [any <span class="type">Animal</span>]</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">existentialFeed</span><span class="params">(<span class="number">_</span> animal: any Animal)</span></span> &#123;</span><br><span class="line">    animal.eat()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">firstAnimal</span><span class="params">()</span></span> -&gt; (any <span class="type">Animal</span>)? &#123;</span><br><span class="line">    animals.first</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，在协议用作类型的地方加上 <code>any</code> 即可。</p>
+<p>相当于显式声明这是个『 Existential Type 』！</p>
+<p>这是一个悲壮的故事，意味着性能上损耗！</p>
+<p>那么，有没有办法做到：<em>既有泛型的性能又有『 Existential Types 』的简洁？</em></p>
+<p>鱼和熊掌兼得？！</p>
+<p>答案是肯定的！请往下看~</p>
+<h1 id="Opaque-Parameter"><a href="#Opaque-Parameter" class="headerlink" title="Opaque Parameter"></a>Opaque Parameter</h1><hr>
+<p>还记得在『 <a href="https://zxfcumtcs.github.io/2022/02/01/SwiftProtocol1/">Swift Protocol 背后的故事(实践)</a> 』中介绍的 <code>some</code> 吗？</p>
+<p>Swift 5.1 引入了 <code>some</code> 关键字，用于 <a href="https://github.com/apple/swift-evolution/blob/main/proposals/0244-opaque-result-types.md" target="_blank" rel="noopener">Opaque Result Type</a>。</p>
+<p>Swift 5.7 对 <code>some</code> 的功能做了扩展，可用于声明方法参数，即：Opaque Parameter。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Farm</span> </span>&#123;  </span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">genericsFeed</span>&lt;T&gt;<span class="params">(<span class="number">_</span> animal: T)</span></span> <span class="keyword">where</span> <span class="type">T</span>: <span class="type">Animal</span> &#123;</span><br><span class="line">    animal.eat()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// some Animal 可以理解为一个匿名的具体类型</span></span><br><span class="line">  <span class="comment">// 并且该类型实现了 Animal 协议</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">someFeed</span><span class="params">(<span class="number">_</span> animal: some Animal)</span></span> &#123;</span><br><span class="line">    animal.eat()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，<code>someFeed</code> 在性能上与 <code>genericsFeed</code> 无任何差别，但更简洁、可读性更好。</p>
+<p><strong>Opaque Parameter 可以理解为泛型的简化版本。</strong></p>
+<p>关于 Opaque Parameter 有 2 点需要注意：</p>
+<ul>
+<li><p>在代替泛型时，仅适用于泛型类型只使用一次的场景，因为 Opaque Parameter 是匿名的，无法复用：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// t1 与 t2 具有相同的类型</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">isEqualGenerics</span>&lt;T&gt;<span class="params">(t1: T, t2: T)</span></span> -&gt; <span class="type">Bool</span> <span class="keyword">where</span> <span class="type">T</span>: <span class="type">Equatable</span> &#123;</span><br><span class="line">  t1 == t2</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 并不要求 t1、t2 的类型完全相同</span></span><br><span class="line"><span class="comment">// 只要它们都实现了 Equatable 即可</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">isEqualSome</span><span class="params">(t1: some Equatable, t2: some Equatable)</span></span> -&gt; <span class="type">Bool</span> &#123;</span><br><span class="line">  t1 == t2</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，<code>isEqualGenerics</code> 中的泛型类型 <code>T</code> 使用了2 次，分别用于定义<code>t1</code>、<code>t2</code>。<br>因此，<code>isEqualGenerics</code> 与 <code>isEqualSome</code> 并不等价，并且 <code>isEqualSome</code> 会报错：<br><em>Cannot convert value of type (generic parameter of global function isEqualSome(t1:t2:)) to expected argument type (generic parameter of global function isEqualSome(t1:t2:))</em></p>
+</li>
+<li><p>与 Opaque Result Type 不同，可以使用不能类型的实例调用具有 Opaque Parameter 的方法：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Cat</span>: <span class="title">Animal</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">eat</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">"Eat fish!"</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Panda</span>: <span class="title">Animal</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">eat</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">"Eat bamboo!"</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Farm</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">feedAnimals</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">let</span> cat = <span class="type">Cat</span>()</span><br><span class="line">    <span class="keyword">let</span> panda = <span class="type">Panda</span>()</span><br><span class="line"></span><br><span class="line">    someFeed(cat)      <span class="comment">// ✅</span></span><br><span class="line">    someFeed(panda)    <span class="comment">// ✅</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">someFeed</span><span class="params">(<span class="number">_</span> animal: some Animal)</span></span> &#123;</span><br><span class="line">    animal.eat()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，用 <code>cat</code>、<code>panda</code> 都可以调用 <code>someFeed</code> 方法。<br>因为，<code>someFeed</code> 本质上是一个泛型方法。</p>
+</li>
+</ul>
+<h1 id="any-VS-some"><a href="#any-VS-some" class="headerlink" title="any VS. some"></a><code>any</code> VS. <code>some</code></h1><hr>
+<p><code>any</code>、<code>some</code> 都可以配合协议作类型用。</p>
+<p>它们的区别是啥？</p>
+<p>我们该如何选择？</p>
+<p>其实，通过前两篇文章对『 Opqaue type 』与『 Existential type 』的介绍，它们的区别已经比较清楚了。</p>
+<p>下面，我们再来直观感受一下：</p>
+<p><img src="/img/some-existentialtype.png" alt=""></p>
+<p>如上：</p>
+<ul>
+<li><p>通过 <code>some</code> 定义的变量是『 Opqaue type 』；</p>
+</li>
+<li><p>通过 <code>any</code> 定义的变量是 『 Existential type 』；</p>
+</li>
+<li><p>『 Opqaue type 』是『 匿名 』的、但『真实存在 』的类型，如 <code>someCat</code> 其背后的类型就是 <code>Cat</code>，在方法派发上有较好的性能；</p>
+<p>正是因为『 Opqaue type 』是『 匿名 』的，像下面这些写法都是不允许的：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> cat: some <span class="type">Animal</span> = <span class="type">Cat</span>()    <span class="comment">// ✅</span></span><br><span class="line">cat = <span class="type">Cat</span>()   <span class="comment">// ❌  Cannot assign value of type 'Cat' to type 'some Animal'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> copyCat: some <span class="type">Animal</span> = cat    <span class="comment">// ✅</span></span><br><span class="line">copyCat = cat   <span class="comment">// ❌  Cannot assign value of type 'some Animal' (type of 'cat') to type 'some Animal' (type of 'copyCat')</span></span><br></pre></td></tr></table></figure>
+<p>『 Opqaue type 』类型的变量一旦初始化完成，就不能修改，因此像下面这种写法也是不允许的：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> animals: [some <span class="type">Animal</span>] = [</span><br><span class="line">  <span class="type">Cat</span>()   <span class="comment">// ✅</span></span><br><span class="line">]</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> cat1: some <span class="type">Animal</span> = <span class="type">Cat</span>()</span><br><span class="line">animals.append(cat1)   <span class="comment">// ❌  No exact matches in call to instance method 'append'</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>『 Existential type 』是二次封装后的间接类型，在变量赋值时有一个装箱 (Boxing) 的过程，方法派发一律是动态派发，故性能较差。有失必有得，其灵活性比较好：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> cat: any <span class="type">Animal</span> = <span class="type">Cat</span>()</span><br><span class="line">cat = <span class="type">Cat</span>()   <span class="comment">// ✅</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> copyCat: any <span class="type">Animal</span> = cat    <span class="comment">// ✅</span></span><br><span class="line">copyCat = cat   <span class="comment">// ✅</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> animals: [any <span class="type">Animal</span>] = [</span><br><span class="line">  <span class="type">Cat</span>()   <span class="comment">// ✅</span></span><br><span class="line">]</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> cat1: any <span class="type">Animal</span> = <span class="type">Cat</span>()</span><br><span class="line">animals.append(cat1)   <span class="comment">// ✅</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ❌  Type of expression is ambiguous without more context</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="keyword">let</span> someAnimals: [some <span class="type">Animal</span>] = [</span><br><span class="line">  <span class="type">Cat</span>(),</span><br><span class="line">  <span class="type">Panda</span>()</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="keyword">let</span> anyAnimals: [any <span class="type">Animal</span>] = [</span><br><span class="line">  <span class="type">Cat</span>(),</span><br><span class="line">  <span class="type">Panda</span>()</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>Blabla，说这么多，具体开发时该怎么选？</p>
+<p><strong>Write <code>some</code> by default.</strong></p>
+<p>只有当 <code>some</code> 不能满足需要时 (也就是当你遇到无法解决的编译错误时)，才考虑用 <code>any</code>。</p>
+<p>对了，这是 Apple 的建议。</p>
+<p><strong>通过 Opaque Parameter，可以兼得泛型的性能和『 Existential type 』的简洁！</strong></p>
+<p>心情是不是美美哒^__^</p>
+<p>别急，还有更美的事呢！</p>
+<h1 id="Unlock-existentials-for-all-protocols"><a href="#Unlock-existentials-for-all-protocols" class="headerlink" title="Unlock existentials for all protocols"></a>Unlock existentials for all protocols</h1><hr>
+<p>从 Swift 5.7 开始，不再会有类似下面的编译错误：</p>
+<p><em>Protocol ‘Equatable’ can only be used as a generic constraint because it has Self or associated type requirements.</em></p>
+<p>也就是说，<strong>所有的协议都可以作为类型用！(Unlock all protocols)</strong></p>
+<p><em>无论是否有 <code>Self requirements</code> 、是否有<code>Associated Type</code>！</em></p>
+<p>喜！</p>
+<p>惊？</p>
+<p>在『 <a href="https://zxfcumtcs.github.io/2022/02/01/SwiftProtocol1/">Swift Protocol 背后的故事(实践)</a> 』中对上面那个编译错误的解释是：</p>
+<p><strong>归根结底是因为 Protocol 是运行时特性，而其附带的 <code>Self requirements</code> / <code>Associated Type</code> 却需要在编译时保证。</strong></p>
+<p>难道现在这个解释不成立了？</p>
+<p>非也！</p>
+<p>Apple 解锁所有 Protocols 的出发点是：</p>
+<p>协议中除了有跟 <code>Self requirements</code>、<code>Associated Type</code> 相关的接口，还有不相关的接口。</p>
+<p>而那些不相关的接口应该可以被正常使用，如下：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">protocol</span> <span class="title">Animal</span> </span>&#123;</span><br><span class="line">  <span class="keyword">associatedtype</span> <span class="type">FeedType</span></span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">feed</span><span class="params">(<span class="number">_</span> feed: FeedType)</span></span></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">drink</span><span class="params">()</span></span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Farm</span> </span>&#123;</span><br><span class="line">  <span class="comment">// 注意，对于含有 `Self requirements`、`Associated Type` 的协议，必须在前面加上 any</span></span><br><span class="line">  <span class="comment">// 否则报错：Use of protocol 'Animal' as a type must be written 'any Animal'</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">drinkAnimal</span><span class="params">(<span class="number">_</span> animal: any Animal)</span></span> &#123;</span><br><span class="line">    animal.drink()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>虽然 <code>Animal</code> 含有关联类型 (<code>FeedType</code>)，但其中的 <code>drink</code> 接口与关联类型无关。</p>
+<p>因此，<code>drink</code> 理应可以正常调用。</p>
+<p>Swift 5.7 就是这么做的，故上面的代码在 Swift 5.7 上可以正常编译 ✅ 。</p>
+<p>当然了，与 <code>Self requirements</code>、 <code>Associated Type</code> 有关的接口还是不能调用，如 <code>func feed(_ feed: FeedType)</code>：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Farm</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">drinkAnimal</span><span class="params">(<span class="number">_</span> animal: any Animal)</span></span> &#123;</span><br><span class="line">    <span class="comment">// ✅</span></span><br><span class="line">    <span class="comment">//</span></span><br><span class="line">    animal.drink()</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">feedAnimal</span><span class="params">(<span class="number">_</span> animal: any Animal)</span></span> &#123;</span><br><span class="line">    <span class="comment">// ❌ Member 'feed' cannot be used on value of type 'any Animal'; consider using a generic constraint instead</span></span><br><span class="line">    <span class="comment">//</span></span><br><span class="line">    animal.feed(???)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Unlock protocols 虽好，但还不够好。</p>
+<p>毕竟，使用上还有限制。</p>
+<p>能不能做的更好？！</p>
+<p>答案是肯定的！请往下看~</p>
+<h1 id="Primary-Associated-Types"><a href="#Primary-Associated-Types" class="headerlink" title="Primary Associated Types"></a>Primary Associated Types</h1><hr>
+<p>除了上面提到的 Unlock protocols 不能放开了用，还有一类问题也值得我们关注：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Farm</span> </span>&#123; </span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">drinkAnimals</span><span class="params">(<span class="number">_</span> animals: any Sequence)</span></span> &#123;</span><br><span class="line">    <span class="comment">// ❌  Value of type 'Any' has no member 'drink'</span></span><br><span class="line">    <span class="comment">//</span></span><br><span class="line">    animals.forEach &#123; $<span class="number">0</span>.drink() &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，我们期望 <code>drinkAnimals</code> 能批量的对 Animals 调用 <code>drink</code>方法。</p>
+<p>但事与愿违，因为集合 <code>animals</code> 的元素类型未知，编译器看到的都是 <code>Any</code>。</p>
+<p>传统地，得像下面这样改造：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Farm</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">drinkAnimals</span>&lt;T: Sequence&gt;<span class="params">(<span class="number">_</span> animals: T)</span></span> <span class="keyword">where</span> <span class="type">T</span>.<span class="type">Element</span>: <span class="type">Animal</span> &#123;</span><br><span class="line">    animals.forEach &#123; $<span class="number">0</span>.drink() &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>又回到泛型的老路上了！</p>
+<p>上述这两个问题，归根结底都是关联类型惹的祸！</p>
+<p>此时，就轮到 Primary Associated Types 登场了~</p>
+<p>『 Primary Associated Types 』是啥？</p>
+<p>不防先来看个例子，直观感受一下：</p>
+<p>这是在 Swift &lt;= 5.6 版本上，<code>Sequence</code> 的定义：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">protocol</span> <span class="title">Sequence</span> </span>&#123;</span><br><span class="line">  <span class="comment">/// A type representing the sequence's elements.</span></span><br><span class="line">  <span class="keyword">associatedtype</span> <span class="type">Element</span> <span class="keyword">where</span> <span class="type">Self</span>.<span class="type">Element</span> == <span class="type">Self</span>.<span class="type">Iterator</span>.<span class="type">Element</span></span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在 Swift 5.7 上的定义：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">protocol</span> <span class="title">Sequence</span>&lt;<span class="title">Element</span>&gt; </span>&#123;</span><br><span class="line">  <span class="comment">/// A type representing the sequence's elements.</span></span><br><span class="line">  <span class="keyword">associatedtype</span> <span class="type">Element</span> <span class="keyword">where</span> <span class="type">Self</span>.<span class="type">Element</span> == <span class="type">Self</span>.<span class="type">Iterator</span>.<span class="type">Element</span></span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>因此，可以对 <code>drinkAnimals</code> 作如下改造：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Farm</span> </span>&#123;</span><br><span class="line">  <span class="comment">// 指定 animals 中的元素需实现 Animal 协议</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">drinkAnimals</span><span class="params">(<span class="number">_</span> animals: any Sequence&lt;Animal&gt;)</span></span> &#123;</span><br><span class="line">    animals.forEach &#123; $<span class="number">0</span>.drink() &#125;  <span class="comment">// ✅</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>简单讲，『 Primary Associated Types 』：</p>
+<ul>
+<li><p>可以通过 『 泛型约束 』的方式将协议中的关联类型曝露出来，如：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Element 是 Sequence 中定义的关联类型</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">protocol</span> <span class="title">Sequence</span>&lt;<span class="title">Element</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>在使用时可以指定对关联类型的约束，如：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> animals: any <span class="type">Sequence</span>&lt;<span class="type">Animal</span>&gt;</span><br><span class="line"><span class="keyword">var</span> animals: some <span class="type">Sequence</span>&lt;<span class="type">Animal</span>&gt;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>需要注意的是，『 Primary Associated Types 』与『 泛型约束 』不是一回事，在使用时可以不指定，如在 Swift 5.7 上下面的写法也是合法的：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> animals: any <span class="type">Sequence</span>    <span class="comment">// ✅</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>还可以在 extension 上使用『 Primary Associated Types 』，更简洁了，如：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">Sequence</span>&lt;<span class="title">String</span>&gt; </span>&#123; &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Equivalent to:</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">Sequence</span> <span class="title">where</span> <span class="title">Element</span> == <span class="title">String</span> </span>&#123; &#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>针对上一小节提到的错误：</p>
+<p><img src="/img/animals-error.png" alt=""></p>
+<p>利用『 Primary Associated Types 』可以做如下改造：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 将关联类型 FeedType 设定为 Primary Associated Types</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="class"><span class="keyword">protocol</span> <span class="title">Animal</span>&lt;<span class="title">FeedType</span>&gt; </span>&#123;</span><br><span class="line">  <span class="keyword">associatedtype</span> <span class="type">FeedType</span></span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">feed</span><span class="params">(<span class="number">_</span> feed: FeedType)</span></span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">FeedTypeIMP</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Farm</span> </span>&#123;</span><br><span class="line">  <span class="comment">// 指定关联类型为 FeedTypeIMP</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  <span class="function"><span class="keyword">func</span> <span class="title">feedAnimal</span><span class="params">(<span class="number">_</span> animal: any Animal&lt;FeedTypeIMP&gt;)</span></span> &#123;</span><br><span class="line">    animal.feed(<span class="type">FeedTypeIMP</span>())</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到，指定关联类型约束时，可以是协议，如：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> animals: any <span class="type">Sequence</span>&lt;<span class="type">Animal</span>&gt;  <span class="comment">// Animal 是协议</span></span><br></pre></td></tr></table></figure>
+<p>也可以是具体类型，如：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> animal: any <span class="type">Animal</span>&lt;<span class="type">FeedTypeIMP</span>&gt;  <span class="comment">// FeedTypeIMP 是 struct</span></span><br></pre></td></tr></table></figure>
+<p>总之，通过『 Primary Associated Types 』进一步解放了生产力！</p>
+<h1 id="Structural-opaque-result-types"><a href="#Structural-opaque-result-types" class="headerlink" title="Structural opaque result types"></a>Structural opaque result types</h1><hr>
+<p>在 Swift 5.7  中 Opaque Result Types 样式更加丰富了：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">f0</span><span class="params">()</span></span> -&gt; [some <span class="type">P</span>] &#123; <span class="comment">/* ... */</span> &#125;           <span class="comment">// ✅ on Swift 5.7</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">f1</span><span class="params">()</span></span> -&gt; (some <span class="type">P</span>, some <span class="type">Q</span>) &#123; <span class="comment">/* ... */</span> &#125;   <span class="comment">// ✅ on Swift 5.7</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">f2</span><span class="params">()</span></span> -&gt; () -&gt; some <span class="type">P</span> &#123; <span class="comment">/* ... */</span> &#125;       <span class="comment">// ✅ on Swift 5.7</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">f3</span><span class="params">()</span></span> -&gt; <span class="type">S</span>&lt;some <span class="type">P</span>&gt; &#123; <span class="comment">/* ... */</span> &#125;          <span class="comment">// ✅ on Swift 5.7</span></span><br></pre></td></tr></table></figure>
+<p>在 Swift 5.7 之前，上面这些写法都是不允许的。</p>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><ul>
+<li><p>Swift 5.6 引入 <code>any</code> 用于显式声明『 Existential type 』，避免无心滥用；</p>
+</li>
+<li><p>Swift 5.7 将 <code>some</code> 扩展到方法参数，从而兼得泛型的性能和『 Existential type 』的简洁；</p>
+</li>
+<li><p>Swift 5.7 解锁了所有协议均可作为类型；</p>
+</li>
+<li><p>关联类型在作用上有不少障碍，Swift 5.7 引入了『 Primary Associated Types 』，使用方可以更方便地设定关联类型的信息；</p>
+</li>
+<li><p>Swift 5.7 对 Opaque Result Types 支持的样式进行了扩展。</p>
+</li>
+</ul>
+<p>经过 Swift 5.6/5.7 的扩展和优化，Swift 在 Protocol 的使用上效率更高了！</p>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0346-light-weight-same-type-syntax.md" target="_blank" rel="noopener">swift-evolution/0346-light-weight-same-type-syntax.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0341-opaque-parameters.md" target="_blank" rel="noopener">swift-evolution/0341-opaque-parameters.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0328-structural-opaque-result-types.md" target="_blank" rel="noopener">swift-evolution/0328-structural-opaque-result-types.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0335-existential-any.md" target="_blank" rel="noopener">swift-evolution/0335-existential-any.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0309-unlock-existential-types-for-all-protocols.md" target="_blank" rel="noopener">swift-evolution/0309-unlock-existential-types-for-all-protocols.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://github.com/apple/swift-evolution/blob/main/proposals/0352-implicit-open-existentials.md" target="_blank" rel="noopener">swift-evolution/0352-implicit-open-existentials.md at main · apple/swift-evolution · GitHub</a></p>
+<p><a href="https://developer.apple.com/videos/play/wwdc2022/110352/" target="_blank" rel="noopener">Embrace Swift generics - WWDC22 - Videos - Apple Developer</a></p>
+<p><a href="https://developer.apple.com/videos/play/wwdc2022/110353" target="_blank" rel="noopener">Design protocol interfaces in Swift - WWDC22 - Videos - Apple Developer</a></p>
+<p><a href="https://forums.swift.org/t/improving-the-ui-of-generics/22814" target="_blank" rel="noopener">Improving the UI of generics - Discussion - Swift Forums</a></p>
+<p><a href="https://www.donnywals.com/what-is-the-any-keyword-in-swift/" target="_blank" rel="noopener">What is the any keyword in Swift?</a></p>
+<p><a href="https://www.donnywals.com/what-is-the-some-keyword-in-swift/" target="_blank" rel="noopener">What is the some keyword in Swift?</a></p>
+<p><a href="https://www.donnywals.com/what-are-primary-associated-types-in-swift-5-7/" target="_blank" rel="noopener">What are primary associated types in Swift 5.7?</a></p>
+<p><a href="https://www.donnywals.com/whats-the-difference-between-any-and-some-in-swift-5-7/" target="_blank" rel="noopener">What’s the difference between any and some in Swift 5.7?</a></p>
+<p><a href="https://www.swiftbysundell.com/articles/referencing-generic-protocols-with-some-and-any-keywords/" target="_blank" rel="noopener">Using the ‘some’ and ‘any’ keywords to reference generic protocols in Swift 5.7 | Swift by Sundell</a></p>
+<p><a href="https://betterprogramming.pub/understanding-the-some-and-any-keywords-in-swift-5-7-19d2cb52eae2" target="_blank" rel="noopener">https://betterprogramming.pub/understanding-the-some-and-any-keywords-in-swift-5-7-19d2cb52eae2</a></p>
+<p><a href="https://swiftsenpai.com/swift/understanding-some-and-any/" target="_blank" rel="noopener">https://swiftsenpai.com/swift/understanding-some-and-any/</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag"># iOS</a>
+          
+            <a href="/tags/Swift/" rel="tag"># Swift</a>
+          
+            <a href="/tags/Protocol/" rel="tag"># Protocol</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2022/04/03/SwiftModernConcurrency-task/" rel="next" title="Swift 新并发框架之 Task">
+                <i class="fa fa-chevron-left"></i> Swift 新并发框架之 Task
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="gitalk-container"></div>
+  
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/img/author.jpg" alt="赵雪峰">
+          <p class="site-author-name" itemprop="name">赵雪峰</p>
+           
+              <p class="site-description motion-element" itemprop="description">记录技术点滴</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">59</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/zxfcumtcs" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="zxfcumtcs@gmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                    
+                      E-Mail
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#any"><span class="nav-number">2.</span> <span class="nav-text">any</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Opaque-Parameter"><span class="nav-number">3.</span> <span class="nav-text">Opaque Parameter</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#any-VS-some"><span class="nav-number">4.</span> <span class="nav-text">any VS. some</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Unlock-existentials-for-all-protocols"><span class="nav-number">5.</span> <span class="nav-text">Unlock existentials for all protocols</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Primary-Associated-Types"><span class="nav-number">6.</span> <span class="nav-text">Primary Associated Types</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Structural-opaque-result-types"><span class="nav-number">7.</span> <span class="nav-text">Structural opaque result types</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#小结"><span class="nav-number">8.</span> <span class="nav-text">小结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考资料"><span class="nav-number">9.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">赵雪峰</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: 'aec121637fcf733c4299',
+          clientSecret: '551b5a3eb4e49773816880f1a6c4ffd8c8893464',
+          repo: 'zxfcumtcs.github.io',
+          owner: 'zxfcumtcs',
+          admin: ['zxfcumtcs'],
+          id: location.pathname,
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("bdhTYmQjzWTTLjKn66BIYj5E-gzGzoHsz", "6Lc7jOOONeLP6mUTb7x5NzVf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
