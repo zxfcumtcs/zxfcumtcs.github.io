@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Swift Protocol 背后的故事(上)
+title: Swift Protocol 背后的故事(实践)
 date: 2022-02-01 10:06:08
 tags:
 
@@ -10,9 +10,14 @@ tags:
 
 ---
 
-我们将从实践技巧、实现原理两个方面对 Swift Protocol 展开深入讨论。
+本系列文章将从实践技巧、实现原理以及追踪语言更新等方面对 Swift Protocol 展开深入讨论。主要内容有：
 
-本文作为上篇主要介绍实践技巧，以一个 Protocol 相关的编译错误为引，通过实例对 Type Erasure、Opaque Types 、Generics 以及 Phantom Types 做了较详细的讨论。它们对于写出更优、更雅的 Swift 代码有一定的帮助。
+Swift Protocol 背后的故事(实践)
+[Swift Protocol 背后的故事(理论)](https://zxfcumtcs.github.io/2022/02/04/SwiftProtocol2/)
+[Swift Protocol 背后的故事(Swift 5.6/5.7)](https://zxfcumtcs.github.io/2022/06/30/SwiftProtocol3/)
+...
+
+本文是系列文章第一篇，主要介绍实践技巧，以一个 Protocol 相关的编译错误为引，通过实例对 Type Erasure、Opaque Types 、Generics 以及 Phantom Types 做了较详细的讨论。它们对于写出更优、更雅的 Swift 代码有一定的帮助。
 
 <!--more-->
 

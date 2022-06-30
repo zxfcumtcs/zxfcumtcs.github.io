@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Swift Protocol 背后的故事(下)
+title: Swift Protocol 背后的故事(理论)
 date: 2022-02-04 22:16:24
 tags:
 
@@ -9,9 +9,16 @@ tags:
 - Protocol
 ---
 
-本文是下篇，主要讨论 Swift Protocol 实现机制。
+本系列文章将从实践技巧、实现原理以及追踪语言更新等方面对 Swift Protocol 展开深入讨论。主要内容有：
 
-内容涉及  Type Metadata、Protocol 内存模型 Existential Container、Generics 的实现原理以及泛型特化等。
+[Swift Protocol 背后的故事(实践)](https://zxfcumtcs.github.io/2022/02/01/SwiftProtocol1/)
+Swift Protocol 背后的故事(理论)
+[Swift Protocol 背后的故事(Swift 5.6/5.7)](https://zxfcumtcs.github.io/2022/06/30/SwiftProtocol3/)
+...
+
+本文是系列文章第二篇，主要讨论 Swift Protocol 实现机制。
+
+内容涉及 Type Metadata、Protocol 内存模型 Existential Container、Generics 的实现原理以及泛型特化等。
 
 <!--more-->
 
