@@ -35,6 +35,8 @@ Swift 推崇面向协议编程 (POP, Protocol Oriented Programming)，因此 Pro
 
 > Protocol 'Equatable' can only be used as a generic constraint because it has Self or associated type requirements.
 
+> **2022 年 06 月 30 日更新：从 Swift 5.7 起不再会有这个错误了，详情请见 [Swift Protocol 背后的故事(Swift 5.6/5.7)](https://zxfcumtcs.github.io/2022/06/30/SwiftProtocol3/)。**
+
 对于 Swift 开发者来说上面这个编译错误应该不陌生。
 
 其字面意思不难理解：含有 `Self` 或关联类型的协议只能用作泛型约束，不能单独作为类型使用。
