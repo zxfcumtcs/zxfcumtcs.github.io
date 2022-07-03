@@ -106,7 +106,7 @@
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/MarkdownDemo.png">
 <meta property="og:image" content="http://zxfcumtcs.github.io/img/Protocols_OpaqueTypes_Generics_TypeErasure.png">
-<meta property="og:updated_time" content="2022-06-30T14:54:22.580Z">
+<meta property="og:updated_time" content="2022-07-03T11:23:19.103Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Swift Protocol 背后的故事(实践)">
 <meta name="twitter:description" content="本系列文章将从实践技巧、实现原理以及追踪语言更新等方面对 Swift Protocol 展开深入讨论。主要内容有： Swift Protocol 背后的故事(实践)Swift Protocol 背后的故事(理论)Swift Protocol 背后的故事(Swift 5.6/5.7)… 本文是系列文章第一篇，主要介绍实践技巧，以一个 Protocol 相关的编译错误为引，通过实例对 Type Era">
@@ -346,7 +346,7 @@
                   <span class="post-meta-item-text">字数统计</span>
                 
                 <span title="字数统计">
-                  2,949
+                  2,987
                 </span>
               
 
@@ -394,6 +394,9 @@
 <p>我们的讨论从一个编译错误开始：</p>
 <blockquote>
 <p>Protocol ‘Equatable’ can only be used as a generic constraint because it has Self or associated type requirements.</p>
+</blockquote>
+<blockquote>
+<p><strong>2022 年 06 月 30 日更新：从 Swift 5.7 起不再会有这个错误了，详情请见 <a href="https://zxfcumtcs.github.io/2022/06/30/SwiftProtocol3/">Swift Protocol 背后的故事(Swift 5.6/5.7)</a>。</strong></p>
 </blockquote>
 <p>对于 Swift 开发者来说上面这个编译错误应该不陌生。</p>
 <p>其字面意思不难理解：含有 <code>Self</code> 或关联类型的协议只能用作泛型约束，不能单独作为类型使用。</p>
