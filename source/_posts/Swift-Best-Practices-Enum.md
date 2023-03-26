@@ -17,7 +17,7 @@ Swift 作为现代、高效、安全的编程语言，其背后有很多高级�
 
 - Enum
 
-- Closure
+- [Closure](https://juejin.cn/post/7214665617310892092)
 
 - Protocol
 
@@ -578,6 +578,32 @@ enum LinkNode<NodeType: Equatable>: Equatable {
   ```
   
   ![](/img/CaseAsFunction.png)
+
+- [Alamofire](https://github.com/Alamofire/Alamofire) 中的典型应用
+  
+  定义常量
+  
+  ![](/img/alamofire-enum-constant.png)
+  
+  命名空间
+  
+  ![](/img/alamofire-enum-namespacing.png)
+  
+  ![](/img/alamofire-enum-namespacing-debugdesc.png)
+  
+  用 enum 封装上传的数据类型，数据信息附加在关联值上
+  
+  ![](/img/alamofire-enum-data.png)
+  
+  询问业务方是否要重试时，封装业务返回的信息
+  
+  ![](/img/alamofire-enum-retryresult.png)
+  
+  对 Bool encoding 的封装，并提供辅助方法
+  
+  ![](/img/alamofire-enum-boolencoding.png)
+
+
 
 # 小结
 

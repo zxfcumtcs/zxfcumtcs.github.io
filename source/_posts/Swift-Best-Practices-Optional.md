@@ -15,9 +15,9 @@ Swift 作为现代、高效、安全的编程语言，其背后有很多高级�
 
 - Optional
 
-- Enum
+- [Enum](https://juejin.cn/post/7212143399036813349)
 
-- Closure
+- [Closure](https://juejin.cn/post/7214665617310892092)
 
 - Protocol
 
