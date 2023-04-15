@@ -41,13 +41,9 @@ Swift 作为现代、高效、安全的编程语言，其背后有很多高级�
 
 > ps. 本系列不是入门级语法教程，需要有一定的 Swift 基础
 
-
-
 本文是系列文章的第五篇，介绍  Generics，通过泛型可以写出更灵活、通用性更好的代码。
 
 > Write code that works for multiple types and **specify requirements for those types.** -- [Swift Docs · Generics](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/generics/)
-
-
 
 Swift 通过 Type Constraints 赋以 Generics 更强大的能力，可以更加灵活的控制 Generics 具备的能力和使用场景👍。
 
@@ -56,8 +52,6 @@ Swift 通过 Type Constraints 赋以 Generics 更强大的能力，可以更加�
 为此，Swift 在编译时会做特化处理 (Specialization) 以优化 Generics 的性能。
 
 Phantom Types 在 Swift 现有类型安全基础之上还可以进一步强化类型。
-
-
 
 # 邂逅 Generics
 
@@ -95,7 +89,7 @@ but，元素类型怎么是 `Any`❓
 //                       👇
 public struct BetterArray<T> {
   var storages: [T] = []
-  
+
   mutating func append(_ newElement: T) {
     storages.append(newElement)
   }
@@ -110,7 +104,7 @@ public struct BetterArray<T> {
 //                          👇
 public struct BetterArray<Element> {
   var storages: [Element] = []
-  
+
   mutating func append(_ newElement: Element) {
     storages.append(newElement)
   }
@@ -123,8 +117,6 @@ public struct BetterArray<Element> {
 //                            👇
 var betterArray = BetterArray<Int>()
 ```
-
-
 
 目前 `BetterArray` 的功能有点简单，给它添加一个 `index(of:)` 的能力，即检索某个元素的 index：
 
@@ -152,11 +144,11 @@ Referencing instance method 'firstIndex(of:)' on 'Collection' requires that 'Ele
 //                                    👇
 public struct BetterArray<Element: Equatable> {
   var storages: [Element] = []
-  
+
   mutating func append(_ newElement: Element) {
     storages.append(newElement)
   }
-  
+
   func index(of element: Element) -> Int? {
     storages.firstIndex(of: element)
   }
@@ -172,7 +164,7 @@ but，可能会接到投诉，我只是要用 `BetterArray` 做些存储，并�
 ```swift
 public struct BetterArray<Element> {
   // ...
-  
+
   //                                                        👇
   func index(of element: Element) -> Int? where Element: Equatable {
     storages.firstIndex(of: element)
@@ -197,7 +189,7 @@ betterArray.index(of: DemoElement())
 ```swift
 public struct BetterArray<Element> {
   // ...
-  
+
   //                                                        👇
   func index(of element: Element) -> Int? where Element: Equatable {
     storages.firstIndex(of: element)
@@ -220,14 +212,12 @@ extension BetterArray where Element: Equatable {
   func index(of element: Element) -> Int? {
     storages.firstIndex(of: element)
   }
-  
+
   mutating func remove(_ nouseElement: Element) {
     storages.removeAll { $0 == nouseElement }
   }
 }
 ```
-
-
 
 关于 Generic Type Constraints，有三种情况：
 
@@ -241,7 +231,7 @@ extension BetterArray where Element: Equatable {
       guard index < storages.count else {
         return nil
       }
-      
+  
       return storages[index].subviews
     }
   }
@@ -268,15 +258,11 @@ extension BetterArray where Element: Equatable {
 
 > Protocol associatedtype Constraints 也是上面 3 种情况。
 
-
-
 总之，Type Constraints 赋以 Generics 更大的操作空间。
 
 > 不加 Type Constraints 的泛型除了存储，其他基本上什么也做不了！
 > 
 > 连实例化都做不了，因为没有`init`方法！
-
-
 
 ## Generic Functions
 
@@ -329,8 +315,6 @@ let result = betterArray.map { _ in "" }
 
 - **编译时**，对 Generics 做特化处理 (Specialization)
 
-
-
 ## Boxing
 
 所谓 Boxing，与用于处理 Protocol 作为类型 (*Existential Type*) 时的 **Existential Container** 非常类似。
@@ -345,8 +329,6 @@ let result = betterArray.map { _ in "" }
 > 
 > - 指导如何查找实例方法的入口地址
 
-
-
 如上节所述，根据 Generic Type Constraints 的不同，可以分为三种情况：
 
 - **No Constraints**，这类泛型能做的事非常少，Boxing 只需关心 allocate、copy、destroy 等基本操作如何执行即可
@@ -356,8 +338,6 @@ let result = betterArray.map { _ in "" }
 - **Protocol Constraints**，除了 allocate、copy、destroy 以外，还需要通过 *PWT (Protocol Witness Table)* 存储协议中指定的方法，以便通过 generic-types 可以调用它们
   
   > 这里讨论的 Protocol 是没有 class constraint 的，对于只能由类实现的协议作为泛型约束时，其效果同上面讨论的 Class Constraints。
-
-
 
 > 通过 [SIL](https://github.com/apple/swift/blob/main/docs/SIL.rst) (Swift Intermediate Language) 可以大致了解 Swift 背后的实现原理。
 > 
@@ -369,15 +349,11 @@ let result = betterArray.map { _ in "" }
 > 
 > 后面要讲到的泛型特化 (Specialization of Generics) 也只有在 `-O` 优化下会发生。
 
-
-
 总之，Generics 对性能有影响，主要体现在 2 个方面：
 
 - Boxing 处理
 
 - 通过 Generics 调用的方法都是动态派发 (通过 VWT 或 PWT)
-
-
 
 ## Specialization
 
@@ -425,8 +401,6 @@ bb0(%0 : $*Int, %1 : $*Int):
 
 另外，在编译时若开启了 [Whole-Module Optimization](https://www.swift.org/blog/whole-module-optimizations/)，同一模块内部的泛型调用也可以被特化。
 
-
-
 # Phantom Types
 
 ---
@@ -473,7 +447,141 @@ Cannot convert value of type 'Employee' to expected argument type 'Employee'
 
 > 将 Phantom Types 定义成空 enum，使其无法被实例化，从而真正满足 Phantom Types 语义。
 
+# 小问题
 
+---
+
+下面这段代码在 ~Swift 5.7 上报错，*`Type 'any FooProtocol' cannot conform to 'FooProtocol'`：*
+
+```swift
+protocol FooProtocol {}
+struct Foo: FooProtocol {}
+
+func fooFunc<T: FooProtocol>(_ x: T?) {}
+
+func test() {
+  let foo: any FooProtocol = Foo()
+  fooFunc(foo)  // ❌ Type 'any FooProtocol' cannot conform to 'FooProtocol'
+}
+```
+
+而下面 2 个版本没问题：
+
+- 将 `any FooProtocol` --> `some FooProtocol`
+  
+  ```swift
+  protocol FooProtocol {}
+  struct Foo: FooProtocol {}
+  
+  func fooFunc<T: FooProtocol>(_ x: T?) {}
+  
+  func test() {
+    //        👇
+    let foo: some FooProtocol = Foo()
+    fooFunc(foo)  // ✅
+  }
+  ```
+
+- 将泛型参数从 `optional` --> `non-optional`
+  
+  ```swift
+  protocol FooProtocol {}
+  struct Foo: FooProtocol {}
+  
+  //                               👇
+  func fooFunc<T: FooProtocol>(_ x: T) {}
+  
+  func test() {
+    let foo: any FooProtocol = Foo()
+    fooFunc(foo)  // ✅
+  }
+  ```
+
+why  🤔🧐❓
+
+我们先来👀一个好理解的版本：
+
+```swift
+protocol FooProtocol {}
+struct Foo: FooProtocol {}
+
+func fooFunc<T: FooProtocol>(_ x: T?) {}
+
+func test() {
+  //                       👇
+  let foo: (any FooProtocol)? = Foo() // ❌ Type 'any FooProtocol' cannot conform to 'FooProtocol'
+  fooFunc(foo)
+}
+```
+
+上面这段代码编译报错，原因类似于：
+
+```swift
+fooFunc(nil)  // ❌ Generic parameter 'T' could not be inferred
+```
+
+参数是 `nil` 时，泛型类型没法确定！
+
+因此，也不能以 Optional 类型去调用泛型方法，这个要求合情合理。
+
+> 泛型方法若只有一个参数，不应将其定义为 Optional，如：
+> 
+> ```swift
+> func fooFunc<T: FooProtocol>(_ x: T?) {}
+> ```
+> 
+> 原因在于，永远不可能以 `nil` 或 Optional 变量去调用 `fooFunc`
+> 
+> 在有多个参数时，可以，如：
+> 
+> ```swift
+> func fooFunc2<T: FooProtocol>(_ x: T?, _ y: T) {}
+> fooFunc2(nil, Foo())
+> ```
+> 
+> 总之，在调用泛型方法时，相关泛型类型需要是明确的！
+
+关键是，上面是以 non-Optional 类型 (`let foo: any FooProtocol`) 调用的泛型方法 (`fooFunc`)，为何也不行❓
+
+![](/img/cannotOpen6.png)
+
+如上，[Swift-Evolution · 0352-implicit-open-existentials](https://github.com/apple/swift-evolution/blob/main/proposals/0352-implicit-open-existentials.md)
+
+简单讲，理论上可以，没问题，但 Apple 爸爸选择不可以！
+
+理由是，看起来很奇怪🤔
+
+好消息是，在 Swift 5.8 (Xcode 14.3) 上可以正确编译了 [Swift-Evolution · 0375-opening-existential-optional](https://github.com/apple/swift-evolution/blob/main/proposals/0375-opening-existential-optional.md)
+
+在 ~Swift 5.7 上可以通过类型擦除 (Type Erasure) 的方式解决：
+
+```swift
+protocol FooProtocol {
+  func bar()
+}
+
+struct Foo: FooProtocol {
+  func bar() {}
+}
+
+//       👇
+struct AnyFoo: FooProtocol {
+  let anyInstance: any FooProtocol
+
+  func bar() {
+    anyInstance.bar()
+  }
+}
+
+func fooFunc<T: FooProtocol>(_ x: T?) {}
+
+func test() {
+  let foo: any FooProtocol = Foo()
+
+  //        👇
+  fooFunc(AnyFoo(anyInstance: foo))
+}
+```
 
 # 小结
 
@@ -482,8 +590,6 @@ Cannot convert value of type 'Employee' to expected argument type 'Employee'
  Generics 也会带来一定的性能损耗，通过泛型特化 (Specialization) 可以优化 Generics 性能。
 
 Phantom Types 作为一种通用编码技巧，在 Swift 中同样可以用来实现类型增加。
-
-
 
 # 参考资料
 
@@ -494,6 +600,10 @@ Phantom Types 作为一种通用编码技巧，在 Swift 中同样可以用来�
 [Swift Docs · Generics](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/generics/)
 
 [swift/OptimizationTips.rst at main · apple/swift · GitHub](https://github.com/apple/swift/blob/main/docs/OptimizationTips.rst)
+
+[Swift-Evolution · 0375-opening-existential-optional](https://github.com/apple/swift-evolution/blob/main/proposals/0375-opening-existential-optional.md)
+
+[Swift-Evolution · 0352-implicit-open-existentials](https://github.com/apple/swift-evolution/blob/main/proposals/0352-implicit-open-existentials.md)
 
 [Whats behind swift generic system?](https://nekitosss.github.io/programming/2019-05-12-swift-generics/)
 
