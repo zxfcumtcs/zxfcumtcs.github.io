@@ -25,11 +25,7 @@ Swift 作为现代、高效、安全的编程语言，其背后有很多高级�
 
 - Property Wrapper
 
-- Structured Concurrent
-
-- Result builder
-
-- Error Handle
+- Error Handling
 
 - Advanced Collections (Asyncsequeue/OptionSet/Lazy)
 
